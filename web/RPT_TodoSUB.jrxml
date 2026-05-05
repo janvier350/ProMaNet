@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="530" pageHeight="600" columnWidth="530" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="4b86fa17-a894-4ca3-b806-5779f7a35129">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Row" mode="Transparent" fontName="Times New Roman" pdfFontName="Times-Roman">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Opaque" backcolor="#F0EFEF"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="idDet" class="java.lang.String"/>
+	<parameter name="NombreUser" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<queryString>
+		<![CDATA[select * from tododettarea WHERE ESTADO='A' AND idtododettrab = $P{idDet}]]>
+	</queryString>
+	<field name="IDTODODETTAREA" class="java.math.BigDecimal"/>
+	<field name="IDTODODETTRAB" class="java.math.BigDecimal"/>
+	<field name="FECHAHORAINICIO" class="java.sql.Timestamp"/>
+	<field name="FECHAHORAFIN" class="java.sql.Timestamp"/>
+	<field name="ESTADO" class="java.lang.String"/>
+	<field name="DETALLE" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="5" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="19" splitType="Stretch">
+			<staticText>
+				<reportElement x="18" y="5" width="55" height="12" uuid="c7dcd2b0-2b9c-4c3f-99ed-a07cd54bfd12"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tareas de:]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="72" y="5" width="100" height="12" uuid="6c034fa9-8fc9-4a1c-a04c-98a7a4c79015"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{NombreUser}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="17" splitType="Stretch">
+			<rectangle radius="10">
+				<reportElement x="8" y="1" width="500" height="15" backcolor="#CCCCCC" uuid="3b6d19c6-b043-4a90-92a1-5cb33ba5f74c"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<staticText>
+				<reportElement x="18" y="3" width="82" height="12" uuid="c5613323-d7a6-41bd-9479-a158ee3bc377"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha de Inicio]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="126" y="3" width="76" height="12" uuid="72da1451-6cb3-49b4-8b3d-9c06dd97c14f"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha Fin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="269" y="3" width="76" height="12" uuid="37ad5f74-a146-45a4-bedf-5fd6a1cb99c1"/>
+				<textElement>
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Detalle]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<frame>
+				<reportElement mode="Opaque" x="10" y="-1" width="498" height="18" uuid="2fca9925-f8b1-4193-bd12-c7a9d50753f6"/>
+				<textField>
+					<reportElement x="109" y="3" width="80" height="12" uuid="ee4ae70d-5904-4e22-8479-17c055e349ec"/>
+					<textElement>
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{FECHAHORAFIN}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="6" y="3" width="80" height="12" uuid="d6a6ee98-7834-49f4-944a-c5416f9a5c7e"/>
+					<textElement>
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{FECHAHORAINICIO}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="210" y="3" width="282" height="12" uuid="9530df4f-0f5b-4ac1-b903-d10643ce40bf"/>
+					<textElement>
+						<font size="8"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{DETALLE}]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="4" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="8" splitType="Stretch">
+			<line>
+				<reportElement x="8" y="0" width="500" height="1" uuid="75278fba-ac88-42de-ba02-87a031f406da"/>
+				<graphicElement>
+					<pen lineWidth="0.75"/>
+				</graphicElement>
+			</line>
+		</band>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

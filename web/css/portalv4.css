@@ -1,0 +1,26 @@
+
+.bebe-personalizado
+{
+    background: #0e7ac4;
+    border-radius: 0px;
+}
+.baba-personalizado
+{
+    color:white;
+    text-shadow:none;
+}
+.baba-personalizado:hover
+{
+ color:white;  
+}
+.bibi-personalizado>li>a
+{
+    color:white;
+    text-shadow:none;
+}
+.bibi-personalizado>li>a:hover{
+    background-color: #0e68b8
+}
+.app-bar{
+    background: white;
+}

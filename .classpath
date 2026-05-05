@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry excluding="java/" kind="src" path="src/java"/>
+	<classpathentry kind="src" path="src/java/java"/>
+	<classpathentry kind="lib" path="AbsoluteLayout.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/AbsoluteLayout.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-beanutils-1.8.0.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-collections-2.1.1.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-digester-2.1.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-javaflow-20060411.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/groovy-all-2.0.1.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/itext-5.0.5.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/jasperreports-5.5.0.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/jasperreports-fonts-5.5.0.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/ojdbc6.jar"/>
+	<classpathentry kind="lib" path="build/web/WEB-INF/lib/servlet-api-2.4.jar"/>
+	<classpathentry kind="lib" path="commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="commons-io-2.2.jar"/>
+	<classpathentry kind="lib" path="itext-5.0.5.jar"/>
+	<classpathentry kind="lib" path="Librerias/commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/AbsoluteLayout.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/commons-beanutils-1.8.0.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/commons-collections-2.1.1.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/commons-digester-2.1.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/commons-javaflow-20060411.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/commons-logging-1.1.1.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/groovy-all-2.0.1.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/itext-2.1.7.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/jasperreports-5.5.0.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/jasperreports-fonts-5.5.0.jar"/>
+	<classpathentry kind="lib" path="Librerias/jasperReports/servlet-api-2.4.jar"/>
+	<classpathentry kind="lib" path="Librerias/ojdbc6.jar"/>
+	<classpathentry kind="lib" path="ojdbc6.jar"/>
+	<classpathentry kind="output" path="build/web/WEB-INF/classes"/>
+</classpath>

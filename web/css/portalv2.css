@@ -1,0 +1,24 @@
+*{
+	padding:0;
+	margin:0;
+	-webkit-box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	box-sizing:border-box;
+}
+.container{
+	width:95%;
+	max-width:1000px;
+	margin:auto;
+}
+#largo{
+	width:659px;
+	height:150px;
+}
+.corto{
+	width:307px;
+	height:150px;
+}
+.titulo1{
+    background: #1F4E78;
+    color: white;
+}
