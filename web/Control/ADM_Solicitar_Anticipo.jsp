@@ -421,8 +421,16 @@ System.out.println("Estado del corte: " + validacionFecha);
 
                                 </div>
                                 <hr class="horizontal dark">
-                                <p>Solicite su anticipo de sueldo antes de la fecha límite  <h3><%= corte %> </h3></p>
+                                <p>Solicite su anticipo de sueldo antes de la fecha límite <h3><%= corte %></h3></p>
 
+                                <% if (validacionFecha == 1) { %>
+                                <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius:8px;">
+                                    <i class="fa fa-exclamation-triangle me-3" style="font-size:1.5rem;"></i>
+                                    <div>
+                                        <strong>Plazo vencido.</strong> La fecha límite para solicitar anticipos fue el <strong><%= corte %></strong>. No es posible realizar nuevas solicitudes.
+                                    </div>
+                                </div>
+                                <% } else { %>
                                 <form action="../CTRL_Insert_Anticipo" method="post" onsubmit="return validarAnticipo()"> 
 
                                     <div class="col-md-6">
@@ -444,6 +452,7 @@ System.out.println("Estado del corte: " + validacionFecha);
                                         </button>
                                     </div>
                                 </form>
+                                <% } %>
 
                                 <!--<p class="text-uppercase text-sm">Cambiar Contraseña</p>-->   
                                 <!--                                <form action="../Insert_Solicitud_Anticipo.jsp" method="post"> 
