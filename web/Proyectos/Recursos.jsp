@@ -585,7 +585,7 @@
                                                                 <span class="text-xs">VAT Number: <span class="text-dark ms-sm-2 font-weight-bold">FRB1235476</span></span>-->
                                         </div>
                                         <div class="ms-auto text-end"> 
-                                            <a class="btn btn-link text-danger text-gradient px-3 mb-0" href="https://www.buadnet.com.ec/wp-content/uploads/2025/05/PORTAFOLIO-DE-SERVICIOS-BUADNET-2025-1.pdf" target="_blank" rel="noopener noreferrer">
+                                            <a class="btn btn-link text-danger text-gradient px-3 mb-0" href="https://www.buadnet.com.ec/wp-content/uploads/2026/05/Portafolio-de-Servicios-Buadnet-2026.pdf" target="_blank" rel="noopener noreferrer">
                                                 <i class="far fa-file-pdf me-2"></i>PDF
                                             </a>
 
@@ -619,7 +619,7 @@
                                                                 <span class="text-xs">VAT Number: <span class="text-dark ms-sm-2 font-weight-bold">FRB1235476</span></span>-->
                                         </div>
                                         <div class="ms-auto text-end">
-                                            <a class="btn btn-link text-primary text-gradient px-3 mb-0" href="https://www.buadnet.com.ec/wp-content/uploads/2023/08/PORTADA-Y-CONTRAPORTADA.docx"><i class="fa fa-file-powerpoint-o me-2"></i>Word</a>
+                                            <a class="btn btn-link text-primary text-gradient px-3 mb-0" href="https://www.buadnet.com.ec/wp-content/uploads/2026/05/PORTADA-Y-CONTRAPORTADA.docx"><i class="fa fa-file-powerpoint-o me-2"></i>Word</a>
                                             <!--                    <a class="btn btn-link text-dark px-3 mb-0" href="javascript:;"><i class="fas fa-pencil-alt text-dark me-2" aria-hidden="true"></i>Edit</a>-->
                                         </div>
                                     </li>
