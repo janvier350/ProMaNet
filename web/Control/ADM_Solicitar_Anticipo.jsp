@@ -65,7 +65,7 @@ String compania = (String) session.getAttribute("compania");
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn3 = DriverManager.getConnection(url, user, pass);
 
-            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC FETCH FIRST 1 ROWS ONLY";
+            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM (SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1";
 
             PreparedStatement st3 = cn3.prepareStatement(fecha_corte);
             ResultSet rs3 = st3.executeQuery();
