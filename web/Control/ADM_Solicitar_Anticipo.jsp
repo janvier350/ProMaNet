@@ -65,33 +65,28 @@ String compania = (String) session.getAttribute("compania");
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn3 = DriverManager.getConnection(url, user, pass);
 
-            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC";
+            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC FETCH FIRST 1 ROWS ONLY";
 
             PreparedStatement st3 = cn3.prepareStatement(fecha_corte);
             ResultSet rs3 = st3.executeQuery();
 
-            // 1. Creamos la variable para la validación
-            int validacionFecha = 0; 
-            // 2. Obtenemos la fecha actual del sistema
+            int validacionFecha = 0;
             java.util.Date hoy = new java.util.Date();
 
-            while (rs3.next()) {
+            if (rs3.next()) {
                 int id = rs3.getInt("ID_FECHA_CORTE");
-                java.sql.Date fecha = rs3.getDate("FECHA_CORTE"); // Fecha de la DB
+                java.sql.Date fecha = rs3.getDate("FECHA_CORTE");
                 String estado = rs3.getString("ESTADO");
 
                 System.out.println("ID: " + id + " - Fecha Corte: " + fecha);
 
-                // Guardamos la fecha en tu variable de cadena
-                corte = rs3.getString(2); 
-
-                // 3. Lógica de comparación
                 if (fecha != null) {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+                    corte = sdf.format(fecha);
+
                     if (hoy.after(fecha)) {
-                        // Si la fecha de HOY es DESPUÉS de la fecha de corte -> YA PASÓ
                         validacionFecha = 1;
                     } else {
-                        // Si la fecha de HOY es ANTES o IGUAL a la fecha de corte -> AÚN NO LLEGA
                         validacionFecha = 2;
                     }
                 }
