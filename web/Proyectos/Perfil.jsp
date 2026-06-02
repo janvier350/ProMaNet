@@ -943,41 +943,124 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
         <script async defer src="https://buttons.github.io/buttons.js"></script>
         <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
-        <script>
-        function iniciarDictado(textareaId, btnId) {
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                alert('Tu navegador no soporta dictado por voz. Usa Chrome o Edge.');
+        <!-- Indicador de carga del modelo Whisper -->
+        <div id="whisperStatus" style="display:none; position:fixed; bottom:20px; right:20px; z-index:9999; background:#fff; border-left:4px solid #fb6340; border-radius:8px; padding:10px 16px; box-shadow:0 2px 12px rgba(0,0,0,0.15); font-size:13px;">
+            <i class="fa fa-spinner fa-spin me-2" style="color:#fb6340;"></i>
+            <span id="whisperStatusMsg">Cargando modelo de voz...</span>
+            <div style="margin-top:6px; height:4px; background:#f0f0f0; border-radius:2px;">
+                <div id="whisperProgress" style="height:4px; background:#fb6340; border-radius:2px; width:0%; transition:width 0.3s;"></div>
+            </div>
+        </div>
+
+        <script type="module">
+        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+
+        // Usar cache del navegador (IndexedDB) para no descargar el modelo cada vez
+        env.allowLocalModels = false;
+
+        let transcriber = null;
+        let mediaRecorder = null;
+
+        function mostrarEstado(msg, progreso) {
+            const el = document.getElementById('whisperStatus');
+            const msgEl = document.getElementById('whisperStatusMsg');
+            const progEl = document.getElementById('whisperProgress');
+            el.style.display = 'block';
+            msgEl.textContent = msg;
+            if (progreso !== undefined) progEl.style.width = progreso + '%';
+        }
+
+        function ocultarEstado() {
+            document.getElementById('whisperStatus').style.display = 'none';
+        }
+
+        async function cargarModelo() {
+            if (transcriber) return transcriber;
+            mostrarEstado('Descargando modelo de voz (primera vez ~40MB)...', 0);
+            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
+                progress_callback: (p) => {
+                    if (p.progress) {
+                        mostrarEstado('Cargando modelo... ' + Math.round(p.progress) + '%', Math.round(p.progress));
+                    }
+                }
+            });
+            ocultarEstado();
+            return transcriber;
+        }
+
+        // Pre-cargar el modelo al abrir la página
+        cargarModelo();
+
+        window.iniciarDictado = async function(textareaId, btnId) {
+            const btn = document.getElementById(btnId);
+            const textarea = document.getElementById(textareaId);
+
+            // Si ya está grabando → detener
+            if (btn.dataset.recording === 'true') {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
                 return;
             }
-            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            var recognition = new SpeechRecognition();
-            recognition.lang = 'es-EC';
-            recognition.continuous = false;
-            recognition.interimResults = false;
 
-            var btn = document.getElementById(btnId);
-            var textarea = document.getElementById(textareaId);
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Tu navegador no permite acceso al micrófono.');
+                return;
+            }
 
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            } catch(err) {
+                alert('Permiso de micrófono denegado. Habilítalo en la configuración del navegador.');
+                return;
+            }
+
+            btn.dataset.recording = 'true';
             btn.classList.remove('btn-outline-danger');
             btn.classList.add('btn-danger');
-            btn.innerHTML = '<i class="fa fa-microphone"></i> Escuchando...';
-            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-stop"></i> Detener';
 
-            recognition.onresult = function(event) {
-                var transcript = event.results[0][0].transcript;
-                textarea.value += (textarea.value ? ' ' : '') + transcript;
-            };
-            recognition.onerror = function(event) {
-                console.error('Error dictado:', event.error);
-            };
-            recognition.onend = function() {
+            const chunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+
+            mediaRecorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Procesando...';
+                btn.disabled = true;
+
+                try {
+                    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
+                    const arrayBuffer = await blob.arrayBuffer();
+                    const audioCtx = new AudioContext({ sampleRate: 16000 });
+                    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+                    const float32 = decoded.getChannelData(0);
+
+                    mostrarEstado('Transcribiendo...', 100);
+                    const model = await cargarModelo();
+                    const result = await model(float32, { language: 'spanish', task: 'transcribe' });
+                    ocultarEstado();
+
+                    const texto = result.text.trim();
+                    if (texto) {
+                        textarea.value += (textarea.value ? ' ' : '') + texto;
+                    }
+                } catch(err) {
+                    ocultarEstado();
+                    console.error('Error al transcribir:', err);
+                    alert('Error al procesar el audio. Intenta de nuevo.');
+                }
+
+                btn.dataset.recording = 'false';
                 btn.classList.remove('btn-danger');
                 btn.classList.add('btn-outline-danger');
                 btn.innerHTML = '<i class="fa fa-microphone"></i> Dictar';
                 btn.disabled = false;
             };
-            recognition.start();
-        }
+
+            mediaRecorder.start();
+        };
         </script>
     </body>
 </html>
