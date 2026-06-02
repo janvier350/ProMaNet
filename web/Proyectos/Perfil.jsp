@@ -546,7 +546,10 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
 
                                                 <div class="col-lg-12">
 
-                                                    <textarea  type="text"  name="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                    <textarea type="text" name="soporteGenerado" id="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                    <button type="button" id="btnMicSoporteGenerado" onclick="iniciarDictado('soporteGenerado', 'btnMicSoporteGenerado')" class="btn btn-sm btn-outline-danger mt-2" title="Dictado por voz">
+                                                        <i class="fa fa-microphone"></i> Dictar
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -748,7 +751,10 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
 
                                                     <div class="col-lg-12">
 
-                                                        <textarea  type="text"  name="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                        <textarea type="text" name="soporte" id="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                        <button type="button" id="btnMicSoporte" onclick="iniciarDictado('soporte', 'btnMicSoporte')" class="btn btn-sm btn-outline-danger mt-2" title="Dictado por voz">
+                                                            <i class="fa fa-microphone"></i> Dictar
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -937,5 +943,41 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
         <script async defer src="https://buttons.github.io/buttons.js"></script>
         <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+        <script>
+        function iniciarDictado(textareaId, btnId) {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('Tu navegador no soporta dictado por voz. Usa Chrome o Edge.');
+                return;
+            }
+            var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            var recognition = new SpeechRecognition();
+            recognition.lang = 'es-EC';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            var btn = document.getElementById(btnId);
+            var textarea = document.getElementById(textareaId);
+
+            btn.classList.remove('btn-outline-danger');
+            btn.classList.add('btn-danger');
+            btn.innerHTML = '<i class="fa fa-microphone"></i> Escuchando...';
+            btn.disabled = true;
+
+            recognition.onresult = function(event) {
+                var transcript = event.results[0][0].transcript;
+                textarea.value += (textarea.value ? ' ' : '') + transcript;
+            };
+            recognition.onerror = function(event) {
+                console.error('Error dictado:', event.error);
+            };
+            recognition.onend = function() {
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-outline-danger');
+                btn.innerHTML = '<i class="fa fa-microphone"></i> Dictar';
+                btn.disabled = false;
+            };
+            recognition.start();
+        }
+        </script>
     </body>
 </html>
