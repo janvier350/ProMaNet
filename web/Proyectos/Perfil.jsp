@@ -463,10 +463,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <button type="submit"  class="btn btn-success">
                                                 <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEÑA</button>
                                         </div>
-                                        <!--                  <label>Current Password</label>
-                                                            <div class="form-group pass_show"> 
-                                                        <input type="password" value="faisalkhan@123" class="form-control" placeholder="Current Password"> 
-                                                    </div>-->
                                         <style>
                                             .pass_show{
                                                 position: relative
@@ -529,10 +525,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                          <form action="../INV_InsertSoporteGenerado" method="POST">
                                     <div>
                                         <span class="text-danger text-sm font-weight-bolder">Generar soporte: </span>
-                                        <!--                                            <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                                                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial</button> 
-                                                                                    </a>-->
-                                        <!--<i class="ni education_hat mr-2 text-bg-danger"></i><b>Solicitar soporte: </b>--> 
                                         <p><em>Generar ticket para usuario especifico.</em></p>
 
                                     </div>
@@ -546,7 +538,11 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
 
                                                 <div class="col-lg-12">
 
-                                                    <textarea  type="text"  name="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                    <textarea type="text" name="soporteGenerado" id="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                    <iframe src="https://buadnet.com.ec/dictado.html?target=soporteGenerado"
+                                                            allow="microphone"
+                                                            style="border:none; width:130px; height:34px; margin-top:6px; display:block;"
+                                                            title="Dictado por voz"></iframe>
                                                 </div>
                                             </div>
                                         </div>
@@ -557,7 +553,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <div class="form-group">
                                                 <label>Prioridad: </label>
                                                 <div class="input-group mb-3">
-                                                    <!--<input type="number" class="form-control"  aria-label="Email" aria-describedby="email-addon" name="alimentacion" id="alimentacion" value="3.50">-->
                                                     <select class="chosen-select form-control" id="prioridad_soporteGenerado" name ="prioridad_soporteGenerado">
 
                                                         <option value="Alta">Alta</option>                                                 
@@ -575,7 +570,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                             try{
                                                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                                                             Connection   cn4 = DriverManager.getConnection(url, user, pass);
-//                                                                              String empresa = "select * from compania where estado = 'a'  order by 2";
                                                               String usuarios = "Select IDUSUARIO, NOMBRE||' '||APELLIDOS as nombre,IDROL,ESTADO From usuario where ESTADO ='a'  order by 2";
                                                             PreparedStatement st4 = cn4.prepareStatement(usuarios);
                                                             ResultSet rs4 = st4.executeQuery();       
@@ -600,8 +594,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                 <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                 <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
 
-                                                <!--        <label for="apellidos" class="form-control-label">Apellidos</label>
-                                                        <input class="form-control" type="text" placeholder="Apellidos completos y bien escritos (datos de la cédula)" name="apellidos" required="true">-->
                                             </div>
                                         </div>
                                     </div>
@@ -623,43 +615,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                          <%
                                           }%>
                                 
-                                <!--<p class="text-uppercase text-sm">Contact Information</p>-->
-                                <!--              <div class="row">
-                                                <div class="col-md-12">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Address</label>
-                                                    <input class="form-control" type="text" value="Bld Mihail Kogalniceanu, nr. 8 Bl 1, Sc 1, Ap 09">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">City</label>
-                                                    <input class="form-control" type="text" value="New York">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Country</label>
-                                                    <input class="form-control" type="text" value="United States">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Postal code</label>
-                                                    <input class="form-control" type="text" value="437300">
-                                                  </div>
-                                                </div>
-                                              </div>-->
-                                <!--<hr class="horizontal dark">-->
-                                <!--<p class="text-uppercase text-sm">About me</p>-->
-                                <!--              <div class="row">
-                                                <div class="col-md-12">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">About me</label>
-                                                    <input class="form-control" type="text" value="A beautiful Dashboard for Bootstrap 5. It is Free and Open Source.">
-                                                  </div>
-                                                </div>
-                                              </div>-->
                             </div>
                         </div>
                     </div>
@@ -678,7 +633,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <div class="card-header text-center border-0 pt-0 pt-lg-2 pb-4 pb-lg-3">
                                 <div class="d-flex justify-content-between">
                                     <a href="#" class="btn btn-sm btn-info mb-0 d-none d-lg-block">Solicitar</a>
-                                    <!--<a href="https://youtu.be/Zr7a9Hq8NW0" class="btn btn-sm btn-danger mb-0 d-none d-lg-block">Tutorial</a>-->
                                     <a href="javascript:;" class="btn btn-sm btn-info mb-0 d-block d-lg-none"><i class="ni ni-collection"></i></a>
                                     <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
                                         <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Ticket Soporte </button> 
@@ -731,10 +685,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <form action="../insertSoporte" method="POST">
                                         <div>
                                             <span class="text-danger text-sm font-weight-bolder">Solicitar soporte: </span>
-                                            <!--                                            <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                                                                            <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial</button> 
-                                                                                        </a>-->
-                                            <!--<i class="ni education_hat mr-2 text-bg-danger"></i><b>Solicitar soporte: </b>--> 
                                             <p><em>Tu equipo asigando presenta muchos problemas!! , entoces solicita un soporte al departamento de IT.</em></p>
 
                                         </div>
@@ -748,7 +698,11 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
 
                                                     <div class="col-lg-12">
 
-                                                        <textarea  type="text"  name="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                        <textarea type="text" name="soporte" id="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
+                                                        <iframe src="https://buadnet.com.ec/dictado.html?target=soporte"
+                                                                allow="microphone"
+                                                                style="border:none; width:130px; height:34px; margin-top:6px; display:block;"
+                                                                title="Dictado por voz"></iframe>
                                                     </div>
                                                 </div>
                                             </div>
@@ -759,7 +713,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                 <div class="form-group">
                                                     <label>Prioridad: </label>
                                                     <div class="input-group mb-3">
-                                                        <!--<input type="number" class="form-control"  aria-label="Email" aria-describedby="email-addon" name="alimentacion" id="alimentacion" value="3.50">-->
                                                         <select class="chosen-select form-control" id="prioridad" name ="prioridad">
 
                                                             <option value="Alta">Alta</option>                                                 
@@ -772,8 +725,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                     <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                     <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
 
-                                                    <!--        <label for="apellidos" class="form-control-label">Apellidos</label>
-                                                            <input class="form-control" type="text" placeholder="Apellidos completos y bien escritos (datos de la cédula)" name="apellidos" required="true">-->
                                                 </div>
                                             </div>
                                         </div>
@@ -904,18 +855,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
                         </div>
                     </div>
-                    <!--        <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/argon-dashboard">Free Download</a>
-                            <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard">View documentation</a>
-                            <div class="w-100 text-center">
-                              <a class="github-button" href="https://github.com/creativetimofficial/argon-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/argon-dashboard on GitHub">Star</a>
-                              <h6 class="mt-3">Thank you for sharing!</h6>
-                              <a href="https://twitter.com/intent/tweet?text=Check%20Argon%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fargon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
-                              </a>
-                              <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                <i class="fab fa-facebook-square me-1" aria-hidden="true"></i> Share
-                              </a>
-                            </div>-->
                 </div>
             </div>
         </div>
@@ -937,5 +876,19 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
         <script async defer src="https://buttons.github.io/buttons.js"></script>
         <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+        <script>
+        window.addEventListener('message', function(event) {
+            if (event.origin !== 'https://buadnet.com.ec') return;
+            if (event.data && event.data.type === 'transcript') {
+                var textarea = document.getElementById(event.data.targetId);
+                if (textarea) {
+                    textarea.value += (textarea.value ? ' ' : '') + event.data.text;
+                }
+            }
+            if (event.data && event.data.type === 'error') {
+                alert(event.data.msg);
+            }
+        });
+        </script>
     </body>
 </html>
