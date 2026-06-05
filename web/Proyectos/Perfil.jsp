@@ -137,7 +137,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     <a class="nav-link " href="../Proyectos/PRO_Contactos.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fa fa-users text-success text-sm opacity-10"></i>
-                            <!--ni ni-single-copy-04-->
                         </div> 
                         <span class="nav-link-text ms-1">Contactos</span>
                     </a>
@@ -166,11 +165,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         <span class="nav-link-text ms-1">Reporte de Gastos</span>
                     </a>
                 </li>
-
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link " href="../Proyectos/Perfil.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -178,10 +175,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         </div>
                         <span class="nav-link-text ms-1">Perfil</span>
                     </a>
-                    <!--control de acceso--> 
                     <%if(usuario.equals("uparrales")){%>
                     <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
-
                     <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -194,27 +189,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         </div>
                         <span class="nav-link-text ms-1">Inventario</span>
                     </a>
-
                     <%}%>
-
-                   
                 </li>
-                <!--        <li class="nav-item">
-                          <a class="nav-link " href="../pages/sign-in.html">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                              <i class="ni ni-single-copy-04 text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Sign In</span>
-                          </a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link " href="../pages/sign-up.html">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                              <i class="ni ni-collection text-info text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Sign Up</span>
-                          </a>
-                        </li>-->
             </ul>
             <div class="sidenav-footer mx-3 ">
                 <div class="card card-plain shadow-none" id="sidenavCard">
@@ -222,7 +198,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     <div class="card-body text-center p-3 w-100 pt-0">
                         <div class="docs-info">
                             <h6 class="mb-0">Necesitas ayuda?</h6>
-                            <p class="text-xs font-weight-bold mb-0">isita nuestro Tutorial</p>
+                            <p class="text-xs font-weight-bold mb-0">Visita nuestro Tutorial</p>
                         </div>
                     </div>
                 </div>
@@ -231,7 +207,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
             </div>
         </aside>
         <div class="main-content position-relative max-height-vh-100 h-100">
-            <!-- Navbar -->
             <nav class="navbar navbar-main navbar-expand-lg bg-transparent shadow-none position-absolute px-4 w-100 z-index-2 mt-n11">
                 <div class="container-fluid py-1">
                     <nav aria-label="breadcrumb">
@@ -348,7 +323,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     </div>
                 </div>
             </nav>
-            <!-- End Navbar -->
             <div class="card shadow-lg mx-4 card-profile-bottom">
                 <div class="card-body p-3">
                     <div class="row gx-4">
@@ -401,7 +375,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <div class="card-header pb-0">
                                 <div class="d-flex align-items-center">
                                     <p class="mb-0">Datos personales</p>
-                                    <!--<button class="btn btn-primary btn-sm ms-auto">Settings</button>-->
                                 </div>
                             </div>
                             <div class="card-body">
@@ -446,7 +419,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <hr class="horizontal dark">
                                     <p class="text-uppercase text-sm">Cambiar Contraseña</p>
                                     <form action="../ActualizarContrasena.jsp" method="post"> 
-
                                         <div class="col-md-6">
                                             <div class="form-group pass_show">
                                                 <label for="example-text-input" class="form-control-label">Contraseña Actual</label>
@@ -460,96 +432,50 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <button type="submit"  class="btn btn-success">
+                                            <button type="submit" class="btn btn-success">
                                                 <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEÑA</button>
                                         </div>
-                                        <!--                  <label>Current Password</label>
-                                                            <div class="form-group pass_show"> 
-                                                        <input type="password" value="faisalkhan@123" class="form-control" placeholder="Current Password"> 
-                                                    </div>-->
                                         <style>
-                                            .pass_show{
-                                                position: relative
-                                            }
-
+                                            .pass_show{ position: relative }
                                             .pass_show .ptxt {
-
-                                                position: absolute;
-
-                                                top: 50%;
-
-                                                right: 10px;
-
-                                                z-index: 1;
-
-                                                color: #f36c01;
-
-                                                margin-top: -10px;
-
-                                                cursor: pointer;
-
-                                                transition: .3s ease all;
-
+                                                position: absolute; top: 50%; right: 10px; z-index: 1;
+                                                color: #f36c01; margin-top: -10px; cursor: pointer; transition: .3s ease all;
                                             }
-
-                                            .pass_show .ptxt:hover{
-                                                color: #333333;
-                                            }
-
+                                            .pass_show .ptxt:hover{ color: #333333; }
                                         </style>
                                         <script>
-
                                             $(document).ready(function () {
                                                 $('.pass_show').append('<span class="ptxt">Show</span>');
                                             });
-
-
                                             $(document).on('click', '.pass_show .ptxt', function () {
-
                                                 $(this).text($(this).text() == "Show" ? "Hide" : "Show");
-
                                                 $(this).prev().attr('type', function (index, attr) {
                                                     return attr == 'password' ? 'text' : 'password';
                                                 });
-
                                             });
                                         </script>
                                     </form>
-
                                 </div>
                                 <hr class="horizontal dark">
                                 <br>
                                 <hr class="horizontal dark">
-                                
-                              
-                        
                                 <%
                                      if(apellidos.equals("Varas Herrera")){
-                                         %>
-                                         <form action="../INV_InsertSoporteGenerado" method="POST">
+                                %>
+                                <form action="../INV_InsertSoporteGenerado" method="POST">
                                     <div>
                                         <span class="text-danger text-sm font-weight-bolder">Generar soporte: </span>
-                                        <!--                                            <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                                                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial</button> 
-                                                                                    </a>-->
-                                        <!--<i class="ni education_hat mr-2 text-bg-danger"></i><b>Solicitar soporte: </b>--> 
                                         <p><em>Generar ticket para usuario especifico.</em></p>
-
                                     </div>
-
-
-
                                     <div class="row">
-
                                         <div class="col-md-12">
                                             <div class="form-group">
-
                                                 <div class="col-lg-12">
-
                                                     <textarea type="text" name="soporteGenerado" id="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
-                                                    <button type="button" id="btnMicSoporteGenerado" onclick="iniciarDictado('soporteGenerado', 'btnMicSoporteGenerado')" class="btn btn-sm btn-outline-danger mt-2" title="Dictado por voz">
-                                                        <i class="fa fa-microphone"></i> Dictar
-                                                    </button>
+                                                    <iframe src="https://buadnet.com.ec/dictado.html?target=soporteGenerado"
+                                                            allow="microphone"
+                                                            style="border:none; width:130px; height:34px; margin-top:6px; display:block;"
+                                                            title="Dictado por voz"></iframe>
                                                 </div>
                                             </div>
                                         </div>
@@ -560,32 +486,24 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <div class="form-group">
                                                 <label>Prioridad: </label>
                                                 <div class="input-group mb-3">
-                                                    <!--<input type="number" class="form-control"  aria-label="Email" aria-describedby="email-addon" name="alimentacion" id="alimentacion" value="3.50">-->
-                                                    <select class="chosen-select form-control" id="prioridad_soporteGenerado" name ="prioridad_soporteGenerado">
-
+                                                    <select class="chosen-select form-control" id="prioridad_soporteGenerado" name="prioridad_soporteGenerado">
                                                         <option value="Alta">Alta</option>                                                 
                                                         <option value="Media">Media</option> 
                                                         <option value="Baja">Baja</option> 
-
                                                     </select>
                                                 </div>
                                                 <div class="form-group">
-                                                    <select class="chosen-select form-control" id="idEjecutivo_soporteGenerado" name ="idEjecutivo_soporteGenerado"  onChange='cargarDatos()'>
+                                                    <select class="chosen-select form-control" id="idEjecutivo_soporteGenerado" name="idEjecutivo_soporteGenerado" onChange='cargarDatos()'>
                                                         <option value="">Elija a un ejecutivo</option>  
-
                                                         <%
-                                                            // or estado = 'i' 
                                                             try{
                                                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                                            Connection   cn4 = DriverManager.getConnection(url, user, pass);
-//                                                                              String empresa = "select * from compania where estado = 'a'  order by 2";
-                                                              String usuarios = "Select IDUSUARIO, NOMBRE||' '||APELLIDOS as nombre,IDROL,ESTADO From usuario where ESTADO ='a'  order by 2";
+                                                            Connection cn4 = DriverManager.getConnection(url, user, pass);
+                                                            String usuarios = "Select IDUSUARIO, NOMBRE||' '||APELLIDOS as nombre,IDROL,ESTADO From usuario where ESTADO ='a' order by 2";
                                                             PreparedStatement st4 = cn4.prepareStatement(usuarios);
                                                             ResultSet rs4 = st4.executeQuery();       
                                                             while (rs4.next()) {
-
-                                                        %>                    
-
+                                                        %>
                                                         <option value="<%=rs4.getString(1)%>"> <%=rs4.getString(2)%></option>
                                                         <%
                                                             }     
@@ -595,74 +513,26 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                         }catch(Exception e){
                                                              e.printStackTrace();
                                                         }
-
-                                                        %>       
+                                                        %>
                                                     </select>
                                                 </div>  
                                                 <p><em><strong>Alta:</strong> Equipo constantemente inestable imposible continuar mis actividades laborales.</em></p>
                                                 <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                 <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
-
-                                                <!--        <label for="apellidos" class="form-control-label">Apellidos</label>
-                                                        <input class="form-control" type="text" placeholder="Apellidos completos y bien escritos (datos de la cédula)" name="apellidos" required="true">-->
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-
-
-
-                                    </div>
                                     <div class="modal-footer">
-                                        <button type="#" class="btn btn-info"  href="">
-                                            <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes.jsp">
+                                        <button type="#" class="btn btn-info" href="">
+                                            <a class="nav-link" href="../Soportes/SOP_ListaSolicitudes.jsp">
                                                 <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
                                         </button>
-                                        <button type="submit" class="btn btn-success" >
+                                        <button type="submit" class="btn btn-success">
                                             <i class="fa fa-save" aria-hidden="true">  </i>    Enviar Solicitud 
                                         </button>
                                     </div>
                                 </form>
-                                         <%
-                                          }%>
-                                
-                                <!--<p class="text-uppercase text-sm">Contact Information</p>-->
-                                <!--              <div class="row">
-                                                <div class="col-md-12">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Address</label>
-                                                    <input class="form-control" type="text" value="Bld Mihail Kogalniceanu, nr. 8 Bl 1, Sc 1, Ap 09">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">City</label>
-                                                    <input class="form-control" type="text" value="New York">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Country</label>
-                                                    <input class="form-control" type="text" value="United States">
-                                                  </div>
-                                                </div>
-                                                <div class="col-md-4">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">Postal code</label>
-                                                    <input class="form-control" type="text" value="437300">
-                                                  </div>
-                                                </div>
-                                              </div>-->
-                                <!--<hr class="horizontal dark">-->
-                                <!--<p class="text-uppercase text-sm">About me</p>-->
-                                <!--              <div class="row">
-                                                <div class="col-md-12">
-                                                  <div class="form-group">
-                                                    <label for="example-text-input" class="form-control-label">About me</label>
-                                                    <input class="form-control" type="text" value="A beautiful Dashboard for Bootstrap 5. It is Free and Open Source.">
-                                                  </div>
-                                                </div>
-                                              </div>-->
+                                <%}%>
                             </div>
                         </div>
                     </div>
@@ -681,10 +551,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <div class="card-header text-center border-0 pt-0 pt-lg-2 pb-4 pb-lg-3">
                                 <div class="d-flex justify-content-between">
                                     <a href="#" class="btn btn-sm btn-info mb-0 d-none d-lg-block">Solicitar</a>
-                                    <!--<a href="https://youtu.be/Zr7a9Hq8NW0" class="btn btn-sm btn-danger mb-0 d-none d-lg-block">Tutorial</a>-->
                                     <a href="javascript:;" class="btn btn-sm btn-info mb-0 d-block d-lg-none"><i class="ni ni-collection"></i></a>
-                                    <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Ticket Soporte </button> 
+                                    <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank">
+                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube">   Tutorial: Ticket Soporte </button> 
                                     </a>
                                     <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-none d-lg-block">Reportar</a>
                                     <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-block d-lg-none"><i class="ni ni-email-83"></i></a>
@@ -710,12 +579,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     </div>
                                 </div>
                                 <div class="text-center mt-4">
-                                    <h5>
-                                        Marca :<span class="font-weight-light"><%=marca%></span>
-                                    </h5>
-                                    <h5>
-                                        Modelo :<span class="font-weight-light"><%=modelo%></span>
-                                    </h5>
+                                    <h5>Marca :<span class="font-weight-light"><%=marca%></span></h5>
+                                    <h5>Modelo :<span class="font-weight-light"><%=modelo%></span></h5>
                                     <div class="h6 font-weight-300">
                                         <i class="ni location_pin mr-2"></i>Serial: <%=serial%>
                                     </div>
@@ -725,7 +590,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <div class="h6 mt-4">
                                         <i class="ni business_briefcase-24 mr-2"></i>Fecha Asignación - <%=fechaasignacion%>
                                     </div>
-
                                     <div>
                                         <i class="ni education_hat mr-2"></i><b>Observaciones: </b>  - <%=observaciones%>
                                     </div>
@@ -734,27 +598,17 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <form action="../insertSoporte" method="POST">
                                         <div>
                                             <span class="text-danger text-sm font-weight-bolder">Solicitar soporte: </span>
-                                            <!--                                            <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                                                                            <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial</button> 
-                                                                                        </a>-->
-                                            <!--<i class="ni education_hat mr-2 text-bg-danger"></i><b>Solicitar soporte: </b>--> 
-                                            <p><em>Tu equipo asigando presenta muchos problemas!! , entoces solicita un soporte al departamento de IT.</em></p>
-
+                                            <p><em>Tu equipo asignado presenta muchos problemas!! , entonces solicita un soporte al departamento de IT.</em></p>
                                         </div>
-
-
-
                                         <div class="row">
-
                                             <div class="col-md-12">
                                                 <div class="form-group">
-
                                                     <div class="col-lg-12">
-
                                                         <textarea type="text" name="soporte" id="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
-                                                        <button type="button" id="btnMicSoporte" onclick="iniciarDictado('soporte', 'btnMicSoporte')" class="btn btn-sm btn-outline-danger mt-2" title="Dictado por voz">
-                                                            <i class="fa fa-microphone"></i> Dictar
-                                                        </button>
+                                                        <iframe src="https://buadnet.com.ec/dictado.html?target=soporte"
+                                                                allow="microphone"
+                                                                style="border:none; width:130px; height:34px; margin-top:6px; display:block;"
+                                                                title="Dictado por voz"></iframe>
                                                     </div>
                                                 </div>
                                             </div>
@@ -765,21 +619,15 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                 <div class="form-group">
                                                     <label>Prioridad: </label>
                                                     <div class="input-group mb-3">
-                                                        <!--<input type="number" class="form-control"  aria-label="Email" aria-describedby="email-addon" name="alimentacion" id="alimentacion" value="3.50">-->
-                                                        <select class="chosen-select form-control" id="prioridad" name ="prioridad">
-
+                                                        <select class="chosen-select form-control" id="prioridad" name="prioridad">
                                                             <option value="Alta">Alta</option>                                                 
                                                             <option value="Media">Media</option> 
                                                             <option value="Baja">Baja</option> 
-
                                                         </select>
                                                     </div>
                                                     <p><em><strong>Alta:</strong> Equipo constantemente inestable imposible continuar mis actividades laborales.</em></p>
                                                     <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                     <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
-
-                                                    <!--        <label for="apellidos" class="form-control-label">Apellidos</label>
-                                                            <input class="form-control" type="text" placeholder="Apellidos completos y bien escritos (datos de la cédula)" name="apellidos" required="true">-->
                                                 </div>
                                             </div>
                                         </div>
@@ -787,7 +635,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <input type="hidden" name="idUsuario" value="<%=codigo %>">
                                             <input type="hidden" name="idEquipo" value="<%=idinvequipo %>">
                                             <div class="row justify-content-center text-center mb-4">
-                                                <!-- Imagen del equipo con modal -->
                                                 <div class="col-md-6">
                                                     <img src="../INV_MostrarImagenEquipo?nombre=equipo_<%=idInvEquipo%>"
                                                          alt="Imagen del equipo"
@@ -797,7 +644,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                          data-bs-target="#modalImagenEquipo" />
                                                 </div>
                                             </div>
-                                            <!-- Modal de imagen -->
                                             <div class="modal fade" id="modalImagenEquipo" tabindex="-1" aria-labelledby="modalImagenLabel" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg">
                                                     <div class="modal-content bg-transparent border-0">
@@ -811,30 +657,28 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="#" class="btn btn-info"  href="">
-                                                <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes.jsp">
+                                            <button type="#" class="btn btn-info" href="">
+                                                <a class="nav-link" href="../Soportes/SOP_ListaSolicitudes.jsp">
                                                     <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
                                             </button>
-                                            <button type="submit" class="btn btn-success" >
+                                            <button type="submit" class="btn btn-success">
                                                 <i class="fa fa-save" aria-hidden="true">  </i>    Enviar Solicitud 
                                             </button>
                                         </div>
                                     </form>
-
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <footer class="footer pt-3  ">
+                <footer class="footer pt-3">
                     <div class="container-fluid">
                         <div class="row align-items-center justify-content-lg-between">
                             <div class="col-lg-6 mb-lg-0 mb-4">
                                 <div class="copyright text-center text-sm text-muted text-lg-start">
-                                    Overclocking
-                                    ©,
-                                    Creado por  <i class="fa fa-clock"></i> by
-                                    <a href="https://www.overclocking.com.ec" class="font-weight-bold" target="_blank">Javier </a>
+                                    Overclocking ©,
+                                    Creado por <i class="fa fa-clock"></i> by
+                                    <a href="https://www.overclocking.com.ec" class="font-weight-bold" target="_blank">Javier</a>
                                     Varas
                                 </div>
                             </div>
@@ -864,7 +708,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 <i class="fa fa-cog py-2"> </i>
             </a>
             <div class="card shadow-lg">
-                <div class="card-header pb-0 pt-3 ">
+                <div class="card-header pb-0 pt-3">
                     <div class="float-start">
                         <h5 class="mt-3 mb-0">Argon Configurator</h5>
                         <p>See our dashboard options.</p>
@@ -874,11 +718,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <i class="fa fa-close"></i>
                         </button>
                     </div>
-                    <!-- End Toggle Button -->
                 </div>
                 <hr class="horizontal dark my-1">
                 <div class="card-body pt-sm-3 pt-0 overflow-auto">
-                    <!-- Sidebar Backgrounds -->
                     <div>
                         <h6 class="mb-0">Sidebar Colors</h6>
                     </div>
@@ -892,7 +734,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
                         </div>
                     </a>
-                    <!-- Sidenav Type -->
                     <div class="mt-3">
                         <h6 class="mb-0">Sidenav Type</h6>
                         <p class="text-sm">Choose between 2 different sidenav types.</p>
@@ -902,7 +743,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         <button class="btn bg-gradient-primary w-100 px-3 mb-2" data-class="bg-default" onclick="sidebarType(this)">Dark</button>
                     </div>
                     <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>
-                    <!-- Navbar Fixed -->
                     <hr class="horizontal dark my-sm-4">
                     <div class="mt-2 mb-5 d-flex">
                         <h6 class="mb-0">Light / Dark</h6>
@@ -910,157 +750,35 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
                         </div>
                     </div>
-                    <!--        <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/argon-dashboard">Free Download</a>
-                            <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard">View documentation</a>
-                            <div class="w-100 text-center">
-                              <a class="github-button" href="https://github.com/creativetimofficial/argon-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/argon-dashboard on GitHub">Star</a>
-                              <h6 class="mt-3">Thank you for sharing!</h6>
-                              <a href="https://twitter.com/intent/tweet?text=Check%20Argon%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fargon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
-                              </a>
-                              <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                <i class="fab fa-facebook-square me-1" aria-hidden="true"></i> Share
-                              </a>
-                            </div>-->
                 </div>
             </div>
         </div>
-        <!--   Core JS Files   -->
         <script src="../assets/js/core/popper.min.js"></script>
         <script src="../assets/js/core/bootstrap.min.js"></script>
         <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
         <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
         <script>
-                                var win = navigator.platform.indexOf('Win') > -1;
-                                if (win && document.querySelector('#sidenav-scrollbar')) {
-                                    var options = {
-                                        damping: '0.5'
-                                    }
-                                    Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-                                }
+            var win = navigator.platform.indexOf('Win') > -1;
+            if (win && document.querySelector('#sidenav-scrollbar')) {
+                var options = { damping: '0.5' }
+                Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+            }
         </script>
-        <!-- Github buttons -->
         <script async defer src="https://buttons.github.io/buttons.js"></script>
-        <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
-        <!-- Indicador de carga del modelo Whisper -->
-        <div id="whisperStatus" style="display:none; position:fixed; bottom:20px; right:20px; z-index:9999; background:#fff; border-left:4px solid #fb6340; border-radius:8px; padding:10px 16px; box-shadow:0 2px 12px rgba(0,0,0,0.15); font-size:13px;">
-            <i class="fa fa-spinner fa-spin me-2" style="color:#fb6340;"></i>
-            <span id="whisperStatusMsg">Cargando modelo de voz...</span>
-            <div style="margin-top:6px; height:4px; background:#f0f0f0; border-radius:2px;">
-                <div id="whisperProgress" style="height:4px; background:#fb6340; border-radius:2px; width:0%; transition:width 0.3s;"></div>
-            </div>
-        </div>
-
-        <script type="module">
-        import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
-
-        // Usar cache del navegador (IndexedDB) para no descargar el modelo cada vez
-        env.allowLocalModels = false;
-
-        let transcriber = null;
-        let mediaRecorder = null;
-
-        function mostrarEstado(msg, progreso) {
-            const el = document.getElementById('whisperStatus');
-            const msgEl = document.getElementById('whisperStatusMsg');
-            const progEl = document.getElementById('whisperProgress');
-            el.style.display = 'block';
-            msgEl.textContent = msg;
-            if (progreso !== undefined) progEl.style.width = progreso + '%';
-        }
-
-        function ocultarEstado() {
-            document.getElementById('whisperStatus').style.display = 'none';
-        }
-
-        async function cargarModelo() {
-            if (transcriber) return transcriber;
-            mostrarEstado('Descargando modelo de voz (primera vez ~40MB)...', 0);
-            transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny', {
-                progress_callback: (p) => {
-                    if (p.progress) {
-                        mostrarEstado('Cargando modelo... ' + Math.round(p.progress) + '%', Math.round(p.progress));
-                    }
+        <script>
+        window.addEventListener('message', function(event) {
+            if (event.origin !== 'https://buadnet.com.ec') return;
+            if (event.data && event.data.type === 'transcript') {
+                var textarea = document.getElementById(event.data.targetId);
+                if (textarea) {
+                    textarea.value += (textarea.value ? ' ' : '') + event.data.text;
                 }
-            });
-            ocultarEstado();
-            return transcriber;
-        }
-
-        // Pre-cargar el modelo al abrir la página
-        cargarModelo();
-
-        window.iniciarDictado = async function(textareaId, btnId) {
-            const btn = document.getElementById(btnId);
-            const textarea = document.getElementById(textareaId);
-
-            // Si ya está grabando → detener
-            if (btn.dataset.recording === 'true') {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-                return;
             }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert('Tu navegador no permite acceso al micrófono.');
-                return;
+            if (event.data && event.data.type === 'error') {
+                alert(event.data.msg);
             }
-
-            let stream;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            } catch(err) {
-                alert('Permiso de micrófono denegado. Habilítalo en la configuración del navegador.');
-                return;
-            }
-
-            btn.dataset.recording = 'true';
-            btn.classList.remove('btn-outline-danger');
-            btn.classList.add('btn-danger');
-            btn.innerHTML = '<i class="fa fa-stop"></i> Detener';
-
-            const chunks = [];
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-
-            mediaRecorder.onstop = async () => {
-                stream.getTracks().forEach(t => t.stop());
-                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Procesando...';
-                btn.disabled = true;
-
-                try {
-                    const blob = new Blob(chunks, { type: mediaRecorder.mimeType });
-                    const arrayBuffer = await blob.arrayBuffer();
-                    const audioCtx = new AudioContext({ sampleRate: 16000 });
-                    const decoded = await audioCtx.decodeAudioData(arrayBuffer);
-                    const float32 = decoded.getChannelData(0);
-
-                    mostrarEstado('Transcribiendo...', 100);
-                    const model = await cargarModelo();
-                    const result = await model(float32, { language: 'spanish', task: 'transcribe' });
-                    ocultarEstado();
-
-                    const texto = result.text.trim();
-                    if (texto) {
-                        textarea.value += (textarea.value ? ' ' : '') + texto;
-                    }
-                } catch(err) {
-                    ocultarEstado();
-                    console.error('Error al transcribir:', err);
-                    alert('Error al procesar el audio. Intenta de nuevo.');
-                }
-
-                btn.dataset.recording = 'false';
-                btn.classList.remove('btn-danger');
-                btn.classList.add('btn-outline-danger');
-                btn.innerHTML = '<i class="fa fa-microphone"></i> Dictar';
-                btn.disabled = false;
-            };
-
-            mediaRecorder.start();
-        };
+        });
         </script>
     </body>
 </html>
