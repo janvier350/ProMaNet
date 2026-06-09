@@ -186,6 +186,7 @@
     <nav class="nav flex-column pt-3">
         <a class="nav-link active" href="INV_Dashboard_Suministro.jsp"><i class="fa fa-home mr-2"></i>Dashboard</a>
         <a class="nav-link" href="INV_Lista_Solicitudes_Suministro.jsp"><i class="fa fa-list mr-2"></i>Lista de solicitudes</a>
+        <a class="nav-link" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
         <div class="nav-section">Ingresos</div>
         <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
         <div class="nav-section">Panel de control</div>
@@ -250,7 +251,8 @@
                     <div class="card-body">
                         <a href="INV_Lista_Solicitudes_Suministro.jsp" class="btn btn-warning btn-sm btn-block mb-2"><i class="fa fa-inbox mr-1"></i>Ver pendientes<% if(totalPendiente>0){ %> <span class="badge badge-dark"><%=totalPendiente%></span><% } %></a>
                         <a href="INV_Ingreso_Suministro2.jsp" class="btn btn-primary btn-sm btn-block mb-2"><i class="fa fa-plus mr-1"></i>Registrar ingreso</a>
-                        <a href="INV_Lista_Solicitudes_Suministro.jsp?estado=ENTREGADO" class="btn btn-success btn-sm btn-block"><i class="fa fa-check-circle mr-1"></i>Historial de despachos</a>
+                        <a href="INV_Existencias_Dashboard.jsp" class="btn btn-success btn-sm btn-block mb-2"><i class="fa fa-bar-chart mr-1"></i>Existencias y Alertas</a>
+                        <a href="INV_Lista_Solicitudes_Suministro.jsp?estado=ENTREGADO" class="btn btn-secondary btn-sm btn-block"><i class="fa fa-check-circle mr-1"></i>Historial de despachos</a>
                     </div>
                 </div>
             </div>
