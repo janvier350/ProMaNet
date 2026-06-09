@@ -2,9 +2,12 @@ package INVENTARIO;
 
 import java.io.IOException;
 import java.sql.*;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.*;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet(name = "INV_Confirmar_Despacho", urlPatterns = {"/INV_Confirmar_Despacho"})
 public class INV_Confirmar_Despacho extends HttpServlet {
@@ -15,18 +18,23 @@ public class INV_Confirmar_Despacho extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("usuario") == null) {
-            response.sendRedirect("ProMaNet/sesionExpirada.jsp"); return;
+            response.sendRedirect(request.getContextPath() + "/sesionExpirada.jsp");
+            return;
         }
+
         String cargo = (String) session.getAttribute("cargo");
         if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
                 || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
-            response.sendRedirect("ProMaNet/sesionInvalida.jsp"); return;
+            response.sendRedirect(request.getContextPath() + "/sesionInvalida.jsp");
+            return;
         }
 
         String idCabParam = request.getParameter("idCab");
         String forzar     = request.getParameter("forzar");
+
         if (idCabParam == null || idCabParam.replaceAll("[^0-9]", "").isEmpty()) {
-            response.sendRedirect("ProMaNet/Inventario/INV_Lista_Solicitudes_Suministro.jsp"); return;
+            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+            return;
         }
         int idCab = Integer.parseInt(idCabParam.replaceAll("[^0-9]", ""));
 
@@ -41,7 +49,7 @@ public class INV_Confirmar_Despacho extends HttpServlet {
             cn = DriverManager.getConnection(url, user, pass);
             cn.setAutoCommit(false);
 
-            // 1. Verificar que la solicitud existe y está PENDIENTE
+            /* 1. Verificar que la solicitud existe y está PENDIENTE */
             PreparedStatement stCheck = cn.prepareStatement(
                 "SELECT ESTADO_SOLICITUD FROM INV_SUMINISTRO_EGRESO_CAB WHERE ID_SUMINISTRO_EGRESO_CAB = ?");
             stCheck.setInt(1, idCab);
@@ -49,75 +57,104 @@ public class INV_Confirmar_Despacho extends HttpServlet {
             if (!rsCheck.next() || !"PENDIENTE".equals(rsCheck.getString(1))) {
                 rsCheck.close(); stCheck.close(); cn.rollback(); cn.close();
                 session.setAttribute("msg_error", "La solicitud no existe o ya fue procesada.");
-                response.sendRedirect("ProMaNet/Inventario/INV_Lista_Solicitudes_Suministro.jsp"); return;
+                response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+                return;
             }
             rsCheck.close(); stCheck.close();
 
-            // 2. Obtener productos
+            /* 2. Obtener productos del detalle */
             PreparedStatement stDet = cn.prepareStatement(
-                "SELECT ID_PRODUCTO, CANTIDAD FROM INV_SUMINISTRO_EGRESO_DET WHERE ID_SUMINISTRO_EGRESO_CAB = ?");
+                "SELECT ID_PRODUCTO, CANTIDAD FROM INV_SUMINISTRO_EGRESO_DET " +
+                "WHERE ID_SUMINISTRO_EGRESO_CAB = ?");
             stDet.setInt(1, idCab);
             ResultSet rsDet = stDet.executeQuery();
+
+            boolean stockInsuficiente = false;
+
             java.util.List<Integer> productos  = new java.util.ArrayList<>();
             java.util.List<Integer> cantidades = new java.util.ArrayList<>();
-            while (rsDet.next()) { productos.add(rsDet.getInt(1)); cantidades.add(rsDet.getInt(2)); }
+
+            while (rsDet.next()) {
+                productos.add(rsDet.getInt(1));
+                cantidades.add(rsDet.getInt(2));
+            }
             rsDet.close(); stDet.close();
 
-            // 3. Verificar stock si no se fuerza
+            /* 3. Verificar stock para cada producto */
             if (!"true".equals(forzar)) {
                 for (int i = 0; i < productos.size(); i++) {
                     PreparedStatement stStock = cn.prepareStatement(
-                        "SELECT NVL(EXISTENCIA,0) FROM INV_SUMINISTRO_EXISTENCIA WHERE ID_PRODUCTO=? AND ROWNUM=1");
+                        "SELECT NVL(EXISTENCIA, 0) FROM INV_SUMINISTRO_EXISTENCIA " +
+                        "WHERE ID_PRODUCTO = ? AND ROWNUM = 1");
                     stStock.setInt(1, productos.get(i));
                     ResultSet rsStock = stStock.executeQuery();
                     int stockActual = rsStock.next() ? rsStock.getInt(1) : 0;
                     rsStock.close(); stStock.close();
                     if (stockActual < cantidades.get(i)) {
-                        cn.rollback(); cn.close();
-                        session.setAttribute("msg_error", "Stock insuficiente. Marque la casilla para forzar el despacho.");
-                        response.sendRedirect("ProMaNet/Inventario/INV_Despachar_Suministro.jsp?id=" + idCab); return;
+                        stockInsuficiente = true;
+                        break;
                     }
                 }
             }
 
-            // 4. Descontar existencia
+            if (stockInsuficiente) {
+                cn.rollback(); cn.close();
+                session.setAttribute("msg_error",
+                    "Stock insuficiente para uno o más productos. Marque la casilla de confirmación para forzar el despacho.");
+                response.sendRedirect(request.getContextPath() + "/Inventario/INV_Despachar_Suministro.jsp?id=" + idCab);
+                return;
+            }
+
+            /* 4. Descontar existencia de cada producto */
             for (int i = 0; i < productos.size(); i++) {
-                int idProd = productos.get(i); int cantidad = cantidades.get(i);
+                int idProd   = productos.get(i);
+                int cantidad = cantidades.get(i);
+
                 PreparedStatement stExCheck = cn.prepareStatement(
-                    "SELECT COUNT(*) FROM INV_SUMINISTRO_EXISTENCIA WHERE ID_PRODUCTO=?");
+                    "SELECT COUNT(*) FROM INV_SUMINISTRO_EXISTENCIA WHERE ID_PRODUCTO = ?");
                 stExCheck.setInt(1, idProd);
                 ResultSet rsExCheck = stExCheck.executeQuery();
                 int exCount = rsExCheck.next() ? rsExCheck.getInt(1) : 0;
                 rsExCheck.close(); stExCheck.close();
+
                 if (exCount > 0) {
                     PreparedStatement stUpd = cn.prepareStatement(
-                        "UPDATE INV_SUMINISTRO_EXISTENCIA SET EXISTENCIA = EXISTENCIA - ? WHERE ID_PRODUCTO = ?");
-                    stUpd.setInt(1, cantidad); stUpd.setInt(2, idProd);
-                    stUpd.executeUpdate(); stUpd.close();
+                        "UPDATE INV_SUMINISTRO_EXISTENCIA SET EXISTENCIA = EXISTENCIA - ? " +
+                        "WHERE ID_PRODUCTO = ?");
+                    stUpd.setInt(1, cantidad);
+                    stUpd.setInt(2, idProd);
+                    stUpd.executeUpdate();
+                    stUpd.close();
                 }
             }
 
-            // 5. Marcar como ENTREGADO
+            /* 5. Actualizar estado de la solicitud a ENTREGADO */
             PreparedStatement stUpCab = cn.prepareStatement(
-                "UPDATE INV_SUMINISTRO_EGRESO_CAB SET ESTADO_SOLICITUD='ENTREGADO' WHERE ID_SUMINISTRO_EGRESO_CAB=?");
-            stUpCab.setInt(1, idCab); stUpCab.executeUpdate(); stUpCab.close();
+                "UPDATE INV_SUMINISTRO_EGRESO_CAB SET ESTADO_SOLICITUD = 'ENTREGADO' " +
+                "WHERE ID_SUMINISTRO_EGRESO_CAB = ?");
+            stUpCab.setInt(1, idCab);
+            stUpCab.executeUpdate();
+            stUpCab.close();
 
-            cn.commit(); cn.close();
-            session.setAttribute("msg_exito", "Solicitud #" + idCab + " despachada correctamente. Stock actualizado.");
-            response.sendRedirect("ProMaNet/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+            cn.commit();
+            cn.close();
+
+            session.setAttribute("msg_exito",
+                "Solicitud #" + idCab + " despachada correctamente. El stock fue actualizado.");
+            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
 
         } catch (Exception ex) {
             ex.printStackTrace();
             try { if (cn != null) cn.rollback(); } catch (Exception e2) {}
             try { if (cn != null) cn.close();   } catch (Exception e2) {}
             session.setAttribute("msg_error", "Error al procesar el despacho: " + ex.getMessage());
-            response.sendRedirect("ProMaNet/Inventario/INV_Despachar_Suministro.jsp?id=" + idCab);
+            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Despachar_Suministro.jsp?id=" + idCab);
         }
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect("ProMaNet/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+        response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
     }
 }
