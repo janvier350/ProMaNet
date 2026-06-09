@@ -48,6 +48,11 @@
         "LEFT JOIN USUARIO ua          ON e.ID_USUARIO_AUTO = ua.IDUSUARIO " +
         whereEstado + " ORDER BY e.FECHA_SOLICITUD DESC";
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+
+    String msgExito = (String) session.getAttribute("msg_exito");
+    String msgError = (String) session.getAttribute("msg_error");
+    session.removeAttribute("msg_exito");
+    session.removeAttribute("msg_error");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -108,6 +113,20 @@
         <h4><i class="fa fa-inbox mr-2"></i>Solicitudes de Suministros</h4>
     </div>
     <div class="content-area">
+
+        <% if (msgExito != null) { %>
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-check-circle mr-1"></i><%=msgExito%>
+        </div>
+        <% } %>
+        <% if (msgError != null) { %>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-exclamation-triangle mr-1"></i><%=msgError%>
+        </div>
+        <% } %>
+
         <div class="card mb-3">
             <div class="card-body py-2">
                 <form method="get" class="form-inline">
@@ -120,6 +139,7 @@
                 </form>
             </div>
         </div>
+
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span class="font-weight-bold" style="font-size:.95rem;"><i class="fa fa-clipboard mr-1"></i>Solicitudes &mdash;
@@ -162,13 +182,20 @@
                                     <% } %>
                                 </td>
                                 <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#modalDetalle"
-                                            data-id="<%=idCab%>" data-estado="<%=estado%>" data-depto="<%=depto%>" data-solic="<%=solic%>" data-fecha="<%=fecha%>">
+                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                            data-toggle="modal" data-target="#modalDetalle"
+                                            data-id="<%=idCab%>" data-estado="<%=estado%>"
+                                            data-depto="<%=depto%>" data-solic="<%=solic%>" data-fecha="<%=fecha%>">
                                         <i class="fa fa-eye"></i> Ver
                                     </button>
                                     <% if ("PENDIENTE".equals(estado)) { %>
                                     <a href="INV_Despachar_Suministro.jsp?id=<%=idCab%>" class="btn btn-sm btn-success ml-1">
                                         <i class="fa fa-check"></i> Despachar
+                                    </a>
+                                    <% } else { %>
+                                    <a href="INV_Comprobante_Egreso.jsp?id=<%=idCab%>" target="_blank"
+                                       class="btn btn-sm btn-info ml-1" title="Imprimir comprobante de entrega">
+                                        <i class="fa fa-print"></i> Comprobante
                                     </a>
                                     <% } %>
                                 </td>
@@ -191,6 +218,8 @@
         </div>
     </div>
 </div>
+
+<!-- Modal detalle -->
 <div class="modal fade" id="modalDetalle" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -209,12 +238,13 @@
                 <div id="modalProductos"><div class="text-center text-muted py-3"><i class="fa fa-spinner fa-spin mr-1"></i>Cargando...</div></div>
             </div>
             <div class="modal-footer">
-                <span id="modalDespacharBtn"></span>
+                <span id="modalAccionBtn"></span>
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
+
 <footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
 <script>
 $('#modalDetalle').on('show.bs.modal', function(event) {
@@ -222,9 +252,9 @@ $('#modalDetalle').on('show.bs.modal', function(event) {
         depto=btn.data('depto'), solic=btn.data('solic'), fecha=btn.data('fecha');
     $('#modalId').text(id); $('#modalFecha').text(fecha); $('#modalDepto').text(depto); $('#modalSolic').text(solic);
     if (estado==='PENDIENTE') {
-        $('#modalDespacharBtn').html('<a href="INV_Despachar_Suministro.jsp?id='+id+'" class="btn btn-success btn-sm"><i class="fa fa-check mr-1"></i>Despachar</a>');
+        $('#modalAccionBtn').html('<a href="INV_Despachar_Suministro.jsp?id='+id+'" class="btn btn-success btn-sm"><i class="fa fa-check mr-1"></i>Despachar</a>');
     } else {
-        $('#modalDespacharBtn').html('<span class="text-success"><i class="fa fa-check-circle mr-1"></i>Ya fue entregada</span>');
+        $('#modalAccionBtn').html('<a href="INV_Comprobante_Egreso.jsp?id='+id+'" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-print mr-1"></i>Imprimir Comprobante</a>');
     }
     $('#modalProductos').html('<div class="text-center text-muted py-3"><i class="fa fa-spinner fa-spin mr-1"></i>Cargando...</div>');
     $.get('INV_Detalle_Egreso_Ajax.jsp?id='+id, function(data){ $('#modalProductos').html(data); })

@@ -69,31 +69,25 @@ public class INV_Confirmar_Despacho extends HttpServlet {
             stDet.setInt(1, idCab);
             ResultSet rsDet = stDet.executeQuery();
 
-            boolean stockInsuficiente = false;
-
             java.util.List<Integer> productos  = new java.util.ArrayList<>();
             java.util.List<Integer> cantidades = new java.util.ArrayList<>();
-
             while (rsDet.next()) {
                 productos.add(rsDet.getInt(1));
                 cantidades.add(rsDet.getInt(2));
             }
             rsDet.close(); stDet.close();
 
-            /* 3. Verificar stock para cada producto */
+            /* 3. Verificar stock */
+            boolean stockInsuficiente = false;
             if (!"true".equals(forzar)) {
                 for (int i = 0; i < productos.size(); i++) {
                     PreparedStatement stStock = cn.prepareStatement(
-                        "SELECT NVL(EXISTENCIA, 0) FROM INV_SUMINISTRO_EXISTENCIA " +
-                        "WHERE ID_PRODUCTO = ? AND ROWNUM = 1");
+                        "SELECT NVL(SUM(EXISTENCIA), 0) FROM INV_SUMINISTRO_EXISTENCIA WHERE ID_PRODUCTO = ?");
                     stStock.setInt(1, productos.get(i));
                     ResultSet rsStock = stStock.executeQuery();
                     int stockActual = rsStock.next() ? rsStock.getInt(1) : 0;
                     rsStock.close(); stStock.close();
-                    if (stockActual < cantidades.get(i)) {
-                        stockInsuficiente = true;
-                        break;
-                    }
+                    if (stockActual < cantidades.get(i)) { stockInsuficiente = true; break; }
                 }
             }
 
@@ -105,22 +99,19 @@ public class INV_Confirmar_Despacho extends HttpServlet {
                 return;
             }
 
-            /* 4. Descontar existencia de cada producto */
+            /* 4. Descontar existencia */
             for (int i = 0; i < productos.size(); i++) {
                 int idProd   = productos.get(i);
                 int cantidad = cantidades.get(i);
-
                 PreparedStatement stExCheck = cn.prepareStatement(
                     "SELECT COUNT(*) FROM INV_SUMINISTRO_EXISTENCIA WHERE ID_PRODUCTO = ?");
                 stExCheck.setInt(1, idProd);
                 ResultSet rsExCheck = stExCheck.executeQuery();
                 int exCount = rsExCheck.next() ? rsExCheck.getInt(1) : 0;
                 rsExCheck.close(); stExCheck.close();
-
                 if (exCount > 0) {
                     PreparedStatement stUpd = cn.prepareStatement(
-                        "UPDATE INV_SUMINISTRO_EXISTENCIA SET EXISTENCIA = EXISTENCIA - ? " +
-                        "WHERE ID_PRODUCTO = ?");
+                        "UPDATE INV_SUMINISTRO_EXISTENCIA SET EXISTENCIA = EXISTENCIA - ? WHERE ID_PRODUCTO = ?");
                     stUpd.setInt(1, cantidad);
                     stUpd.setInt(2, idProd);
                     stUpd.executeUpdate();
@@ -128,7 +119,7 @@ public class INV_Confirmar_Despacho extends HttpServlet {
                 }
             }
 
-            /* 5. Actualizar estado de la solicitud a ENTREGADO */
+            /* 5. Marcar como ENTREGADO */
             PreparedStatement stUpCab = cn.prepareStatement(
                 "UPDATE INV_SUMINISTRO_EGRESO_CAB SET ESTADO_SOLICITUD = 'ENTREGADO' " +
                 "WHERE ID_SUMINISTRO_EGRESO_CAB = ?");
@@ -139,14 +130,13 @@ public class INV_Confirmar_Despacho extends HttpServlet {
             cn.commit();
             cn.close();
 
-            session.setAttribute("msg_exito",
-                "Solicitud #" + idCab + " despachada correctamente. El stock fue actualizado.");
-            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+            /* Redirigir al comprobante con auto-impresión */
+            response.sendRedirect(request.getContextPath() +
+                "/Inventario/INV_Comprobante_Egreso.jsp?id=" + idCab + "&imprimir=true");
 
         } catch (Exception ex) {
             ex.printStackTrace();
-            try { if (cn != null) cn.rollback(); } catch (Exception e2) {}
-            try { if (cn != null) cn.close();   } catch (Exception e2) {}
+            try { if (cn != null) { cn.rollback(); cn.close(); } } catch (Exception e2) {}
             session.setAttribute("msg_error", "Error al procesar el despacho: " + ex.getMessage());
             response.sendRedirect(request.getContextPath() + "/Inventario/INV_Despachar_Suministro.jsp?id=" + idCab);
         }
