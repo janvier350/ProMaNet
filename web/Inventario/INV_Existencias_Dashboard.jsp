@@ -140,7 +140,7 @@
                 ") WHERE ROWNUM <= 10");
         ResultSet rsTop = stTop.executeQuery();
         while (rsTop.next()) {
-            String d = rsTop.getString(1).replace("\\", "\\\\").replace("\"", "\\\"");
+            String d = rsTop.getString(1).replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"");
             jTopLbl.append("\"").append(d).append("\",");
             jTopDat.append(rsTop.getLong(2)).append(",");
         }
@@ -175,7 +175,7 @@
                 "ORDER BY TOTAL DESC");
         ResultSet rsDpt = stDpt.executeQuery();
         while (rsDpt.next()) {
-            String d = rsDpt.getString(1).replace("\\", "\\\\").replace("\"", "\\\"");
+            String d = rsDpt.getString(1).replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"");
             jDeptLbl.append("\"").append(d).append("\",");
             jDeptDat.append(rsDpt.getLong(2)).append(",");
         }
@@ -257,6 +257,7 @@
         <a class="nav-link" href="INV_Dashboard_Suministro.jsp"><i class="fa fa-home mr-2"></i>Dashboard</a>
         <a class="nav-link" href="INV_Lista_Solicitudes_Suministro.jsp"><i class="fa fa-list mr-2"></i>Lista de solicitudes</a>
         <a class="nav-link active" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
+        <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
         <div class="nav-section">Ingresos</div>
         <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
         <div class="nav-section">Panel de control</div>
