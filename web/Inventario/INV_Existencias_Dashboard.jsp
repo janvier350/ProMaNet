@@ -70,10 +70,11 @@
         ResultSet rsProd = stProd.executeQuery();
         while (rsProd.next()) {
             totalProductos++;
-            int    idP    = rsProd.getInt(1);
-            String desc   = rsProd.getString(2) != null ? rsProd.getString(2) : "";
-            String unidad = rsProd.getString(3) != null ? rsProd.getString(3) : "—";
-            long   stock  = rsProd.getLong(4);
+            int    idP       = rsProd.getInt(1);
+            String desc      = rsProd.getString(2) != null ? rsProd.getString(2) : "";
+            String unidadVal = rsProd.getString(3) != null ? rsProd.getString(3) : "";
+            String unidad    = unidadVal.isEmpty() ? "—" : unidadVal;
+            long   stock     = rsProd.getLong(4);
             totalUnidades += stock;
 
             String nivel, badgeCls, rowCls;
@@ -87,6 +88,9 @@
                 nivel = "OK"; badgeCls = "badge badge-success"; rowCls = "";
             }
 
+            String descAttr   = desc.replace("&","&amp;").replace("\"","&quot;").replace("'","&#39;");
+            String unidadAttr = unidadVal.replace("&","&amp;").replace("\"","&quot;").replace("'","&#39;");
+
             filasProd.append("<tr class='"  ).append(rowCls)
                       .append("' data-desc='").append(desc.toLowerCase().replace("'",""))
                       .append("'>")
@@ -96,7 +100,14 @@
                       .append("<td class='text-center font-weight-bold'>").append(stock).append("</td>")
                       .append("<td class='text-center'><span class='"   ).append(badgeCls)
                       .append("' style='font-size:.73rem;padding:3px 8px;'>").append(nivel)
-                      .append("</span></td></tr>\n");
+                      .append("</span></td>")
+                      .append("<td class='text-center'>")
+                      .append("<button type='button' class='btn btn-xs btn-outline-primary btn-editar-prod' style='font-size:.73rem;padding:2px 8px;' ")
+                      .append("data-id='").append(idP).append("' ")
+                      .append("data-desc=\"").append(descAttr).append("\" ")
+                      .append("data-unidad=\"").append(unidadAttr).append("\">")
+                      .append("<i class='fa fa-pencil'></i> Editar</button>")
+                      .append("</td></tr>\n");
 
             if (stock <= UMBRAL_BAJO) {
                 String urg    = stock == 0 ? "URGENTE" : (stock <= 3 ? "Alta" : "Media");
@@ -181,6 +192,11 @@
     String sDptD  = jDeptDat.length() > 0 ? jDeptDat.substring(0, jDeptDat.length()-1) : "";
 
     int totalAlertas = sinStockCnt + bajoCnt;
+
+    String msgExito = (String) session.getAttribute("msg_exito");
+    String msgError = (String) session.getAttribute("msg_error");
+    session.removeAttribute("msg_exito");
+    session.removeAttribute("msg_error");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -261,6 +277,19 @@
     </div>
 
     <div class="content-area">
+
+        <% if (msgExito != null) { %>
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-check-circle mr-1"></i><%=msgExito%>
+        </div>
+        <% } %>
+        <% if (msgError != null) { %>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-exclamation-triangle mr-1"></i><%=msgError%>
+        </div>
+        <% } %>
 
         <%-- Alert banner --%>
         <% if (sinStockCnt > 0) { %>
@@ -377,10 +406,11 @@
                                 <th class="text-center">Unidad</th>
                                 <th class="text-center">Existencia</th>
                                 <th class="text-center" style="width:120px;">Estado</th>
+                                <th class="text-center" style="width:90px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-<%=filasProd.length() > 0 ? filasProd.toString() : "<tr><td colspan='5' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay productos registrados.</td></tr>"%>
+<%=filasProd.length() > 0 ? filasProd.toString() : "<tr><td colspan='6' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay productos registrados.</td></tr>"%>
                         </tbody>
                     </table>
                 </div>
@@ -429,6 +459,35 @@
         </div>
         <% } %>
 
+    </div>
+</div>
+
+<!-- Modal: Editar producto -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<%=request.getContextPath()%>/INV_ActualizarProducto" method="post">
+                <div class="modal-header" style="background:#3d5a99;color:#fff;">
+                    <h5 class="modal-title"><i class="fa fa-pencil mr-2"></i>Editar Producto</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="idProducto" id="editIdProducto">
+                    <div class="form-group">
+                        <label>Nombre del producto</label>
+                        <input type="text" name="descripcion" id="editDescripcion" class="form-control" required maxlength="200">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>Unidad de medida</label>
+                        <input type="text" name="unidad" id="editUnidad" class="form-control" maxlength="50" placeholder="Ej: Caja, Unidad, Resma, Galón...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar cambios</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -510,6 +569,15 @@ document.getElementById('buscarProd').addEventListener('input', function(){
     document.querySelectorAll('#tablaProd tbody tr').forEach(function(tr){
         var d = tr.getAttribute('data-desc') || '';
         tr.style.display = (!q || d.indexOf(q) !== -1) ? '' : 'none';
+    });
+});
+
+document.querySelectorAll('.btn-editar-prod').forEach(function(btn){
+    btn.addEventListener('click', function(){
+        document.getElementById('editIdProducto').value = this.getAttribute('data-id');
+        document.getElementById('editDescripcion').value = this.getAttribute('data-desc');
+        document.getElementById('editUnidad').value = this.getAttribute('data-unidad');
+        $('#modalEditarProducto').modal('show');
     });
 });
 </script>
