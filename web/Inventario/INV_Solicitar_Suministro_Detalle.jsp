@@ -21,7 +21,8 @@
     }
     if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
             || cargo.equals("ASISTENTE")  || cargo.equals("PASANTE")
-            || cargo.equals("CONTRALOR")  || cargo.equals("JEFE"))) {
+            || cargo.equals("CONTRALOR")  || cargo.equals("JEFE")
+            || cargo.equals("ANALISTA"))) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
@@ -327,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<td>' + presentacion + '</td>' +
             '<td>' + unidad + '</td>' +
             '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" ' +
-                'onclick="eliminarProducto(\'' + idProducto + '\', this)"><i class="fa fa-trash"></i></button></td>';
+                'onclick="eliminarProducto(\'' + idProducto + '\', this)"><i class="fa fa-trash"></i></button>';
         tablaBody.appendChild(fila);
 
         // Hidden inputs para el servlet

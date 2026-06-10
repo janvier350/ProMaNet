@@ -25,7 +25,8 @@ public class INV_InsertarSolicitudEgreso extends HttpServlet {
         String cargo = (String) session.getAttribute("cargo");
         if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
                 || cargo.equals("ASISTENTE")  || cargo.equals("PASANTE")
-                || cargo.equals("CONTRALOR")  || cargo.equals("JEFE"))) {
+                || cargo.equals("CONTRALOR")  || cargo.equals("JEFE")
+                || cargo.equals("ANALISTA"))) {
             response.sendRedirect(request.getContextPath() + "/sesionInvalida.jsp");
             return;
         }
