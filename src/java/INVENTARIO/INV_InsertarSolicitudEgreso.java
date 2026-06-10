@@ -104,7 +104,13 @@ public class INV_InsertarSolicitudEgreso extends HttpServlet {
             cn.close();
 
             session.setAttribute("msg_exito", "Solicitud #" + idCab + " registrada correctamente. Pendiente de despacho.");
-            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+            boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+                    || cargo.equals("CONTRALOR") || cargo.equals("JEFE");
+            if (esAdmin) {
+                response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/Inventario/INV_Historial_Solicitudes_Departamento.jsp");
+            }
 
         } catch (Exception ex) {
             ex.printStackTrace();
