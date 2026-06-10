@@ -140,7 +140,7 @@
                 ") WHERE ROWNUM <= 10");
         ResultSet rsTop = stTop.executeQuery();
         while (rsTop.next()) {
-            String d = rsTop.getString(1).replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"");
+            String d = rsTop.getString(1).replace("\\", "\\\\").replace("\"", "\\\"");
             jTopLbl.append("\"").append(d).append("\",");
             jTopDat.append(rsTop.getLong(2)).append(",");
         }
@@ -175,7 +175,7 @@
                 "ORDER BY TOTAL DESC");
         ResultSet rsDpt = stDpt.executeQuery();
         while (rsDpt.next()) {
-            String d = rsDpt.getString(1).replace("\\\\", "\\\\\\\\").replace("\"", "\\\\\"");
+            String d = rsDpt.getString(1).replace("\\", "\\\\").replace("\"", "\\\"");
             jDeptLbl.append("\"").append(d).append("\",");
             jDeptDat.append(rsDpt.getLong(2)).append(",");
         }
