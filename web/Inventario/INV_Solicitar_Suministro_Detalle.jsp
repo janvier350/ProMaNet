@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
             '<td>' + presentacion + '</td>' +
             '<td>' + unidad + '</td>' +
             '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" ' +
-                'onclick="eliminarProducto(\'' + idProducto + '\', this)"><i class="fa fa-trash"></i></button>';
+                'onclick="eliminarProducto(\'' + idProducto + '\', this)"><i class="fa fa-trash"></i></button></td>';
         tablaBody.appendChild(fila);
 
         // Hidden inputs para el servlet
