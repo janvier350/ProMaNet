@@ -54,6 +54,9 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <style>
         body{background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;margin:0;}
         .topbar{background:#3d5a99;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;}
@@ -220,6 +223,7 @@
                     <div class="form-group mb-0">
                         <label>Lista de productos</label>
                         <select class="form-control" id="idProducto" name="idProducto">
+                            <option value="" disabled selected>Seleccione un producto...</option>
                             <%
                               try {
                                 DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
@@ -293,6 +297,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const tablaBody     = document.getElementById('tablaProductosBody');
     const formSolicitud = document.getElementById('formSolicitud');
 
+    $('#idProducto').select2({
+        theme: 'bootstrap',
+        dropdownParent: $('#modalAgregarProducto'),
+        width: '100%',
+        language: {
+            noResults: function () { return 'No se encontraron productos'; },
+            searching: function () { return 'Buscando...'; }
+        }
+    });
+
     formAgregar.addEventListener('submit', function () {
         const productoSelect = document.getElementById('idProducto');
         const cantidadInput  = document.getElementById('cantidad');
@@ -344,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         actualizarContador();
 
-        productoSelect.selectedIndex = 0;
+        $(productoSelect).val('').trigger('change');
         cantidadInput.value = '';
         $('#modalAgregarProducto').modal('hide');
     });
