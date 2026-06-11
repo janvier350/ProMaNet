@@ -19,7 +19,7 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR"))) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
