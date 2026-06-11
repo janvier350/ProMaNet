@@ -52,8 +52,7 @@ String compania = (String) session.getAttribute("compania");
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
+             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA")){                }else{
                     response.sendRedirect("sesionInvalida.jsp");
              }
              
