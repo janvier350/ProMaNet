@@ -60,7 +60,7 @@ String compania = (String) session.getAttribute("compania");
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
              }
