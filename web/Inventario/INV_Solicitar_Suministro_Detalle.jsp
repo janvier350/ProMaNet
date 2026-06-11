@@ -26,8 +26,7 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
-    boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-                    || cargo.equals("CONTRALOR")     || cargo.equals("JEFE");
+    boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
 
     String compania = "";
     try {
