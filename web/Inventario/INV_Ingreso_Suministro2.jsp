@@ -85,6 +85,25 @@
     </div>
     <div class="content-area">
 
+        <%
+            String error = request.getParameter("error");
+            if (error != null) {
+                String mensajeError;
+                switch (error) {
+                    case "proveedor_dup": mensajeError = "Ya existe un proveedor registrado con esa identificaci&oacute;n."; break;
+                    case "unidad_dup": mensajeError = "Ya existe una unidad de medida con ese nombre."; break;
+                    case "categoria_dup": mensajeError = "Ya existe una categor&iacute;a con ese nombre."; break;
+                    case "producto_dup": mensajeError = "Ya existe un producto registrado con esa descripci&oacute;n."; break;
+                    case "factura_dup": mensajeError = "Ya existe una factura registrada con ese n&uacute;mero para el proveedor seleccionado."; break;
+                    default: mensajeError = "No se pudo completar el registro porque ya existe un registro igual."; break;
+                }
+        %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-triangle mr-2"></i><%=mensajeError%>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+        <% } %>
+
         <div class="card">
             <div class="card-header"><strong><i class="fa fa-cogs mr-1"></i>Funciones para productos</strong></div>
             <div class="card-body">

@@ -85,6 +85,34 @@ valor2 = descripcionUnidad;
         try {
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             cn = DriverManager.getConnection(url, user, pass);
+            st = cn.prepareStatement("SELECT COUNT(*) FROM INV_PRODUCTO WHERE UPPER(DESCRIPCION) = UPPER(?)");
+            st.setString(1, descripcion);
+            rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                response.sendRedirect("../ProMaNet/Inventario/INV_Ingreso_Suministro2.jsp?error=producto_dup");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (cn != null) {
+                    cn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+            cn = DriverManager.getConnection(url, user, pass);
             String sqlSecuencia = "select nvl(max(ID_PRODUCTO),0)+1 secuencia from INV_PRODUCTO";
             st = cn.prepareStatement(sqlSecuencia);
             rs = st.executeQuery();

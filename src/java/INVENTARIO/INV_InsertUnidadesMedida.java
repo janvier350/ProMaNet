@@ -64,6 +64,34 @@ public class INV_InsertUnidadesMedida extends HttpServlet {
         try {
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             cn = DriverManager.getConnection(url, user, pass);
+            st = cn.prepareStatement("SELECT COUNT(*) FROM INV_UNIDAD_MEDIDA WHERE UPPER(UNIDAD) = UPPER(?) AND ESTADO = 'A'");
+            st.setString(1, unidad);
+            rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                response.sendRedirect("../ProMaNet/Inventario/INV_Ingreso_Suministro2.jsp?error=unidad_dup");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (cn != null) {
+                    cn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+            cn = DriverManager.getConnection(url, user, pass);
             String sqlSecuencia = "select nvl(max(ID_UNIDAD_MEDIDA),0)+1 secuencia from INV_UNIDAD_MEDIDA";
             st = cn.prepareStatement(sqlSecuencia);
             rs = st.executeQuery();
