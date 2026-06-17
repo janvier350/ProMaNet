@@ -19,9 +19,11 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR"))) {
+    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+            || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
+    boolean puedeDespachar = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
 
     String compania = "";
     try {
@@ -98,12 +100,18 @@
 </div>
 <div class="sidebar">
     <nav class="nav flex-column pt-3">
+        <% if (puedeDespachar) { %>
         <a class="nav-link" href="INV_Dashboard_Suministro.jsp"><i class="fa fa-home mr-2"></i>Dashboard</a>
+        <% } %>
         <a class="nav-link active" href="INV_Lista_Solicitudes_Suministro.jsp"><i class="fa fa-list mr-2"></i>Lista de solicitudes</a>
+        <% if (puedeDespachar) { %>
         <a class="nav-link" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
+        <% } %>
         <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
+        <% if (puedeDespachar) { %>
         <div class="nav-section">Ingresos</div>
         <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
+        <% } %>
         <div class="nav-section">Panel de control</div>
         <a class="nav-link" href="../Proyectos/Perfil.jsp"><i class="fa fa-user mr-2"></i>Perfil</a>
         <a class="nav-link" href="../cerrar.jsp"><i class="fa fa-sign-out mr-2"></i>Cerrar Sesi&oacute;n</a>
@@ -190,11 +198,11 @@
                                             data-depto="<%=depto%>" data-solic="<%=solic%>" data-fecha="<%=fecha%>">
                                         <i class="fa fa-eye"></i> Ver
                                     </button>
-                                    <% if ("PENDIENTE".equals(estado)) { %>
+                                    <% if ("PENDIENTE".equals(estado) && puedeDespachar) { %>
                                     <a href="INV_Despachar_Suministro.jsp?id=<%=idCab%>" class="btn btn-sm btn-success ml-1">
                                         <i class="fa fa-check"></i> Despachar
                                     </a>
-                                    <% } else { %>
+                                    <% } else if (!"PENDIENTE".equals(estado)) { %>
                                     <a href="INV_Comprobante_Egreso.jsp?id=<%=idCab%>" target="_blank"
                                        class="btn btn-sm btn-info ml-1" title="Imprimir comprobante de entrega">
                                         <i class="fa fa-print"></i> Comprobante
@@ -249,12 +257,15 @@
 
 <footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
 <script>
+var puedeDespachar = <%=puedeDespachar%>;
 $('#modalDetalle').on('show.bs.modal', function(event) {
     var btn=$(event.relatedTarget), id=btn.data('id'), estado=btn.data('estado'),
         depto=btn.data('depto'), solic=btn.data('solic'), fecha=btn.data('fecha');
     $('#modalId').text(id); $('#modalFecha').text(fecha); $('#modalDepto').text(depto); $('#modalSolic').text(solic);
-    if (estado==='PENDIENTE') {
+    if (estado==='PENDIENTE' && puedeDespachar) {
         $('#modalAccionBtn').html('<a href="INV_Despachar_Suministro.jsp?id='+id+'" class="btn btn-success btn-sm"><i class="fa fa-check mr-1"></i>Despachar</a>');
+    } else if (estado==='PENDIENTE') {
+        $('#modalAccionBtn').html('<span class="badge-pendiente"><i class="fa fa-clock-o mr-1"></i>Pendiente de despacho</span>');
     } else {
         $('#modalAccionBtn').html('<a href="INV_Comprobante_Egreso.jsp?id='+id+'" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-print mr-1"></i>Imprimir Comprobante</a>');
     }
