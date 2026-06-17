@@ -28,6 +28,7 @@
     }
 
     boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
+    boolean puedeImprimirComprobante = cargo.equals("ADMINISTRACION");
 
     String compania = "";
     try {
@@ -213,7 +214,7 @@
                                             data-solic="<%=solic%>" data-fecha="<%=fecha%>">
                                         <i class="fa fa-eye"></i> Ver
                                     </button>
-                                    <% if ("ENTREGADO".equals(estado)) { %>
+                                    <% if ("ENTREGADO".equals(estado) && puedeImprimirComprobante) { %>
                                     <a href="INV_Comprobante_Egreso.jsp?id=<%=idCab%>" target="_blank"
                                        class="btn btn-sm btn-info ml-1" title="Imprimir comprobante de entrega">
                                         <i class="fa fa-print"></i> Comprobante
@@ -268,12 +269,15 @@
 
 <footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
 <script>
+var puedeImprimirComprobante = <%=puedeImprimirComprobante%>;
 $('#modalDetalle').on('show.bs.modal', function(event) {
     var btn=$(event.relatedTarget), id=btn.data('id'), estado=btn.data('estado'),
         solic=btn.data('solic'), fecha=btn.data('fecha');
     $('#modalId').text(id); $('#modalFecha').text(fecha); $('#modalSolic').text(solic);
-    if (estado==='ENTREGADO') {
+    if (estado==='ENTREGADO' && puedeImprimirComprobante) {
         $('#modalAccionBtn').html('<a href="INV_Comprobante_Egreso.jsp?id='+id+'" target="_blank" class="btn btn-info btn-sm"><i class="fa fa-print mr-1"></i>Imprimir Comprobante</a>');
+    } else if (estado==='ENTREGADO') {
+        $('#modalAccionBtn').html('<span class="badge-entregado"><i class="fa fa-check mr-1"></i>Entregado</span>');
     } else {
         $('#modalAccionBtn').html('<span class="badge-pendiente"><i class="fa fa-clock-o mr-1"></i>Pendiente de despacho</span>');
     }

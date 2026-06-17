@@ -95,6 +95,7 @@
                     case "categoria_dup": mensajeError = "Ya existe una categor&iacute;a con ese nombre."; break;
                     case "producto_dup": mensajeError = "Ya existe un producto registrado con esa descripci&oacute;n."; break;
                     case "factura_dup": mensajeError = "Ya existe una factura registrada con ese n&uacute;mero para el proveedor seleccionado."; break;
+                    case "factura_procesada": mensajeError = "No se puede eliminar esta factura porque ya fue procesada."; break;
                     default: mensajeError = "No se pudo completar el registro porque ya existe un registro igual."; break;
                 }
         %>
@@ -208,10 +209,12 @@
                                             <i class="fa fa-cart-plus"></i>
                                         </a>
                                     <% } %>
+                                    <% if (!"C".equals(estado)) { %>
                                     <a href="../INV_Delete_Suministro_Cab?ID_SUMINISTRO_INGRESO_CAB=<%=idIngreso%>" class="btn btn-sm btn-danger ml-1" title="Eliminar"
                                        onclick="return confirm('¿Está seguro de que desea eliminar este registro?');">
                                         <i class="fa fa-trash"></i>
                                     </a>
+                                    <% } %>
                                 </td>
                             </tr>
                         <%
