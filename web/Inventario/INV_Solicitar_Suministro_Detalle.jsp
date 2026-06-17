@@ -159,6 +159,9 @@
                             <a href="../Proyectos/PRO_Dashboard.jsp" class="btn btn-warning btn-sm">
                                 <i class="fa fa-arrow-left mr-1"></i>Volver
                             </a>
+                            <button type="button" class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#modalVideoTutorial">
+                                <i class="fa fa-play-circle mr-1"></i>Ver tutorial
+                            </button>
                             <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalAgregarProducto">
                                 <i class="fa fa-plus-circle mr-1"></i>Agregar Producto
                             </button>
@@ -281,6 +284,29 @@
 </div>
 <!-- Fin modal confirmar -->
 
+<!-- Modal: video tutorial -->
+<div class="modal fade" id="modalVideoTutorial" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#3d5a99;color:#fff;">
+                <h5 class="modal-title"><i class="fa fa-play-circle mr-2"></i>Tutorial de uso</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe id="iframeVideoTutorial" class="embed-responsive-item" src=""
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen frameborder="0"></iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin modal video tutorial -->
+
 <footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
 
 <script>
@@ -290,6 +316,13 @@ function actualizarContador() {
     const badge = document.getElementById('badgeContador');
     badge.textContent = productosAgregados.length + ' producto(s)';
 }
+
+$('#modalVideoTutorial').on('show.bs.modal', function () {
+    document.getElementById('iframeVideoTutorial').src = 'https://www.youtube.com/embed/l-y4AR5V-7Y?autoplay=1';
+});
+$('#modalVideoTutorial').on('hidden.bs.modal', function () {
+    document.getElementById('iframeVideoTutorial').src = '';
+});
 
 document.addEventListener('DOMContentLoaded', function () {
     const formAgregar   = document.getElementById('formAgregarProducto');
