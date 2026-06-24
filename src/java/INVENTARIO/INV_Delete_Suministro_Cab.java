@@ -58,8 +58,29 @@ public class INV_Delete_Suministro_Cab extends HttpServlet {
         
         Connection cn = null;
         PreparedStatement st = null;
+        ResultSet rs = null;
 
-        
+        try {
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+            cn = DriverManager.getConnection(url, user, pass);
+            st = cn.prepareStatement("SELECT ESTADO FROM INV_SUMINISTRO_INGRESO_CAB WHERE ID_SUMINISTRO_INGRESO_CAB = ?");
+            st.setString(1, ID_SUMINISTRO_INGRESO_CAB);
+            rs = st.executeQuery();
+            if (rs.next() && "C".equals(rs.getString(1))) {
+                response.sendRedirect("../ProMaNet/Inventario/INV_Ingreso_Suministro2.jsp?error=factura_procesada");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
    try {
             // Conexión a la base de datos

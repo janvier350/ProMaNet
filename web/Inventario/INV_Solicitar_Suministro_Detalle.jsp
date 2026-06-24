@@ -1,753 +1,438 @@
-<%-- 
-    Document   : PRO_Lista
-    Created on : 3 oct 2023, 20:32:28
-    Author     : Backup
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-
-<%@page contentType="text/html" 
-        import=" java.util.Date"
-        %>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.DriverManager"%>
-<%@page import=" java.util.Date" %>
-<!DOCTYPE html>
 <%
-String compania = (String) session.getAttribute("compania");
-    String cargo = (String) session.getAttribute("cargo");    
-    String nombre = (String) session.getAttribute("nombre");
-    String apellidos = (String) session.getAttribute("apellidos");
-    String codigo = (String) session.getAttribute("cod");
-    String usuario = (String) session.getAttribute("usuario");
-    String roltodo = (String) session.getAttribute("roltodo");
-    String cabTrab = request.getParameter("idCabTrab");
-    String DetTrab = request.getParameter("DetTrab");
-    String DetTrabAC = "";
-    String NombreAsig= request.getParameter("asis");
-   
-    String idSuministroIngresoCab = request.getParameter("ID_SUMINISTRO_INGRESO_CAB");
-    String departamento = (String) session.getAttribute("departamento");
-    String jefeAsignado= request.getParameter("jefeAsignado");
-     String idCabTarea =  request.getParameter("idCabTarea");
-     
-     String idDepartamento = (String) session.getAttribute("idDepartamento");  
+    String cargo          = (String) session.getAttribute("cargo");
+    String nombre         = (String) session.getAttribute("nombre");
+    String apellidos      = (String) session.getAttribute("apellidos");
+    String departamento   = (String) session.getAttribute("departamento");
+    String idDepartamento = (String) session.getAttribute("idDepartamento");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
-    String ip = (String) session.getAttribute("ipDB");
-    //String url = new String("jdbc:oracle:thin:@"+ip);
-    String url = new String(""+ip);
-    String NombreTarea="";
-    int p =0;
-    int t =0;
-    int r=0;
-    int avance = 0;
-     int retomar =0;
-    
-    if(session.getAttribute("usuario")==null){
-             response.sendRedirect("../sesionExpirada.jsp");
-             return;
-             }else if (session.isNew()){
-             response.sendRedirect("../sesionExpirada.jsp");
-             return;
-             }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
-                    response.sendRedirect("../sesionInvalida.jsp");
-             }
+    String ip   = (String) session.getAttribute("ipDB");
+    String url  = "" + ip;
+
+    if (session.getAttribute("usuario") == null) {
+        response.sendRedirect("../sesionExpirada.jsp"); return;
+    } else if (session.isNew()) {
+        response.sendRedirect("../sesionExpirada.jsp"); return;
+    }
+    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+            || cargo.equals("ASISTENTE")  || cargo.equals("PASANTE")
+            || cargo.equals("CONTRALOR")  || cargo.equals("JEFE")
+            || cargo.equals("ANALISTA"))) {
+        response.sendRedirect("../sesionInvalida.jsp"); return;
+    }
+
+    boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
+
+    String compania = "";
+    try {
+        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+        Connection cnComp = DriverManager.getConnection(url, user, pass);
+        PreparedStatement stComp = cnComp.prepareStatement("SELECT COMPANIA FROM COMPANIA WHERE ESTADO='a' AND ROWNUM=1");
+        ResultSet rsComp = stComp.executeQuery();
+        if (rsComp.next()) compania = rsComp.getString(1);
+        rsComp.close(); stComp.close(); cnComp.close();
+    } catch (Exception e) { e.printStackTrace(); }
+
+    String msgExito = (String) session.getAttribute("msg_exito");
+    String msgError = (String) session.getAttribute("msg_error");
+    session.removeAttribute("msg_exito");
+    session.removeAttribute("msg_error");
 %>
-<html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>ProMaNet - Solicitar Suministro</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <style>
+        body{background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;margin:0;}
+        .topbar{background:#3d5a99;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;}
+        .topbar .brand{font-size:1.1rem;font-weight:700;letter-spacing:1px;}
+        .topbar .user-info{font-size:0.85rem;text-align:right;}
+        .sidebar{width:220px;min-height:100vh;background:#fff;border-right:1px solid #e0e0e0;position:fixed;top:44px;left:0;}
+        .sidebar .nav-link{color:#444;padding:10px 20px;font-size:0.88rem;}
+        .sidebar .nav-link:hover,.sidebar .nav-link.active{background:#eef2fb;color:#3d5a99;font-weight:600;}
+        .sidebar .nav-section{padding:10px 20px 4px;font-size:0.72rem;color:#aaa;text-transform:uppercase;letter-spacing:1px;}
+        .main-content{margin-left:220px;padding:0;}
+        .page-header{background:linear-gradient(135deg,#3d5a99,#5b7fc4);color:#fff;padding:18px 28px 14px;}
+        .page-header .breadcrumb{background:transparent;padding:0;margin:0 0 4px;font-size:0.8rem;}
+        .page-header .breadcrumb-item a{color:rgba(255,255,255,0.75);}
+        .page-header .breadcrumb-item.active{color:#fff;}
+        .page-header h4{margin:0;font-weight:600;}
+        .content-area{padding:24px;}
+        .card{border:none;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+        .card-header{background:#fff;border-bottom:1px solid #eee;padding:14px 20px;}
+        .table th{background:#f8f9fb;font-size:0.78rem;text-transform:uppercase;color:#666;letter-spacing:0.5px;border-bottom:2px solid #eee;}
+        .table td{vertical-align:middle;font-size:0.88rem;}
+        .footer{margin-left:220px;padding:12px 24px;font-size:0.78rem;color:#aaa;border-top:1px solid #eee;}
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <span class="brand"><i class="fa fa-th-large mr-2"></i>INVENTARIOS</span>
+    <span class="user-info"><%=compania%><br><strong><%=nombre%> <%=apellidos%></strong></span>
+</div>
+<div class="sidebar">
+    <nav class="nav flex-column pt-3">
+        <% if (esAdmin) { %>
+        <a class="nav-link" href="INV_Dashboard_Suministro.jsp"><i class="fa fa-home mr-2"></i>Dashboard</a>
+        <a class="nav-link" href="INV_Lista_Solicitudes_Suministro.jsp"><i class="fa fa-list mr-2"></i>Lista de solicitudes</a>
+        <a class="nav-link" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
+        <% } else { %>
+        <a class="nav-link active" href="INV_Solicitar_Suministro_Detalle.jsp"><i class="fa fa-plus-circle mr-2"></i>Solicitar Suministro</a>
+        <% } %>
+        <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
+        <% if (esAdmin) { %>
+        <div class="nav-section">Ingresos</div>
+        <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
+        <% } %>
+        <div class="nav-section">Panel de control</div>
+        <a class="nav-link" href="../Proyectos/Perfil.jsp"><i class="fa fa-user mr-2"></i>Perfil</a>
+        <a class="nav-link" href="../cerrar.jsp"><i class="fa fa-sign-out mr-2"></i>Cerrar Sesi&oacute;n</a>
+    </nav>
+</div>
+<div class="main-content">
+    <div class="page-header">
+        <ol class="breadcrumb"><li class="breadcrumb-item"><a href="#">Menu</a></li><li class="breadcrumb-item"><a href="#">Inventario</a></li><li class="breadcrumb-item active">Solicitar Suministro</li></ol>
+        <h4><i class="fa fa-plus-circle mr-2"></i>Solicitar Suministros de Oficina</h4>
+    </div>
+    <div class="content-area">
 
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <link rel="apple-touch-icon" sizes="76x76" href="../assets/img/apple-icon.png">
-        <link rel="icon" type="image/png" href="../assets/img/favicon.png">
-        <title>
-            ProMaNet | Solicitud Suministros
-        </title>
-        <!--     Fonts and icons     -->
-        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
-        <!-- Nucleo Icons -->
-        <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
-        <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-        <!-- Font Awesome Icons -->
-        <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-        <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-        <!-- CSS Files -->
-        <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+        <% if (msgExito != null) { %>
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-check-circle mr-1"></i><%=msgExito%>
+        </div>
+        <% } %>
+        <% if (msgError != null) { %>
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <i class="fa fa-exclamation-triangle mr-1"></i><%=msgError%>
+        </div>
+        <% } %>
 
+        <form id="formSolicitud" action="../INV_InsertarSolicitudEgreso" method="post">
+            <input type="hidden" id="idDepartamento" name="idDepartamento" value="<%=idDepartamento != null ? idDepartamento : ""%>">
 
-    </head>
-    <body class="g-sidenav-show   bg-gray-100">
-        <div class="min-height-300 bg-primary position-absolute w-100"></div>
-        <aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4 " id="sidenav-main">
-            <div class="sidenav-header">
-                <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
-                <a class="navbar-brand m-0" href=" #" target="_blank">
-                    <img src="../assets/img/logo-ct-dark.png" class="navbar-brand-img h-100" alt="main_logo">
-                    <span class="ms-1 font-weight-bold">INVENTARIOS </span>
-                </a>
-            </div>
-            <hr class="horizontal dark mt-0">
-            <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Proyectos/PRO_Dashboard.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="../Inventario//INV_Lista_Solicitud_Suministro.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Lista de solicitudes suministros</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <!--          <a class="nav-link " href="../pages/billing.html">
-                                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                      <i class="ni ni-credit-card text-success text-sm opacity-10"></i>
-                                    </div>
-                                    <span class="nav-link-text ms-1">Billing</span>
-                                  </a>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--          <a class="nav-link " href="../pages/virtual-reality.html">
-                                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                      <i class="ni ni-app text-info text-sm opacity-10"></i>
-                                    </div>
-                                    <span class="nav-link-text ms-1">Virtual Reality</span>
-                                  </a>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--          <a class="nav-link " href="../pages/rtl.html">
-                                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                      <i class="ni ni-world-2 text-danger text-sm opacity-10"></i>
-                                    </div>
-                                    <span class="nav-link-text ms-1">RTL</span>
-                                  </a>-->
-                    </li>
-                    <li class="nav-item mt-3">
-                        <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">PANEL DE CONTROL</h6>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Perfil.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-single-02 text-dark text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Perfil</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <!--          <a class="nav-link " href="../pages/sign-in.html">
-                                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                      <i class="ni ni-single-copy-04 text-warning text-sm opacity-10"></i>
-                                    </div>
-                                    <span class="nav-link-text ms-1">Sign In</span>
-                                  </a>-->
-                    </li>
-                    <li class="nav-item">
-                        <!--          <a class="nav-link " href="../pages/sign-up.html">
-                                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                      <i class="ni ni-collection text-info text-sm opacity-10"></i>
-                                    </div>
-                                    <span class="nav-link-text ms-1">Sign Up</span>
-                                  </a>-->
-                    </li>
-                </ul>
-            </div>
-            <div class="sidenav-footer mx-3 ">
-                <div class="card card-plain shadow-none" id="sidenavCard">
-                    <img class="w-50 mx-auto" src="../assets/img/illustrations/icon-documentation.svg" alt="sidebar_illustration">
-                    <div class="card-body text-center p-3 w-100 pt-0">
-                        <div class="docs-info">
-                            <h6 class="mb-0">Necesitas ayuda?</h6>
-                            <p class="text-xs font-weight-bold mb-0">Revisa nuestro tutorial</p>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-end">
+                        <div class="col-md-3 mb-2 mb-md-0">
+                            <label class="text-muted mb-1" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Departamento Solicitante</label>
+                            <div class="font-weight-bold"><%=departamento%></div>
                         </div>
-                    </div>
-                </div>
-                <a href="#" target="_blank" class="btn btn-dark btn-sm w-100 mb-3">Video Tutorial</a>
-                <!--<a class="btn btn-primary btn-sm mb-0 w-100" href="https://www.creative-tim.com/product/argon-dashboard-pro?ref=sidebarfree" type="button">Upgrade to pro</a>-->
-            </div>
-        </aside>
-        <main class="main-content position-relative border-radius-lg ">
-            <!-- Navbar -->
-            <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl " id="navbarBlur" data-scroll="false">
-                <div class="container-fluid py-1 px-3">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Menu</a></li>
-                            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Inventario</li>
-                        </ol>
-                        <h6 class="font-weight-bolder text-white mb-0">Solicitud de suministros</h6>
-                    </nav>
-                    <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-                        <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-                            <div class="input-group">
-                                <span class=" text-body text-white-50"><i class="fas fa-home" ></i> <%=compania%></span>
-
-                            </div>
+                        <div class="col-md-4 mb-2 mb-md-0">
+                            <label class="text-muted mb-1" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;">Autorizado por</label>
+                            <select class="form-control form-control-sm" id="idUsuarioAuto" name="idUsuarioAuto">
+                                <%
+                                  try {
+                                    DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                    Connection cnAuto = DriverManager.getConnection(url, user, pass);
+                                    String sqlAuto = "SELECT IDUSUARIO, NOMBRE || ' - ' || APELLIDOS FROM USUARIO " +
+                                                     "WHERE ESTADO = 'a' AND IDROLTODO = 1 " +
+                                                     "AND ID_ADM_DEPARTAMENTO = " + idDepartamento + " ORDER BY 2";
+                                    PreparedStatement stAuto = cnAuto.prepareStatement(sqlAuto);
+                                    ResultSet rsAuto = stAuto.executeQuery();
+                                    while (rsAuto.next()) {
+                                %>
+                                <option value="<%=rsAuto.getString(1)%>"><%=rsAuto.getString(2)%></option>
+                                <%
+                                    }
+                                    rsAuto.close(); stAuto.close(); cnAuto.close();
+                                  } catch(Exception eAuto) { eAuto.printStackTrace(); }
+                                %>
+                            </select>
                         </div>
-                        <ul class="navbar-nav  justify-content-end">
-                            <li class="nav-item d-flex align-items-center">
-                                <a href="javascript:;" class="nav-link text-white font-weight-bold px-0">
-                                    <i class="fa fa-user me-sm-1"></i>
-                                    <span class="d-sm-inline d-none"><%=nombre%> <%=apellidos%> </span>
-                                </a>
-                            </li>
-                            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
-                                <a href="javascript:;" class="nav-link text-white p-0" id="iconNavbarSidenav">
-                                    <div class="sidenav-toggler-inner">
-                                        <i class="sidenav-toggler-line bg-white"></i>
-                                        <i class="sidenav-toggler-line bg-white"></i>
-                                        <i class="sidenav-toggler-line bg-white"></i>
-                                    </div>
-                                </a>
-                            </li>
-                            <li class="nav-item px-3 d-flex align-items-center">
-                                <a href="javascript:;" class="nav-link text-white p-0">
-                                    <i class="fa fa-cog fixed-plugin-button-nav cursor-pointer"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item dropdown pe-2 d-flex align-items-center">
-                                <a href="javascript:;" class="nav-link text-white p-0" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fa fa-bell cursor-pointer"></i>
-                                </a>
-                                <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-                                    <li class="mb-2">
-                                        <a class="dropdown-item border-radius-md" href="javascript:;">
-                                            <div class="d-flex py-1">
-                                                <div class="my-auto">
-                                                    <img src="../assets/img/team-2.jpg" class="avatar avatar-sm  me-3 ">
-                                                </div>
-                                                <div class="d-flex flex-column justify-content-center">
-                                                    <h6 class="text-sm font-weight-normal mb-1">
-                                                        <span class="font-weight-bold">New message</span> from Laur
-                                                    </h6>
-                                                    <p class="text-xs text-secondary mb-0">
-                                                        <i class="fa fa-clock me-1"></i>
-                                                        13 minutes ago
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                    <li class="mb-2">
-                                        <a class="dropdown-item border-radius-md" href="javascript:;">
-                                            <div class="d-flex py-1">
-                                                <div class="my-auto">
-                                                    <img src="../assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm bg-gradient-dark  me-3 ">
-                                                </div>
-                                                <div class="d-flex flex-column justify-content-center">
-                                                    <h6 class="text-sm font-weight-normal mb-1">
-                                                        <span class="font-weight-bold">New album</span> by Travis Scott
-                                                    </h6>
-                                                    <p class="text-xs text-secondary mb-0">
-                                                        <i class="fa fa-clock me-1"></i>
-                                                        1 day
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item border-radius-md" href="javascript:;">
-                                            <div class="d-flex py-1">
-                                                <div class="avatar avatar-sm bg-gradient-secondary  me-3  my-auto">
-                                                    <svg width="12px" height="12px" viewBox="0 0 43 36" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                                                    <title>credit-card</title>
-                                                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                                                    <g transform="translate(-2169.000000, -745.000000)" fill="#FFFFFF" fill-rule="nonzero">
-                                                    <g transform="translate(1716.000000, 291.000000)">
-                                                    <g transform="translate(453.000000, 454.000000)">
-                                                    <path class="color-background" d="M43,10.7482083 L43,3.58333333 C43,1.60354167 41.3964583,0 39.4166667,0 L3.58333333,0 C1.60354167,0 0,1.60354167 0,3.58333333 L0,10.7482083 L43,10.7482083 Z" opacity="0.593633743"></path>
-                                                    <path class="color-background" d="M0,16.125 L0,32.25 C0,34.2297917 1.60354167,35.8333333 3.58333333,35.8333333 L39.4166667,35.8333333 C41.3964583,35.8333333 43,34.2297917 43,32.25 L43,16.125 L0,16.125 Z M19.7083333,26.875 L7.16666667,26.875 L7.16666667,23.2916667 L19.7083333,23.2916667 L19.7083333,26.875 Z M35.8333333,26.875 L28.6666667,26.875 L28.6666667,23.2916667 L35.8333333,23.2916667 L35.8333333,26.875 Z"></path>
-                                                    </g>
-                                                    </g>
-                                                    </g>
-                                                    </g>
-                                                    </svg>
-                                                </div>
-                                                <div class="d-flex flex-column justify-content-center">
-                                                    <h6 class="text-sm font-weight-normal mb-1">
-                                                        Payment successfully completed
-                                                    </h6>
-                                                    <p class="text-xs text-secondary mb-0">
-                                                        <i class="fa fa-clock me-1"></i>
-                                                        2 days
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-            <!-- End Navbar -->
-
-            <!--modales--> 
-
-            <!--FIN MODAL NUEVO PRODUCTO-->
-
-            <!--FIN UNIDADES DE MEDIDA-->
-
-            <!--modal terminar registro-->
-            <div class="modal fade" id="exampleModalSignUpTerminarRegistro" tabindex="-1" role="dialog" aria-labelledby="exampleModalSignTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-body p-0">
-                            <div class="card card-plain">
-                                <div class="card-header pb-0 text-left">
-                                    <h3 class="font-weight-bolder text-primary text-gradient">Terminar registro</h3>
-                                    <!--<p class="mb-0">Ingresar datos</p>-->
-                                </div>
-                                <div class="card-body pb-3">
-                                    <form role="form text-left" action="../INV_Terminar_Ingreso">
-
-                                        <div> 
-
-
-                                            <div class="input-group mb-3">
-                                                <!--<input type="hidden" class="form-control" aria-label="Password" aria-describedby="password-addon" id="idSuministroIngresoCab" name ="idSuministroIngresoCab" value="<%=idSuministroIngresoCab%>">-->
-                                            </div>
-
-                                            <!--<label>Cantidad</label>-->
-
-                                            <div class="input-group mb-3">
-                                                <h3>Esta seguro de terminar de registrar productos?</h3>
-                                                <h4>Cerrado , no podrá registrar más productos su solicitud.</h4>
-                                                <!--<input type="number" class="form-control" aria-label="Password" aria-describedby="password-addon" id="cantidad" name ="cantidad" placeholder="Cantidad de productos">-->
-                                            </div>
-                                            <!--<label><p>Lista de productos</p></label>-->
-
-
-                                        </div>
-                                        <span id="mensaje"></span>
-                                        <!--                                                          <div class="form-check form-check-info text-left">
-                                                                                                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" checked="">
-                                                                                                    <label class="form-check-label" for="flexCheckDefault">
-                                                                                                      I agree the <a href="javascrpt:;" class="text-dark font-weight-bolder">Terms and Conditions</a>
-                                                                                                    </label>
-                                                                                                  </div>-->
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Close</button>
-                                            <button type="submit" class="btn bg-gradient-primary">Terminar SOLICITUD</button>
-                                        </div>
-                                        <!--                  <div class="text-center">
-                                                            <button type="button" class="btn bg-gradient-primary btn-lg btn-rounded w-100 mt-4 mb-0">Guardar</button>
-                                                          </div>-->
-                                    </form>
-                                </div>
-                                <!--              <div class="card-footer text-center pt-0 px-sm-4 px-1">
-                                                <p class="mb-4 mx-auto">
-                                                  Already have an account?
-                                                  <a href="javascrpt:;" class="text-primary text-gradient font-weight-bold">Sign in</a>
-                                                </p>
-                                              </div>-->
-                            </div>
+                        <div class="col-md-5 text-md-right">
+                            <a href="../Proyectos/PRO_Dashboard.jsp" class="btn btn-warning btn-sm">
+                                <i class="fa fa-arrow-left mr-1"></i>Volver
+                            </a>
+                            <button type="button" class="btn btn-outline-info btn-sm" data-toggle="modal" data-target="#modalVideoTutorial">
+                                <i class="fa fa-play-circle mr-1"></i>Ver tutorial
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalAgregarProducto">
+                                <i class="fa fa-plus-circle mr-1"></i>Agregar Producto
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#modalTerminarSolicitud">
+                                <i class="fa fa-check mr-1"></i>Terminar SOLICITUD
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!--fin modal terminar registro-->
-            <!--modal , agregar producto-->
 
-            <div class="modal fade" id="exampleModalSignUpAgregar" tabindex="-1" role="dialog" aria-labelledby="exampleModalSignTitle" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-md" role="document">
-                    <div class="modal-content">
-                        <div class="modal-body p-0">
-                            <div class="card card-plain">
-                                <div class="card-header pb-0 text-left">
-                                    <h3 class="font-weight-bolder text-primary text-gradient">Seleccione producto</h3>
-                                    <!--<p class="mb-0">Ingresar datos</p>-->
-                                </div>
-                                <div class="card-body pb-3">
-                                    <form id="formAgregarProducto" onsubmit="return false;">
-                                        <input type="hidden" id="idSuministroIngresoCab" name="idSuministroIngresoCab" value="<%=idSuministroIngresoCab%>">
-
-                                        <label>Cantidad</label>
-                                        <input type="number" class="form-control mb-3" id="cantidad" name="cantidad" placeholder="Cantidad de productos">
-
-                                        <label>Lista de productos</label>
-                                        <select class="form-control mb-3" id="idProducto" name="idProducto">
-                                            <%
-                                              try {
-                                                DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                                Connection cn = DriverManager.getConnection(url, user, pass);
-                                                String sql = "SELECT inv_producto.id_producto, inv_producto.descripcion, inv_unidad_medida.unidad, inv_unidad_medida.descripcion FROM inv_producto INNER JOIN inv_unidad_medida ON inv_producto.id_unidad = inv_unidad_medida.id_unidad_medida ORDER BY 2";
-                                                PreparedStatement st = cn.prepareStatement(sql);
-                                                ResultSet rs = st.executeQuery();
-                                                while (rs.next()) {
-                                            %>
-                                            <option 
-                                                value="<%=rs.getString(1)%>" 
-                                                data-descripcion="<%=rs.getString(2)%>" 
-                                                data-unidad="<%=rs.getString(3)%>" 
-                                                data-presentacion="<%=rs.getString(4)%>">
-                                                <%=rs.getString(2)%>
-                                            </option>
-                                            <%
-                                                }
-                                                rs.close(); st.close(); cn.close();
-                                              } catch(Exception e) {
-                                                e.printStackTrace();
-                                              }
-                                            %>
-                                        </select>
-
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                            <button type="submit" class="btn btn-primary">Agregar a la lista</button>
-                                        </div>
-                                    </form>
-
-                                </div>
-                                <!--              <div class="card-footer text-center pt-0 px-sm-4 px-1">
-                                                <p class="mb-4 mx-auto">
-                                                  Already have an account?
-                                                  <a href="javascrpt:;" class="text-primary text-gradient font-weight-bold">Sign in</a>
-                                                </p>
-                                              </div>-->
-                            </div>
-                        </div>
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="font-weight-bold" style="font-size:.95rem;"><i class="fa fa-clipboard mr-1"></i>Productos a solicitar</span>
+                    <span class="badge badge-secondary" id="badgeContador">0 producto(s)</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="tablaProductos">
+                            <thead>
+                                <tr>
+                                    <th class="pl-3">#</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Presentaci&oacute;n</th>
+                                    <th>Unidad</th>
+                                    <th class="text-center">Quitar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaProductosBody">
+                                <tr id="filaVacia">
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="fa fa-inbox fa-2x mb-2 d-block"></i>No ha agregado productos. Use el bot&oacute;n "Agregar Producto".
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-            <!--fin modal agregar producto-->
+            <!-- Los hidden inputs prod_id / prod_cant se insertan din&aacute;micamente por JS -->
+        </form>
 
-            <div class="container-fluid py-4">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card mb-4">
-                            <div class="card-header pb-0">
-                                <div class="row">
-                                    <label for="example-text-input" class="form-control-label">  </label>
+    </div>
+</div>
 
-
-
-                                </div>
-                                <hr class="horizontal dark">
-                                <h2>Solicitar Suministros de oficina  </h2>
-                            </div>
-                            <div class="card-body px-0 pt-0 pb-2">
-
-                            </div>
-                        </div>
-
-
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card mb-4">
-                                    <div class="card-header pb-0">
- <form action="../INV_InsertAgregarProductoDetalle" method="post">
-
-                                        <div class="col-md-3">
-                                            <div class="form-group">
-                                                <h6>Departamento Solicitante:</h6><label for="example-text-input" class="form-control-label"><%=departamento%></label>
-                                                <label for="example-text-input" class="form-control-label"><%= idDepartamento%></label>
-                                                <input type="text" id="idDepartamento" name="idDepartamento" value="<%=idDepartamento%>"
-                                                <h6>Autorizado por: </h6>
-
-                                                <div class="input-group mb-3">
-                                                    <!--<input type="number" class="form-control"  aria-label="Email" aria-describedby="email-addon" name="alimentacion" id="alimentacion" value="3.50">-->
-                                                    <select class="chosen-select form-control" id="idUsuarioAuto" name ="idUsuarioAuto">
-                                                        <%
-                                            try{
-                                            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                            Connection   cn3 = DriverManager.getConnection(url, user, pass);
-                                            String sql = "select * from USUARIO where estado = 'a' and idroltodo = 1 and id_adm_departamento = "+idDepartamento+" order by 2";
-                                            PreparedStatement st3 = cn3.prepareStatement(sql);
-                                            ResultSet rs3 = st3.executeQuery();       
-                                            while (rs3.next()) {%>        
-                                                        <option value="<%=rs3.getString(1)%>"><%=rs3.getString(2)%> -  <%=rs3.getString(3)%> </option>
-                                                        <%}     
-                                                     rs3.close();
-                                                     st3.close();
-                                                     cn3.close();
-                                                  }catch(Exception e){
-                                                      e.printStackTrace();
-                                                  }%>     
-                                                    </select>
-                                                </div>
-                                                <!-- Contenedor flexible para que los botones queden en línea -->
-                                                <div class="d-flex gap-2">
-                                                    <a href="../Inventario/INV_Ingreso_Suministro2.jsp" class="btn btn-warning">
-                                                        <i class="ni ni-bold-left"></i> Volver
-                                                    </a>
-                                                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#exampleModalSignUpAgregar">
-                                                        <i class="ni ni-fat-add"></i> Agregar Producto
-                                                    </button>
-
-                                                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#exampleModalSignUpTerminarRegistro">
-                                                        <i class="ni ni-fat-add"></i> Terminar SOLICITUD
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <script>
-                                            const productosAgregados = []; // ⚠️ Definida globalmente
-
-                                            document.addEventListener("DOMContentLoaded", function () {
-                                                const form = document.getElementById("formAgregarProducto");
-                                                const tablaBody = document.getElementById("tablaProductosBody");
-
-                                                form.addEventListener("submit", function () {
-                                                    const productoSelect = document.getElementById("idProducto");
-                                                    const cantidadInput = document.getElementById("cantidad");
-                                                    const cantidad = cantidadInput.value;
-
-                                                    const option = productoSelect.options[productoSelect.selectedIndex];
-                                                    const idProducto = option.value;
-                                                    const descripcion = option.getAttribute("data-descripcion");
-                                                    const unidad = option.getAttribute("data-unidad");
-                                                    const presentacion = option.getAttribute("data-presentacion");
-
-                                                    console.log("AGREGANDO:", {
-                                                        idProducto,
-                                                        descripcion,
-                                                        cantidad,
-                                                        unidad,
-                                                        presentacion
-                                                    });
-
-                                                    if (!idProducto || !cantidad || cantidad <= 0) {
-                                                        alert("Debe seleccionar un producto y una cantidad válida.");
-                                                        return;
-                                                    }
-
-                                                    if (!descripcion || !unidad || !presentacion) {
-                                                        alert("Error interno: los datos del producto no se pudieron leer.");
-                                                        return;
-                                                    }
-
-                                                    if (productosAgregados.find(p => p.idProducto === idProducto)) {
-                                                        alert("Este producto ya fue agregado.");
-                                                        return;
-                                                    }
-
-                                                    productosAgregados.push({
-                                                        idProducto,
-                                                        descripcion,
-                                                        cantidad,
-                                                        unidad,
-                                                        presentacion
-                                                    });
-
-                                                    const fila = document.createElement("tr");
-                                                    fila.innerHTML =
-                                                            '<td>Nuevo</td>' +
-                                                            '<td>' + descripcion + '</td>' +
-                                                            '<td>' + cantidad + '</td>' +
-                                                            '<td>' + presentacion + '</td>' +
-                                                            '<td>' + unidad + '</td>' +
-                                                            '<td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(\'' + idProducto + '\', this)">Eliminar</button></td>' +
-                                                            '<td></td>';
-
-                                                    tablaBody.appendChild(fila);
-
-
-                                                    // Actualizar hidden con JSON
-                                                    document.getElementById("productosAgregados").value = JSON.stringify(productosAgregados);
-
-                                                    productoSelect.selectedIndex = 0;
-                                                    cantidadInput.value = "";
-                                                    bootstrap.Modal.getInstance(document.getElementById("exampleModalSignUpAgregar")).hide();
-
-                                                    console.log("Fila generada:", fila.outerHTML);
-                                                });
-                                            });
-
-                                            // 👇 Ahora puede acceder a productosAgregados porque está declarada arriba
-                                            function eliminarProducto(idProducto, boton) {
-                                                const index = productosAgregados.findIndex(p => p.idProducto === idProducto);
-                                                if (index !== -1) {
-                                                    productosAgregados.splice(index, 1);
-                                                    document.getElementById("productosAgregados").value = JSON.stringify(productosAgregados);
-                                                }
-
-                                                boton.closest("tr").remove();
-                                            }
-                                        </script>
-
-
-                                <!--<a class="btn btn-xs btn-warning " href="PRO_NUEVA_TAREA.jsp?idCabTarea=<%=idCabTarea%>"> <i class="fas fa-plus"></i>    Agregar nueva tarea</a>-->
-                                    </div>
-                                    <div class="card-body px-0 pt-0 pb-2">
-                                        <div class="table-responsive p-0">
-                                            <table class="table align-items-center justify-content-center mb-0" id="tablaProductos">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Producto</th>
-                                                        <th>Cantidad</th>
-                                                        <th>Presentación</th>
-                                                        <th>Unidad</th>
-                                                        <th>Quitar</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="tablaProductosBody">
-                                                    <!-- Se llenará dinámicamente -->
-                                                </tbody>
-                                            </table>
-
-                                        </div>
-                                       
-                                           
-                                            <input type="hidden" id="productosAgregados" name="productosAgregados">
-                                            <button type="submit" class="btn btn-success">Terminar</button>
-                                        </form>
-
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-
-                        </div>
-
-                        <footer class="footer pt-3  ">
-                            <div class="container-fluid">
-                                <div class="row align-items-center justify-content-lg-between">
-                                    <div class="col-lg-6 mb-lg-0 mb-4">
-                                        <div class="copyright text-center text-sm text-muted text-lg-start">
-                                            © <script>
-                                                document.write(new Date().getFullYear())
-                                            </script>,
-                                            Creado  <i class="fa fa-clock"></i> por
-                                            <a href="https://www.overclocking.com.ec" class="font-weight-bold" target="_blank">Overclocking</a>
-                                            for a better web.
-                                            <b>   <%Date  fecha = new Date();%> </b>
-                                            <%=fecha%>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <ul class="nav nav-footer justify-content-center justify-content-lg-end">
-                                            <li class="nav-item">
-                                                <a href="#" class="nav-link text-muted" target="_blank"></a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a href="#" class="nav-link text-muted" target="_blank"></a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a href="" class="nav-link text-muted" target="_blank"></a>
-                                            </li>
-                                            <li class="nav-item">
-                                                <a href="#" class="nav-link pe-0 text-muted" target="_blank"></a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </footer>
+<!-- Modal: agregar producto -->
+<div class="modal fade" id="modalAgregarProducto" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#3d5a99;color:#fff;">
+                <h5 class="modal-title"><i class="fa fa-plus-circle mr-2"></i>Agregar Producto</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formAgregarProducto" onsubmit="return false;">
+                    <div class="form-group">
+                        <label>Cantidad</label>
+                        <input type="number" class="form-control" id="cantidad" name="cantidad" placeholder="Cantidad de productos" min="1">
                     </div>
-
-
-                    </main>
-                    <div class="fixed-plugin">
-                        <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-                            <i class="fa fa-cog py-2"> </i>
-                        </a>
-                        <div class="card shadow-lg">
-                            <div class="card-header pb-0 pt-3 ">
-                                <div class="float-start">
-                                    <h5 class="mt-3 mb-0">Configuración</h5>
-                                    <p>Cambia los tonos de color.</p>
-                                </div>
-                                <div class="float-end mt-4">
-                                    <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
-                                        <i class="fa fa-close"></i>
-                                    </button>
-                                </div>
-                                <!-- End Toggle Button -->
-                            </div>
-                            <hr class="horizontal dark my-1">
-                            <div class="card-body pt-sm-3 pt-0 overflow-auto">
-                                <!-- Sidebar Backgrounds -->
-                                <div>
-                                    <h6 class="mb-0">Sidebar Colors</h6>
-                                </div>
-                                <a href="javascript:void(0)" class="switch-trigger background-color">
-                                    <div class="badge-colors my-2 text-start">
-                                        <span class="badge filter bg-gradient-primary active" data-color="primary" onclick="sidebarColor(this)"></span>
-                                        <span class="badge filter bg-gradient-dark" data-color="dark" onclick="sidebarColor(this)"></span>
-                                        <span class="badge filter bg-gradient-info" data-color="info" onclick="sidebarColor(this)"></span>
-                                        <span class="badge filter bg-gradient-success" data-color="success" onclick="sidebarColor(this)"></span>
-                                        <span class="badge filter bg-gradient-warning" data-color="warning" onclick="sidebarColor(this)"></span>
-                                        <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
-                                    </div>
-                                </a>
-                                <!-- Sidenav Type -->
-                                <!--        <div class="mt-3">
-                                          <h6 class="mb-0">Sidenav Type</h6>
-                                          <p class="text-sm">Choose between 2 different sidenav types.</p>
-                                        </div>
-                                        <div class="d-flex">
-                                          <button class="btn bg-gradient-primary w-100 px-3 mb-2 active me-2" data-class="bg-white" onclick="sidebarType(this)">White</button>
-                                          <button class="btn bg-gradient-primary w-100 px-3 mb-2" data-class="bg-default" onclick="sidebarType(this)">Dark</button>
-                                        </div>
-                                        <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>-->
-                                <!-- Navbar Fixed -->
-                                <div class="d-flex my-3">
-                                    <h6 class="mb-0">Navbar Fixed</h6>
-                                    <div class="form-check form-switch ps-0 ms-auto my-auto">
-                                        <input class="form-check-input mt-1 ms-auto" type="checkbox" id="navbarFixed" onclick="navbarFixed(this)">
-                                    </div>
-                                </div>
-                                <hr class="horizontal dark my-sm-4">
-                                <div class="mt-2 mb-5 d-flex">
-                                    <h6 class="mb-0">Light / Dark</h6>
-                                    <div class="form-check form-switch ps-0 ms-auto my-auto">
-                                        <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
-                                    </div>
-                                </div>
-                                <!--        <a class="btn bg-gradient-dark w-100" href="https://www.creative-tim.com/product/argon-dashboard">Free Download</a>
-                                        <a class="btn btn-outline-dark w-100" href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard">View documentation</a>
-                                        <div class="w-100 text-center">
-                                          <a class="github-button" href="https://github.com/creativetimofficial/argon-dashboard" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star creativetimofficial/argon-dashboard on GitHub">Star</a>
-                                          <h6 class="mt-3">Thank you for sharing!</h6>
-                                          <a href="https://twitter.com/intent/tweet?text=Check%20Argon%20Dashboard%20made%20by%20%40CreativeTim%20%23webdesign%20%23dashboard%20%23bootstrap5&amp;url=https%3A%2F%2Fwww.creative-tim.com%2Fproduct%2Fargon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                            <i class="fab fa-twitter me-1" aria-hidden="true"></i> Tweet
-                                          </a>
-                                          <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.creative-tim.com/product/argon-dashboard" class="btn btn-dark mb-0 me-2" target="_blank">
-                                            <i class="fab fa-facebook-square me-1" aria-hidden="true"></i> Share
-                                          </a>-->
-                            </div>
-                        </div>
+                    <div class="form-group mb-0">
+                        <label>Lista de productos</label>
+                        <select class="form-control" id="idProducto" name="idProducto">
+                            <option value="" disabled selected>Seleccione un producto...</option>
+                            <%
+                              try {
+                                DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                Connection cnProd = DriverManager.getConnection(url, user, pass);
+                                String sqlProd = "SELECT p.ID_PRODUCTO, p.DESCRIPCION, u.UNIDAD, u.DESCRIPCION " +
+                                                 "FROM INV_PRODUCTO p " +
+                                                 "JOIN INV_UNIDAD_MEDIDA u ON p.ID_UNIDAD = u.ID_UNIDAD_MEDIDA " +
+                                                 "ORDER BY 2";
+                                PreparedStatement stProd = cnProd.prepareStatement(sqlProd);
+                                ResultSet rsProd = stProd.executeQuery();
+                                while (rsProd.next()) {
+                            %>
+                            <option value="<%=rsProd.getString(1)%>"
+                                    data-descripcion="<%=rsProd.getString(2)%>"
+                                    data-unidad="<%=rsProd.getString(3)%>"
+                                    data-presentacion="<%=rsProd.getString(4)%>">
+                                <%=rsProd.getString(2)%>
+                            </option>
+                            <%
+                                }
+                                rsProd.close(); stProd.close(); cnProd.close();
+                              } catch(Exception eProd) { eProd.printStackTrace(); }
+                            %>
+                        </select>
                     </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+                <button type="submit" form="formAgregarProducto" class="btn btn-primary btn-sm"><i class="fa fa-plus mr-1"></i>Agregar a la lista</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin modal agregar producto -->
+
+<!-- Modal: confirmar terminar solicitud -->
+<div class="modal fade" id="modalTerminarSolicitud" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#3d5a99;color:#fff;">
+                <h5 class="modal-title"><i class="fa fa-check-circle mr-2"></i>Terminar registro</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>&iquest;Est&aacute; seguro de terminar de registrar productos?</p>
+                <p class="text-muted" style="font-size:.85rem;">Una vez cerrada, no podr&aacute; agregar m&aacute;s productos a esta solicitud.</p>
+                <div id="modalMsgError" class="alert alert-warning d-none" style="font-size:.85rem;" role="alert"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-sm" id="btnConfirmarTerminar"><i class="fa fa-check mr-1"></i>Terminar SOLICITUD</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin modal confirmar -->
+
+<!-- Modal: video tutorial -->
+<div class="modal fade" id="modalVideoTutorial" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#3d5a99;color:#fff;">
+                <h5 class="modal-title"><i class="fa fa-play-circle mr-2"></i>Tutorial de uso</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe id="iframeVideoTutorial" class="embed-responsive-item" src=""
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen frameborder="0"></iframe>
                 </div>
-                <!--   Core JS Files   -->
-                <script src="../assets/js/core/popper.min.js"></script>
-                <script src="../assets/js/core/bootstrap.min.js"></script>
-                <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
-                <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Fin modal video tutorial -->
 
-                <script>
-                                            var win = navigator.platform.indexOf('Win') > -1;
-                                            if (win && document.querySelector('#sidenav-scrollbar')) {
-                                                var options = {
-                                                    damping: '0.5'
-                                                }
-                                                Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-                                            }
-                </script>
-                <!-- Github buttons -->
-                <script async defer src="https://buttons.github.io/buttons.js"></script>
-                <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
-                <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
-                </body>
-                </html>
+<footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
+
+<script>
+const productosAgregados = [];
+
+function actualizarContador() {
+    const badge = document.getElementById('badgeContador');
+    badge.textContent = productosAgregados.length + ' producto(s)';
+}
+
+$('#modalVideoTutorial').on('show.bs.modal', function () {
+    document.getElementById('iframeVideoTutorial').src = 'https://www.youtube.com/embed/l-y4AR5V-7Y?autoplay=1';
+});
+$('#modalVideoTutorial').on('hidden.bs.modal', function () {
+    document.getElementById('iframeVideoTutorial').src = '';
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const formAgregar   = document.getElementById('formAgregarProducto');
+    const tablaBody     = document.getElementById('tablaProductosBody');
+    const formSolicitud = document.getElementById('formSolicitud');
+
+    $('#idProducto').select2({
+        theme: 'bootstrap',
+        dropdownParent: $('#modalAgregarProducto'),
+        width: '100%',
+        language: {
+            noResults: function () { return 'No se encontraron productos'; },
+            searching: function () { return 'Buscando...'; }
+        }
+    });
+
+    formAgregar.addEventListener('submit', function () {
+        const productoSelect = document.getElementById('idProducto');
+        const cantidadInput  = document.getElementById('cantidad');
+        const cantidad = parseInt(cantidadInput.value);
+        const option   = productoSelect.options[productoSelect.selectedIndex];
+
+        const idProducto   = option.value;
+        const descripcion  = option.getAttribute('data-descripcion');
+        const unidad       = option.getAttribute('data-unidad');
+        const presentacion = option.getAttribute('data-presentacion');
+
+        if (!idProducto || !cantidad || cantidad <= 0) {
+            alert('Debe seleccionar un producto y una cantidad válida.');
+            return;
+        }
+        if (productosAgregados.find(p => p.idProducto === idProducto)) {
+            alert('Este producto ya fue agregado.');
+            return;
+        }
+
+        productosAgregados.push({ idProducto, descripcion, cantidad, unidad, presentacion });
+
+        const filaVacia = document.getElementById('filaVacia');
+        if (filaVacia) filaVacia.remove();
+
+        // Fila en la tabla
+        const fila = document.createElement('tr');
+        fila.setAttribute('data-prod-row', idProducto);
+        fila.innerHTML =
+            '<td class="pl-3">' + (productosAgregados.length) + '</td>' +
+            '<td>' + descripcion + '</td>' +
+            '<td>' + cantidad + '</td>' +
+            '<td>' + presentacion + '</td>' +
+            '<td>' + unidad + '</td>' +
+            '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" ' +
+                'onclick="eliminarProducto(\'' + idProducto + '\', this)"><i class="fa fa-trash"></i></button></td>';
+        tablaBody.appendChild(fila);
+
+        // Hidden inputs para el servlet
+        var hId = document.createElement('input');
+        hId.type = 'hidden'; hId.name = 'prod_id'; hId.value = idProducto;
+        hId.setAttribute('data-for-prod', idProducto);
+        formSolicitud.appendChild(hId);
+
+        var hCant = document.createElement('input');
+        hCant.type = 'hidden'; hCant.name = 'prod_cant'; hCant.value = cantidad;
+        hCant.setAttribute('data-for-cant', idProducto);
+        formSolicitud.appendChild(hCant);
+
+        actualizarContador();
+
+        $(productoSelect).val('').trigger('change');
+        cantidadInput.value = '';
+        $('#modalAgregarProducto').modal('hide');
+    });
+
+    // Botón confirmar en modal
+    document.getElementById('btnConfirmarTerminar').addEventListener('click', function () {
+        if (productosAgregados.length === 0) {
+            document.getElementById('modalMsgError').textContent = 'Debe agregar al menos un producto.';
+            document.getElementById('modalMsgError').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('formSolicitud').submit();
+    });
+});
+
+function eliminarProducto(idProducto, boton) {
+    const index = productosAgregados.findIndex(p => p.idProducto === idProducto);
+    if (index !== -1) productosAgregados.splice(index, 1);
+
+    // Quitar fila de tabla
+    boton.closest('tr').remove();
+
+    // Quitar hidden inputs del formulario
+    document.querySelectorAll('[data-for-prod="' + idProducto + '"]').forEach(function(el){ el.parentNode.removeChild(el); });
+    document.querySelectorAll('[data-for-cant="' + idProducto + '"]').forEach(function(el){ el.parentNode.removeChild(el); });
+
+    // Renumerar filas
+    document.querySelectorAll('#tablaProductosBody tr[data-prod-row]').forEach(function(tr, i){
+        tr.cells[0].textContent = (i + 1);
+    });
+
+    actualizarContador();
+
+    // Restaurar fila vacía si ya no quedan productos
+    if (productosAgregados.length === 0 && !document.getElementById('filaVacia')) {
+        const tablaBody = document.getElementById('tablaProductosBody');
+        const fila = document.createElement('tr');
+        fila.id = 'filaVacia';
+        fila.innerHTML = '<td colspan="6" class="text-center text-muted py-4"><i class="fa fa-inbox fa-2x mb-2 d-block"></i>No ha agregado productos. Use el botón "Agregar Producto".</td>';
+        tablaBody.appendChild(fila);
+    }
+}
+</script>
+</body>
+</html>

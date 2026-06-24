@@ -115,6 +115,11 @@
                     No tienes cuenta?
                     <a href="javascript:;" class="text-primary text-gradient font-weight-bold">Sign up</a>
                   </p>
+                  <p class="mb-0 text-xs mx-auto">
+                    <a href="javascript:;" class="text-muted" data-bs-toggle="modal" data-bs-target="#modalProteccionDatos">
+                      <i class="fas fa-shield-alt me-1"></i>Aviso de Protección de Datos Personales
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -153,5 +158,42 @@
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
   <script src="assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+
+  <!-- Modal: Aviso de Privacidad y Protección de Datos Personales -->
+  <div class="modal fade" id="modalProteccionDatos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalProteccionDatosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalProteccionDatosLabel">
+            <i class="fas fa-shield-alt text-success me-2"></i>Aviso de Privacidad y Protección de Datos Personales
+          </h5>
+        </div>
+        <div class="modal-body text-start">
+          <p>
+            En cumplimiento de la <strong>Ley Orgánica de Protección de Datos Personales (LOPDP)</strong> del Ecuador,
+            le informamos que los datos de acceso (usuario y contraseña) y la información generada durante el uso de
+            <strong>ProMaNet</strong> serán tratados de forma confidencial y utilizados únicamente con fines de
+            autenticación, auditoría y gestión interna de la organización.
+          </p>
+          <p>
+            Sus datos no serán compartidos con terceros sin su consentimiento, salvo requerimiento de una autoridad
+            competente. Usted puede ejercer sus derechos de acceso, rectificación, actualización o eliminación de
+            sus datos personales contactando al administrador del sistema.
+          </p>
+          <p class="mb-0">
+            Al continuar e iniciar sesión, usted reconoce haber sido informado sobre el tratamiento de sus datos
+            personales conforme a este aviso.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success" data-bs-dismiss="modal">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    var modalProteccionDatos = new bootstrap.Modal(document.getElementById('modalProteccionDatos'));
+    modalProteccionDatos.show();
+  </script>
 </body>
 </html>

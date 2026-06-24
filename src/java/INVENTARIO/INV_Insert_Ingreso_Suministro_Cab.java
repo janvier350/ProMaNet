@@ -76,6 +76,35 @@ public class INV_Insert_Ingreso_Suministro_Cab extends HttpServlet {
         try {
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             cn = DriverManager.getConnection(url, user, pass);
+            st = cn.prepareStatement("SELECT COUNT(*) FROM INV_SUMINISTRO_INGRESO_CAB WHERE NUMERO_FACTURA = ? AND ID_INV_PROVEEDOR = ? AND ESTADO IN ('A','C')");
+            st.setString(1, numero_factura);
+            st.setString(2, idProveedor);
+            rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                response.sendRedirect("../ProMaNet/Inventario/INV_Ingreso_Suministro2.jsp?error=factura_dup");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+                if (cn != null) {
+                    cn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+            cn = DriverManager.getConnection(url, user, pass);
             String sqlSecuencia = "select nvl(max(ID_SUMINISTRO_INGRESO_CAB),0)+1 secuencia from INV_SUMINISTRO_INGRESO_CAB";
             st = cn.prepareStatement(sqlSecuencia);
             rs = st.executeQuery();

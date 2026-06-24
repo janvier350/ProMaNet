@@ -137,7 +137,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     <a class="nav-link " href="../Proyectos/PRO_Contactos.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="fa fa-users text-success text-sm opacity-10"></i>
-                            <!--ni ni-single-copy-04-->
                         </div> 
                         <span class="nav-link-text ms-1">Contactos</span>
                     </a>
@@ -166,11 +165,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         <span class="nav-link-text ms-1">Reporte de Gastos</span>
                     </a>
                 </li>
-
                 <li class="nav-item mt-3">
                     <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
                 </li>
-
                 <li class="nav-item">
                     <a class="nav-link " href="../Proyectos/Perfil.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -178,10 +175,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         </div>
                         <span class="nav-link-text ms-1">Perfil</span>
                     </a>
-                    <!--control de acceso--> 
                     <%if(usuario.equals("uparrales")){%>
                     <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
-
                     <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -194,27 +189,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         </div>
                         <span class="nav-link-text ms-1">Inventario</span>
                     </a>
-
                     <%}%>
-
-                   
                 </li>
-                <!--        <li class="nav-item">
-                          <a class="nav-link " href="../pages/sign-in.html">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                              <i class="ni ni-single-copy-04 text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Sign In</span>
-                          </a>
-                        </li>
-                        <li class="nav-item">
-                          <a class="nav-link " href="../pages/sign-up.html">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                              <i class="ni ni-collection text-info text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Sign Up</span>
-                          </a>
-                        </li>-->
             </ul>
             <div class="sidenav-footer mx-3 ">
                 <div class="card card-plain shadow-none" id="sidenavCard">
@@ -222,7 +198,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     <div class="card-body text-center p-3 w-100 pt-0">
                         <div class="docs-info">
                             <h6 class="mb-0">Necesitas ayuda?</h6>
-                            <p class="text-xs font-weight-bold mb-0">isita nuestro Tutorial</p>
+                            <p class="text-xs font-weight-bold mb-0">Visita nuestro Tutorial</p>
                         </div>
                     </div>
                 </div>
@@ -231,7 +207,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
             </div>
         </aside>
         <div class="main-content position-relative max-height-vh-100 h-100">
-            <!-- Navbar -->
             <nav class="navbar navbar-main navbar-expand-lg bg-transparent shadow-none position-absolute px-4 w-100 z-index-2 mt-n11">
                 <div class="container-fluid py-1">
                     <nav aria-label="breadcrumb">
@@ -348,7 +323,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                     </div>
                 </div>
             </nav>
-            <!-- End Navbar -->
             <div class="card shadow-lg mx-4 card-profile-bottom">
                 <div class="card-body p-3">
                     <div class="row gx-4">
@@ -401,7 +375,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <div class="card-header pb-0">
                                 <div class="d-flex align-items-center">
                                     <p class="mb-0">Datos personales</p>
-                                    <!--<button class="btn btn-primary btn-sm ms-auto">Settings</button>-->
                                 </div>
                             </div>
                             <div class="card-body">
@@ -446,7 +419,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <hr class="horizontal dark">
                                     <p class="text-uppercase text-sm">Cambiar Contraseña</p>
                                     <form action="../ActualizarContrasena.jsp" method="post"> 
-
                                         <div class="col-md-6">
                                             <div class="form-group pass_show">
                                                 <label for="example-text-input" class="form-control-label">Contraseña Actual</label>
@@ -460,84 +432,45 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             </div>
                                         </div>
                                         <div class="form-group">
-                                            <button type="submit"  class="btn btn-success">
+                                            <button type="submit" class="btn btn-success">
                                                 <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEÑA</button>
                                         </div>
                                         <style>
-                                            .pass_show{
-                                                position: relative
-                                            }
-
+                                            .pass_show{ position: relative }
                                             .pass_show .ptxt {
-
-                                                position: absolute;
-
-                                                top: 50%;
-
-                                                right: 10px;
-
-                                                z-index: 1;
-
-                                                color: #f36c01;
-
-                                                margin-top: -10px;
-
-                                                cursor: pointer;
-
-                                                transition: .3s ease all;
-
+                                                position: absolute; top: 50%; right: 10px; z-index: 1;
+                                                color: #f36c01; margin-top: -10px; cursor: pointer; transition: .3s ease all;
                                             }
-
-                                            .pass_show .ptxt:hover{
-                                                color: #333333;
-                                            }
-
+                                            .pass_show .ptxt:hover{ color: #333333; }
                                         </style>
                                         <script>
-
                                             $(document).ready(function () {
                                                 $('.pass_show').append('<span class="ptxt">Show</span>');
                                             });
-
-
                                             $(document).on('click', '.pass_show .ptxt', function () {
-
                                                 $(this).text($(this).text() == "Show" ? "Hide" : "Show");
-
                                                 $(this).prev().attr('type', function (index, attr) {
                                                     return attr == 'password' ? 'text' : 'password';
                                                 });
-
                                             });
                                         </script>
                                     </form>
-
                                 </div>
                                 <hr class="horizontal dark">
                                 <br>
                                 <hr class="horizontal dark">
-                                
-                              
-                        
                                 <%
                                      if(apellidos.equals("Varas Herrera")){
-                                         %>
-                                         <form action="../INV_InsertSoporteGenerado" method="POST">
+                                %>
+                                <form action="../INV_InsertSoporteGenerado" method="POST">
                                     <div>
                                         <span class="text-danger text-sm font-weight-bolder">Generar soporte: </span>
                                         <p><em>Generar ticket para usuario especifico.</em></p>
-
                                     </div>
-
-
-
                                     <div class="row">
-
                                         <div class="col-md-12">
                                             <div class="form-group">
-
                                                 <div class="col-lg-12">
-
                                                     <textarea type="text" name="soporteGenerado" id="soporteGenerado" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
                                                     <iframe src="https://buadnet.com.ec/dictado.html?target=soporteGenerado"
                                                             allow="microphone"
@@ -553,30 +486,24 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <div class="form-group">
                                                 <label>Prioridad: </label>
                                                 <div class="input-group mb-3">
-                                                    <select class="chosen-select form-control" id="prioridad_soporteGenerado" name ="prioridad_soporteGenerado">
-
+                                                    <select class="chosen-select form-control" id="prioridad_soporteGenerado" name="prioridad_soporteGenerado">
                                                         <option value="Alta">Alta</option>                                                 
                                                         <option value="Media">Media</option> 
                                                         <option value="Baja">Baja</option> 
-
                                                     </select>
                                                 </div>
                                                 <div class="form-group">
-                                                    <select class="chosen-select form-control" id="idEjecutivo_soporteGenerado" name ="idEjecutivo_soporteGenerado"  onChange='cargarDatos()'>
+                                                    <select class="chosen-select form-control" id="idEjecutivo_soporteGenerado" name="idEjecutivo_soporteGenerado" onChange='cargarDatos()'>
                                                         <option value="">Elija a un ejecutivo</option>  
-
                                                         <%
-                                                            // or estado = 'i' 
                                                             try{
                                                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                                            Connection   cn4 = DriverManager.getConnection(url, user, pass);
-                                                              String usuarios = "Select IDUSUARIO, NOMBRE||' '||APELLIDOS as nombre,IDROL,ESTADO From usuario where ESTADO ='a'  order by 2";
+                                                            Connection cn4 = DriverManager.getConnection(url, user, pass);
+                                                            String usuarios = "Select IDUSUARIO, NOMBRE||' '||APELLIDOS as nombre,IDROL,ESTADO From usuario where ESTADO ='a' order by 2";
                                                             PreparedStatement st4 = cn4.prepareStatement(usuarios);
                                                             ResultSet rs4 = st4.executeQuery();       
                                                             while (rs4.next()) {
-
-                                                        %>                    
-
+                                                        %>
                                                         <option value="<%=rs4.getString(1)%>"> <%=rs4.getString(2)%></option>
                                                         <%
                                                             }     
@@ -586,35 +513,26 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                         }catch(Exception e){
                                                              e.printStackTrace();
                                                         }
-
-                                                        %>       
+                                                        %>
                                                     </select>
                                                 </div>  
                                                 <p><em><strong>Alta:</strong> Equipo constantemente inestable imposible continuar mis actividades laborales.</em></p>
                                                 <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                 <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
-
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-
-
-
-                                    </div>
                                     <div class="modal-footer">
-                                        <button type="#" class="btn btn-info"  href="">
-                                            <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes.jsp">
+                                        <button type="#" class="btn btn-info" href="">
+                                            <a class="nav-link" href="../Soportes/SOP_ListaSolicitudes.jsp">
                                                 <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
                                         </button>
-                                        <button type="submit" class="btn btn-success" >
+                                        <button type="submit" class="btn btn-success">
                                             <i class="fa fa-save" aria-hidden="true">  </i>    Enviar Solicitud 
                                         </button>
                                     </div>
                                 </form>
-                                         <%
-                                          }%>
-                                
+                                <%}%>
                             </div>
                         </div>
                     </div>
@@ -634,8 +552,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                 <div class="d-flex justify-content-between">
                                     <a href="#" class="btn btn-sm btn-info mb-0 d-none d-lg-block">Solicitar</a>
                                     <a href="javascript:;" class="btn btn-sm btn-info mb-0 d-block d-lg-none"><i class="ni ni-collection"></i></a>
-                                    <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank " >
-                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Ticket Soporte </button> 
+                                    <a href="https://youtu.be/Zr7a9Hq8NW0" target="blank">
+                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube">   Tutorial: Ticket Soporte </button> 
                                     </a>
                                     <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-none d-lg-block">Reportar</a>
                                     <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-block d-lg-none"><i class="ni ni-email-83"></i></a>
@@ -661,12 +579,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     </div>
                                 </div>
                                 <div class="text-center mt-4">
-                                    <h5>
-                                        Marca :<span class="font-weight-light"><%=marca%></span>
-                                    </h5>
-                                    <h5>
-                                        Modelo :<span class="font-weight-light"><%=modelo%></span>
-                                    </h5>
+                                    <h5>Marca :<span class="font-weight-light"><%=marca%></span></h5>
+                                    <h5>Modelo :<span class="font-weight-light"><%=modelo%></span></h5>
                                     <div class="h6 font-weight-300">
                                         <i class="ni location_pin mr-2"></i>Serial: <%=serial%>
                                     </div>
@@ -676,7 +590,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <div class="h6 mt-4">
                                         <i class="ni business_briefcase-24 mr-2"></i>Fecha Asignación - <%=fechaasignacion%>
                                     </div>
-
                                     <div>
                                         <i class="ni education_hat mr-2"></i><b>Observaciones: </b>  - <%=observaciones%>
                                     </div>
@@ -685,19 +598,12 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                     <form action="../insertSoporte" method="POST">
                                         <div>
                                             <span class="text-danger text-sm font-weight-bolder">Solicitar soporte: </span>
-                                            <p><em>Tu equipo asigando presenta muchos problemas!! , entoces solicita un soporte al departamento de IT.</em></p>
-
+                                            <p><em>Tu equipo asignado presenta muchos problemas!! , entonces solicita un soporte al departamento de IT.</em></p>
                                         </div>
-
-
-
                                         <div class="row">
-
                                             <div class="col-md-12">
                                                 <div class="form-group">
-
                                                     <div class="col-lg-12">
-
                                                         <textarea type="text" name="soporte" id="soporte" class="form-control" placeholder="Detalle su solicitud de soporte tecnico."></textarea>
                                                         <iframe src="https://buadnet.com.ec/dictado.html?target=soporte"
                                                                 allow="microphone"
@@ -713,18 +619,15 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                 <div class="form-group">
                                                     <label>Prioridad: </label>
                                                     <div class="input-group mb-3">
-                                                        <select class="chosen-select form-control" id="prioridad" name ="prioridad">
-
+                                                        <select class="chosen-select form-control" id="prioridad" name="prioridad">
                                                             <option value="Alta">Alta</option>                                                 
                                                             <option value="Media">Media</option> 
                                                             <option value="Baja">Baja</option> 
-
                                                         </select>
                                                     </div>
                                                     <p><em><strong>Alta:</strong> Equipo constantemente inestable imposible continuar mis actividades laborales.</em></p>
                                                     <p><em><strong>Media: </strong>Equipo funciona pero ciertas ocaciones presenta el problema. Programar una fecha de atención.</em></p>
                                                     <p><em><strong>Baja: </strong>Equipo funciona pero si puedo continuar con mis actividades laborales.</em></p>
-
                                                 </div>
                                             </div>
                                         </div>
@@ -732,7 +635,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             <input type="hidden" name="idUsuario" value="<%=codigo %>">
                                             <input type="hidden" name="idEquipo" value="<%=idinvequipo %>">
                                             <div class="row justify-content-center text-center mb-4">
-                                                <!-- Imagen del equipo con modal -->
                                                 <div class="col-md-6">
                                                     <img src="../INV_MostrarImagenEquipo?nombre=equipo_<%=idInvEquipo%>"
                                                          alt="Imagen del equipo"
@@ -742,7 +644,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                                          data-bs-target="#modalImagenEquipo" />
                                                 </div>
                                             </div>
-                                            <!-- Modal de imagen -->
                                             <div class="modal fade" id="modalImagenEquipo" tabindex="-1" aria-labelledby="modalImagenLabel" aria-hidden="true">
                                                 <div class="modal-dialog modal-dialog-centered modal-lg">
                                                     <div class="modal-content bg-transparent border-0">
@@ -756,30 +657,28 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="#" class="btn btn-info"  href="">
-                                                <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes.jsp">
+                                            <button type="#" class="btn btn-info" href="">
+                                                <a class="nav-link" href="../Soportes/SOP_ListaSolicitudes.jsp">
                                                     <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
                                             </button>
-                                            <button type="submit" class="btn btn-success" >
+                                            <button type="submit" class="btn btn-success">
                                                 <i class="fa fa-save" aria-hidden="true">  </i>    Enviar Solicitud 
                                             </button>
                                         </div>
                                     </form>
-
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <footer class="footer pt-3  ">
+                <footer class="footer pt-3">
                     <div class="container-fluid">
                         <div class="row align-items-center justify-content-lg-between">
                             <div class="col-lg-6 mb-lg-0 mb-4">
                                 <div class="copyright text-center text-sm text-muted text-lg-start">
-                                    Overclocking
-                                    ©,
-                                    Creado por  <i class="fa fa-clock"></i> by
-                                    <a href="https://www.overclocking.com.ec" class="font-weight-bold" target="_blank">Javier </a>
+                                    Overclocking ©,
+                                    Creado por <i class="fa fa-clock"></i> by
+                                    <a href="https://www.overclocking.com.ec" class="font-weight-bold" target="_blank">Javier</a>
                                     Varas
                                 </div>
                             </div>
@@ -809,7 +708,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 <i class="fa fa-cog py-2"> </i>
             </a>
             <div class="card shadow-lg">
-                <div class="card-header pb-0 pt-3 ">
+                <div class="card-header pb-0 pt-3">
                     <div class="float-start">
                         <h5 class="mt-3 mb-0">Argon Configurator</h5>
                         <p>See our dashboard options.</p>
@@ -819,11 +718,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <i class="fa fa-close"></i>
                         </button>
                     </div>
-                    <!-- End Toggle Button -->
                 </div>
                 <hr class="horizontal dark my-1">
                 <div class="card-body pt-sm-3 pt-0 overflow-auto">
-                    <!-- Sidebar Backgrounds -->
                     <div>
                         <h6 class="mb-0">Sidebar Colors</h6>
                     </div>
@@ -837,7 +734,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                             <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
                         </div>
                     </a>
-                    <!-- Sidenav Type -->
                     <div class="mt-3">
                         <h6 class="mb-0">Sidenav Type</h6>
                         <p class="text-sm">Choose between 2 different sidenav types.</p>
@@ -847,7 +743,6 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         <button class="btn bg-gradient-primary w-100 px-3 mb-2" data-class="bg-default" onclick="sidebarType(this)">Dark</button>
                     </div>
                     <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>
-                    <!-- Navbar Fixed -->
                     <hr class="horizontal dark my-sm-4">
                     <div class="mt-2 mb-5 d-flex">
                         <h6 class="mb-0">Light / Dark</h6>
@@ -858,23 +753,18 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 </div>
             </div>
         </div>
-        <!--   Core JS Files   -->
         <script src="../assets/js/core/popper.min.js"></script>
         <script src="../assets/js/core/bootstrap.min.js"></script>
         <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
         <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
         <script>
-                                var win = navigator.platform.indexOf('Win') > -1;
-                                if (win && document.querySelector('#sidenav-scrollbar')) {
-                                    var options = {
-                                        damping: '0.5'
-                                    }
-                                    Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-                                }
+            var win = navigator.platform.indexOf('Win') > -1;
+            if (win && document.querySelector('#sidenav-scrollbar')) {
+                var options = { damping: '0.5' }
+                Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+            }
         </script>
-        <!-- Github buttons -->
         <script async defer src="https://buttons.github.io/buttons.js"></script>
-        <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
         <script>
         window.addEventListener('message', function(event) {

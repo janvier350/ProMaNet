@@ -709,13 +709,12 @@ String compania = (String) session.getAttribute("compania");
                         <p class="text-sm font-weight-bold mb-0"><%=rsa5.getString(7)%> </p>
                        
                       </td>
-                       <td>
-                        <p class="text-sm font-weight-bold mb-0"><%=rsa5.getString(9)%> </p>
-                       
+                       <td style="min-width: 280px; max-width: 420px;">
+                        <p class="text-sm font-weight-bold mb-0" style="white-space: normal; word-break: break-word;"><%=rsa5.getString(9)%></p>
                       </td>
-                       <td>
+                       <td style="min-width: 110px;">
                         <p class="text-sm font-weight-bold mb-0"><%=rsa5.getString(10)%> </p>
-                       
+
                       </td>
                  
                     </tr>

@@ -63,6 +63,28 @@ public class INV_InsertCategoria extends HttpServlet {
         try {
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             cn = DriverManager.getConnection(url, user, pass);
+            st = cn.prepareStatement("SELECT COUNT(*) FROM INV_CATEGORIA WHERE UPPER(DESCRIPCION) = UPPER(?) AND ESTADO = 'A'");
+            st.setString(1, categoria);
+            rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                response.sendRedirect("../ProMaNet/Inventario/INV_Ingreso_Suministro2.jsp?error=categoria_dup");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (st != null) st.close();
+                if (cn != null) cn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+            cn = DriverManager.getConnection(url, user, pass);
             String sqlSecuencia = "select nvl(max(INV_ID_CATEGORIA),0)+1 secuencia from INV_CATEGORIA";
             st = cn.prepareStatement(sqlSecuencia);
             rs = st.executeQuery();

@@ -65,7 +65,7 @@ String compania = (String) session.getAttribute("compania");
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn3 = DriverManager.getConnection(url, user, pass);
 
-            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC FETCH FIRST 1 ROWS ONLY";
+            String fecha_corte = "SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM (SELECT ID_FECHA_CORTE, FECHA_CORTE, ESTADO FROM CTRL_FECHA_CORTE_ANTICIPO WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1";
 
             PreparedStatement st3 = cn3.prepareStatement(fecha_corte);
             ResultSet rs3 = st3.executeQuery();
@@ -421,8 +421,16 @@ System.out.println("Estado del corte: " + validacionFecha);
 
                                 </div>
                                 <hr class="horizontal dark">
-                                <p>Solicite su anticipo de sueldo antes de la fecha límite  <h3><%= corte %> </h3></p>
+                                <p>Solicite su anticipo de sueldo antes de la fecha límite <h3><%= corte %></h3></p>
 
+                                <% if (validacionFecha == 1) { %>
+                                <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius:8px;">
+                                    <i class="fa fa-exclamation-triangle me-3" style="font-size:1.5rem;"></i>
+                                    <div>
+                                        <strong>Plazo vencido.</strong> La fecha límite para solicitar anticipos fue el <strong><%= corte %></strong>. No es posible realizar nuevas solicitudes.
+                                    </div>
+                                </div>
+                                <% } else { %>
                                 <form action="../CTRL_Insert_Anticipo" method="post" onsubmit="return validarAnticipo()"> 
 
                                     <div class="col-md-6">
@@ -444,6 +452,7 @@ System.out.println("Estado del corte: " + validacionFecha);
                                         </button>
                                     </div>
                                 </form>
+                                <% } %>
 
                                 <!--<p class="text-uppercase text-sm">Cambiar Contraseña</p>-->   
                                 <!--                                <form action="../Insert_Solicitud_Anticipo.jsp" method="post"> 
