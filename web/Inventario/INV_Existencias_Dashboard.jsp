@@ -61,10 +61,10 @@
 
         // All products with current stock (SUM in case of multiple rows per product)
         PreparedStatement stProd = cn.prepareStatement(
-                "SELECT p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, NVL(SUM(e.EXISTENCIA),0) AS STOCK " +
+                "SELECT p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, NVL(SUM(e.EXISTENCIA),0) AS STOCK, p.ID_UNIDAD " +
                 "FROM INV_PRODUCTO p " +
                 "LEFT JOIN INV_SUMINISTRO_EXISTENCIA e ON p.ID_PRODUCTO = e.ID_PRODUCTO " +
-                "GROUP BY p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD " +
+                "GROUP BY p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, p.ID_UNIDAD " +
                 "ORDER BY STOCK ASC, p.DESCRIPCION");
         ResultSet rsProd = stProd.executeQuery();
         while (rsProd.next()) {
@@ -74,6 +74,7 @@
             String unidadVal = rsProd.getString(3) != null ? rsProd.getString(3) : "";
             String unidad    = unidadVal.isEmpty() ? "—" : unidadVal;
             long   stock     = rsProd.getLong(4);
+            String idUnidadProd = rsProd.getString(5) != null ? rsProd.getString(5) : "";
             totalUnidades += stock;
 
             String nivel, badgeCls, rowCls;
@@ -104,7 +105,8 @@
                       .append("<button type='button' class='btn btn-xs btn-outline-primary btn-editar-prod' style='font-size:.73rem;padding:2px 8px;' ")
                       .append("data-id='").append(idP).append("' ")
                       .append("data-desc=\"").append(descAttr).append("\" ")
-                      .append("data-unidad=\"").append(unidadAttr).append("\">")
+                      .append("data-unidad=\"").append(unidadAttr).append("\" ")
+                      .append("data-idunidad=\"").append(idUnidadProd).append("\">")
                       .append("<i class='fa fa-pencil'></i> Editar</button>")
                       .append("</td></tr>\n");
 
@@ -479,7 +481,23 @@
                     </div>
                     <div class="form-group mb-0">
                         <label>Unidad de medida</label>
-                        <input type="text" name="unidad" id="editUnidad" class="form-control" maxlength="50" placeholder="Ej: Caja, Unidad, Resma, Galón...">
+                        <select name="id_unidad" id="editUnidad" class="form-control" required>
+                            <option value="">-- Sin unidad --</option>
+                            <%
+                                try {
+                                    DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                    Connection cnU = DriverManager.getConnection(url, user, pass);
+                                    PreparedStatement stU = cnU.prepareStatement("select * from INV_UNIDAD_MEDIDA where estado = 'A' order by 2");
+                                    ResultSet rsU = stU.executeQuery();
+                                    while (rsU.next()) {
+                            %>
+                            <option value="<%=rsU.getString(1) + "," + rsU.getString(3)%>"><%=rsU.getString(2)%> - <%=rsU.getString(3)%></option>
+                            <%
+                                    }
+                                    rsU.close(); stU.close(); cnU.close();
+                                } catch (Exception e) { e.printStackTrace(); }
+                            %>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -576,7 +594,15 @@ document.querySelectorAll('.btn-editar-prod').forEach(function(btn){
     btn.addEventListener('click', function(){
         document.getElementById('editIdProducto').value = this.getAttribute('data-id');
         document.getElementById('editDescripcion').value = this.getAttribute('data-desc');
-        document.getElementById('editUnidad').value = this.getAttribute('data-unidad');
+        var idUnidad = this.getAttribute('data-idunidad');
+        var sel = document.getElementById('editUnidad');
+        sel.selectedIndex = 0;
+        for (var i = 0; i < sel.options.length; i++) {
+            if (idUnidad && sel.options[i].value.split(',')[0] === idUnidad) {
+                sel.selectedIndex = i;
+                break;
+            }
+        }
         $('#modalEditarProducto').modal('show');
     });
 });
