@@ -223,7 +223,7 @@
                             </li>
                             <li class="divider"></li>
                             <li class="dropdown-submenu">
-                                <a tabindex="-1" href="#">Asignación</a>
+                                <a tabindex="-1" href="#">Asignaciï¿½n</a>
                                 <ul class="dropdown-menu">
                                    <!--  <li><a href="#">Asignacion Reporte de Gastos</a></li> -->
                                 </ul>
@@ -249,7 +249,7 @@
                                 <li class="dropdown-submenu">
                                     <a tabindex="-1" href="#">Asignacion</a>
                                     <ul class="dropdown-menu">
-                                      <li><a href="RGA_Listado.jsp">Asignación Reporte de Gastos</a></li>
+                                      <li><a href="RGA_Listado.jsp">Asignaciï¿½n Reporte de Gastos</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -381,9 +381,9 @@
                         <th class="text-center titulo ">DEPARTAMENTO</th>
                         <th class="text-center titulo ">EJECUTIVO</th>  
                         <th class="text-center titulo ">CLIENTE</th>  
-                        <th class="text-center titulo ">OBSERVACIÓN</th>  
+                        <th class="text-center titulo ">OBSERVACIï¿½N</th>  
                         
-                        <%  if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("")){%>
+                        <%  if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
                         <th class="text-center titulo ">ACCIONES</th>
                          <th class="text-center titulo ">ELIMINAR</th>
                          <%}%>
@@ -524,7 +524,7 @@
                             
                             </td>
                             <td class="text-center titulo "> <%=rs.getString(7)%></td>
-                             <%  if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("")){%>
+                             <%  if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
                             
                             <td aling="justify"> 
                                <a href="Agenda_Editar_Cab.jsp?idRegistroAgenda=<%= rs.getString(1)%>&observacion=<%= rs.getString(7)%>&h_inicio=<%= rs.getString(3)%>&h_fin=<%= rs.getString(4)%>&fechaAgenda=<%= rs.getString(2)%>&idClienteAsig=<%=rs.getString(9)%>&nombreCliente=<%=rs.getString(6)%>&nombreDepartamento=<%=rs.getString(11)%>&idEjecutivo=<%=rs.getString(12)%>&nombreEjecutivo=<%=rs.getString(5)%>" class="btn btn-xs btn-warning " data-bs-toggle="tooltip" title="Editar Cita!"><span class="glyphicon glyphicon-pencil"></span> </a>
@@ -680,7 +680,7 @@
             <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
-                    <label for="Observacion" class="form-control-label">Observación</label>
+                    <label for="Observacion" class="form-control-label">Observaciï¿½n</label>
                     <textarea class="form-control" id="observacion" name="observacion" ></textarea>
                 </div>  
             </div>
@@ -766,7 +766,7 @@
                     
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                <button type="button" id="boton" class="btn btn-success"> Confirmar selección </button>
+                <button type="button" id="boton" class="btn btn-success"> Confirmar selecciï¿½n </button>
                 <button type="submit"  class="btn btn-primary">Guardar</button>
                 
                 
@@ -800,7 +800,7 @@
 
     <!-- Copyright -->
     <div class="text-center text-warning p-3" style="background-color: #0a4275;">
-      © 2023 Copyright:
+      ï¿½ 2023 Copyright:
       <a class="text-white" href="https://overclocking.com.ec/">overclocking.com.ec</a>
     </div>
     <!-- Copyright -->

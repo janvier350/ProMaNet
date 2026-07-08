@@ -15,12 +15,23 @@
     String idHijo = request.getParameter("idHijo");
     String idJefe = request.getParameter("idJefe");
     String Jefe = request.getParameter("Jefe");
-   
+    String cargo = (String) session.getAttribute("cargo");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
+    if(session.getAttribute("usuario")==null){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }else if (session.isNew()){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }
+    if(!(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE"))){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+             }
 //    ArrayList listaColegas = (ArrayList)request.getSession().getAttribute("lista");
 //   
 //    for(int i=0; i < listaColegas.size(); i++){

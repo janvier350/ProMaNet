@@ -32,6 +32,15 @@ public class CTRL_Procesar_Pago_Anticipos extends HttpServlet {
         HttpSession session = request.getSession(true);
 
         String cargo = (String) session.getAttribute("cargo");
+        if (session.getAttribute("usuario") == null || session.isNew()) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        }
+        if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+                || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
 
         String user = (String) session.getAttribute("userDB");
         String pass = (String) session.getAttribute("passDB");

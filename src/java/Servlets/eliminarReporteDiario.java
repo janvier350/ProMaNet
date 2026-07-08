@@ -49,8 +49,18 @@ public class eliminarReporteDiario extends HttpServlet {
                 url = new String(""+ip);
                 String idCab = request.getParameter("idCab");
                  String idDet = request.getParameter("idDet");
+
+                 if (session.getAttribute("usuario") == null || session.isNew()) {
+                     response.sendRedirect("sesionExpirada.jsp");
+                     return;
+                 }
+                 if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+                         || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+                     response.sendRedirect("sesionInvalida.jsp");
+                     return;
+                 }
 //                 String idCab = request.getParameter(" idCab");
-                 
+
                System. out. println (idCab);
                 System. out. println (idDet);
                 String sql = "DELETE FROM REP_GASDET where IDREPGASDET="+idDet;

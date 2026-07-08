@@ -15,11 +15,23 @@
     String fechaini = request.getParameter("ASISfechaini");
     String fechafin = request.getParameter("ASISfechafin");
     String detalle = request.getParameter("ASISTrabajo");
+    String cargo = (String) session.getAttribute("cargo");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
+    if(session.getAttribute("usuario")==null){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }else if (session.isNew()){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }
+    if(!(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE"))){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+             }
 %>
    
 <!DOCTYPE html>

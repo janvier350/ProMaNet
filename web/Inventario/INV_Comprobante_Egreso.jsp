@@ -15,6 +15,10 @@
     if (session.getAttribute("usuario") == null) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
+    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+            || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+        response.sendRedirect("../sesionInvalida.jsp"); return;
+    }
 
     String idParam = request.getParameter("id");
     if (idParam == null || idParam.replaceAll("[^0-9]","").isEmpty()) {

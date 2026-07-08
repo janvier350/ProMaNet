@@ -23,7 +23,8 @@
             || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
-    boolean puedeDespachar = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
+    boolean puedeDespachar = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+            || cargo.equals("CONTRALOR") || cargo.equals("JEFE");
 
     String compania = "";
     try {

@@ -31,10 +31,20 @@ public class CTRL_Editar_Anticipo extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         
         HttpSession session = request.getSession(true);
+        String cargo = (String) session.getAttribute("cargo");
+        if (session.getAttribute("usuario") == null || session.isNew()) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        }
+        if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+                || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
         String user = (String) session.getAttribute("userDB");
         String pass = (String) session.getAttribute("passDB");
         String url = (String) session.getAttribute("ipDB");
-        
+
         Connection cn = null;
         PreparedStatement st = null;
         ResultSet rs = null; // Variable declarada aquí

@@ -44,6 +44,11 @@ if (session.getAttribute("usuario") == null || session.isNew()) {
     response.sendRedirect("sesionExpirada.jsp");
     return;
 }
+if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+        || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+    response.sendRedirect("sesionInvalida.jsp");
+    return;
+}
 
 // Validar que la fecha no sea nula o vacía
 if (corte == null || corte.trim().isEmpty()) {

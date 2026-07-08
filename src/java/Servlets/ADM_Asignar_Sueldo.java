@@ -32,6 +32,20 @@ public class ADM_Asignar_Sueldo extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
                 HttpSession session = request.getSession(true);
 
+                String cargo = (String) session.getAttribute("cargo");
+                if(session.getAttribute("usuario")==null){
+                    response.sendRedirect("sesionExpirada.jsp");
+                    return;
+                }else if (session.isNew()){
+                    response.sendRedirect("sesionExpirada.jsp");
+                    return;
+                }
+                if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+                }else{
+                    response.sendRedirect("sesionInvalida.jsp");
+                    return;
+                }
+
                  String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");

@@ -12,12 +12,25 @@
 <%  
     String idAsignado = request.getParameter("idAsignado");
     String idCabGrupo = request.getParameter("id");
+    String cargo = (String) session.getAttribute("cargo");
+    String nombre = (String) session.getAttribute("nombre");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
     int idDetGrupo =0;
+    if(session.getAttribute("usuario")==null){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }else if (session.isNew()){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }
+    if(!(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||nombre.equals("Jonathan"))){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+             }
    %>
 
 <!DOCTYPE html>

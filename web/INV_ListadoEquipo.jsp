@@ -33,10 +33,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("JEFE")||cargo.equals("ADMINISTRADOR")||cargo.equals("ADMINISTRACIÓN")){
-           
+        if(cargo.equals("JEFE")||cargo.equals("ADMINISTRADOR")||cargo.equals("ADMINISTRACION")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }%>
 <!DOCTYPE html>
 <html>
@@ -121,7 +122,7 @@
                                 <li class="dropdown-submenu">
                                     <a tabindex="-1" href="#">Asignacion</a>
                                     <ul class="dropdown-menu">
-                                      <li><a href="RGA_Listado.jsp">Asignación Reporte de Gastos</a></li>
+                                      <li><a href="RGA_Listado.jsp">Asignaciï¿½n Reporte de Gastos</a></li>
                                     </ul>
                                 </li>
                             </ul>

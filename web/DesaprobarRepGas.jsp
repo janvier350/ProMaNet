@@ -15,7 +15,18 @@
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
     //String url = new String("jdbc:oracle:thin:@"+ip);
-    String url = new String(""+ip);   
+    String url = new String(""+ip);
+    if(session.getAttribute("usuario")==null){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }else if (session.isNew()){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }
+    if(!cargo.equals("ADMINISTRACION")){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+             }
 %>
 <!DOCTYPE html>
 <html>

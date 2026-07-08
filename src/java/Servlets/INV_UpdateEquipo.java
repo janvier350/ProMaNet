@@ -86,8 +86,9 @@ public class INV_UpdateEquipo extends HttpServlet {
         if(cargo.equals("JEFE")||cargo.equals("ASISTENTE")){
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
-        
+
         String sql3="";       
          String sql = "update INV_EQUIPOS "
                  + "set FECHACOMPRA = "

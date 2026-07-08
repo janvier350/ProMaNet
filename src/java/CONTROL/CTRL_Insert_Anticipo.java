@@ -52,7 +52,12 @@ public class CTRL_Insert_Anticipo extends HttpServlet {
             response.sendRedirect("sesionExpirada.jsp");
             return;
         }
-        
+        if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+                || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
+
       Connection cn = null;
 PreparedStatement st = null;
 ResultSet rs = null;

@@ -20,6 +20,17 @@
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
      double suma =0;
+    if(session.getAttribute("usuario")==null){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }else if (session.isNew()){
+             response.sendRedirect("sesionExpirada.jsp");
+             return;
+             }
+    if(!(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE"))){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+             }
 %>
 
 <!DOCTYPE html>

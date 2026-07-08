@@ -39,10 +39,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ADMINISTRACION")||apellidos.equals("Varas Herrera")){
-           
+        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }%>
 <!DOCTYPE html>
 <html>
@@ -151,7 +152,7 @@
                                 <li class="dropdown-submenu">
                                     <a tabindex="-1" href="#">Asignacion</a>
                                     <ul class="dropdown-menu">
-                                      <li><a href="RGA_Listado.jsp">Asignación Reporte de Gastos</a></li>
+                                      <li><a href="RGA_Listado.jsp">Asignaciï¿½n Reporte de Gastos</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -229,7 +230,7 @@
         <th class="text-center">DEPARTAMENTO</th>
         <th class="text-center">Nombres</th>  
         <th class="text-center">Email</th>
-        <th class="text-center">Compañia</th>
+        <th class="text-center">Compaï¿½ia</th>
         <th class="text-center">Rol-RG</th>
         <th class="text-center">Rol-TD</th>
         
@@ -308,7 +309,7 @@
             <div class="row">
             <div class="col-lg-6 ">
             <div class="form-group">
-                <label class=" control-label" for="" >Teléfono:</label>
+                <label class=" control-label" for="" >Telï¿½fono:</label>
                 <input type="text" name="telefono" id="telefono" class="form-control" required />
             </div>
             </div>
@@ -328,7 +329,7 @@
             </div>
             <div class="col-lg-6">
             <div class="form-group">
-               <label for="" class="form-control-label">Contraseña:</label>
+               <label for="" class="form-control-label">Contraseï¿½a:</label>
                <input type="password" name="pass" class="form-control" required />
             </div>  
             </div>
@@ -359,7 +360,7 @@
             </div>
             <div class="col-lg-6">
             <div class="form-group">
-               <label for="" class="form-control-label">Compañia:</label>
+               <label for="" class="form-control-label">Compaï¿½ia:</label>
                <select class="form-control" id="idCia" name ="idCia" style="width:100%">
                     <% try{
                         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());

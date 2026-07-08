@@ -46,6 +46,16 @@ public class CTRL_Anticipos_PDF_ALL extends HttpServlet {
     String apellidos = (String) session.getAttribute("apellidos");
     String codigo = (String) session.getAttribute("cod");
 
+    if (session.getAttribute("usuario") == null || session.isNew()) {
+        response.sendRedirect("sesionExpirada.jsp");
+        return;
+    }
+    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
+            || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+        response.sendRedirect("sesionInvalida.jsp");
+        return;
+    }
+
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
