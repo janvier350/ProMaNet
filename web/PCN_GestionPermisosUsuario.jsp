@@ -119,10 +119,10 @@
                     <td><%=descripcion%></td>
                     <td class="text-center"><%=porRol ? "Si" : "No"%></td>
                     <td class="text-center">
-                        <select name="permiso_<%=idPermiso%>" class="form-control">
-                            <option value="ROL" <%=("ROL".equals(tipoActual))?"selected":""%>>Usar lo del cargo (<%=porRol?"tiene":"no tiene"%>)</option>
-                            <option value="G" <%=("G".equals(tipoActual))?"selected":""%>>Conceder siempre a esta persona</option>
-                            <option value="D" <%=("D".equals(tipoActual))?"selected":""%>>Denegar siempre a esta persona</option>
+                        <select name="permiso_<%=idPermiso%>" class="form-control" style="min-width:220px;width:auto;display:inline-block;">
+                            <option value="ROL" <%=("ROL".equals(tipoActual))?"selected":""%>>Segun su cargo (<%=porRol?"tiene":"no tiene"%>)</option>
+                            <option value="G" <%=("G".equals(tipoActual))?"selected":""%>>Conceder siempre</option>
+                            <option value="D" <%=("D".equals(tipoActual))?"selected":""%>>Denegar siempre</option>
                         </select>
                     </td>
                 </tr>
