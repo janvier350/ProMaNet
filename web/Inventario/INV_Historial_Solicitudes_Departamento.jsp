@@ -220,6 +220,12 @@
                                         <i class="fa fa-print"></i> Comprobante
                                     </a>
                                     <% } %>
+                                    <% if ("PENDIENTE".equals(estado)) { %>
+                                    <a href="INV_Delete_Solicitud_Egreso?idCab=<%=idCab%>" class="btn btn-sm btn-danger ml-1" title="Eliminar solicitud"
+                                       onclick="return confirm('¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.');">
+                                        <i class="fa fa-trash"></i> Eliminar
+                                    </a>
+                                    <% } %>
                                 </td>
                             </tr>
                         <%
@@ -279,7 +285,12 @@ $('#modalDetalle').on('show.bs.modal', function(event) {
     } else if (estado==='ENTREGADO') {
         $('#modalAccionBtn').html('<span class="badge-entregado"><i class="fa fa-check mr-1"></i>Entregado</span>');
     } else {
-        $('#modalAccionBtn').html('<span class="badge-pendiente"><i class="fa fa-clock-o mr-1"></i>Pendiente de despacho</span>');
+        $('#modalAccionBtn').html(
+            '<span class="badge-pendiente mr-2"><i class="fa fa-clock-o mr-1"></i>Pendiente de despacho</span>' +
+            '<a href="INV_Delete_Solicitud_Egreso?idCab='+id+'" class="btn btn-danger btn-sm" ' +
+            'onclick="return confirm(\'¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.\');">' +
+            '<i class="fa fa-trash mr-1"></i>Eliminar</a>'
+        );
     }
     $('#modalProductos').html('<div class="text-center text-muted py-3"><i class="fa fa-spinner fa-spin mr-1"></i>Cargando...</div>');
     $.get('INV_Detalle_Egreso_Ajax.jsp?id='+id, function(data){ $('#modalProductos').html(data); })
