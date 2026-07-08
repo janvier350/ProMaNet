@@ -5,7 +5,6 @@
 package INVENTARIO;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -108,12 +107,13 @@ public class INV_InsertAgregarProductoDetalle_Solicitar extends HttpServlet {
             cn.commit();
 
             if (rowsAffected > 0) {
-                response.getWriter().println("Agregado a la lista Correctamente!!");
+                session.setAttribute("msg_exito", "Agregado a la lista correctamente.");
             } else {
-                response.getWriter().println("Error al insertar producto.");
+                session.setAttribute("msg_error", "Error al insertar producto.");
             }
         } catch (Exception e) {
             e.printStackTrace();
+            session.setAttribute("msg_error", "Error al insertar producto: " + e.getMessage());
         } finally {
             try {
                 if (st != null) {
@@ -127,19 +127,7 @@ public class INV_InsertAgregarProductoDetalle_Solicitar extends HttpServlet {
             }
         }
 
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet INV_InsertAgregarProductoDetalle_Solicitar</title>");
-            out.println("</head>");
-            out.println("<body>");
-            response.sendRedirect("../ProMaNet/Inventario/INV_Solicitar_Suministro_Detalle.jsp?ID_SUMINISTRO_INGRESO_CAB=" + idSuministroIngresoCab);
-// out.println("<h1>Servlet INV_InsertAgregarProductoDetalle_Solicitar at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
+        response.sendRedirect("../ProMaNet/Inventario/INV_Solicitar_Suministro_Detalle.jsp?ID_SUMINISTRO_INGRESO_CAB=" + idSuministroIngresoCab);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
