@@ -235,6 +235,7 @@
         <th class="text-center">Rol-TD</th>
         
         <th class="text-center">Editar</th>
+        <th class="text-center">Permisos</th>
         <th class="text-center">Eliminar</th>
         <th class="text-center">Ver Padre</th>
     </tr>
@@ -261,7 +262,12 @@
         <td>
             <a href="PCN_UsuarioEditar.jsp?idUser=<%=rs.getString(1)%>&idRolTodo=<%=rs.getString(8)%>" class="btn btn-info ">
                <i class="material-icons " style="color:white;font-size:25px">mode_edit</i>
-            </a>    
+            </a>
+        </td>
+        <td>
+            <a href="PCN_GestionPermisosUsuario.jsp?idUser=<%=rs.getString(1)%>" class="btn btn-warning" title="Permisos">
+               <i class="material-icons " style="color:white;font-size:25px">lock_open</i>
+            </a>
         </td>
         <td ><a class="btn btn-danger " href="PCN_EliminarUsuario.jsp?idUser=<%=rs.getString(1)%>"><i class="material-icons " style="color:white;font-size:21px">delete_forever</i></a></td>
         <td><a class="btn btn-success" href="PCN_ListadoUsuario.jsp?id=<%=rs.getString(1)%>"><i class="material-icons " style="color:white;font-size: 21px" >visibility</i></a></td> 

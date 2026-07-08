@@ -19,12 +19,10 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-            || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_VER_TODAS")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
-    boolean puedeDespachar = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-            || cargo.equals("CONTRALOR") || cargo.equals("JEFE");
+    boolean puedeDespachar = COMUN.PermisoHelper.tiene(session, "INVENTARIO_DESPACHAR");
 
     String compania = "";
     try {

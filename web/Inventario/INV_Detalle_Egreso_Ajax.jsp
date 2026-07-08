@@ -3,8 +3,7 @@
 <%
     if (session.getAttribute("usuario") == null) { out.print("<span class='text-danger'>Sesión expirada.</span>"); return; }
     String cargo = (String) session.getAttribute("cargo");
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("ASISTENTE")
-            || cargo.equals("PASANTE") || cargo.equals("CONTRALOR") || cargo.equals("JEFE") || cargo.equals("ANALISTA"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_SOLICITAR")) {
         out.print("<span class='text-danger'>No autorizado.</span>"); return;
     }
     String user = (String) session.getAttribute("userDB");

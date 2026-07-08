@@ -20,15 +20,12 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-            || cargo.equals("ASISTENTE")  || cargo.equals("PASANTE")
-            || cargo.equals("CONTRALOR")  || cargo.equals("JEFE")
-            || cargo.equals("ANALISTA"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_SOLICITAR")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
     boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
-    boolean puedeImprimirComprobante = cargo.equals("ADMINISTRACION");
+    boolean puedeImprimirComprobante = COMUN.PermisoHelper.tiene(session, "INVENTARIO_IMPRIMIR_COMPROBANTE");
 
     String compania = "";
     try {

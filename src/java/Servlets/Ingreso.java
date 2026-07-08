@@ -34,7 +34,7 @@ public class Ingreso extends HttpServlet {
             String usuario = request.getParameter("usu");
             String contra = request.getParameter("pass");
               
-            String[] datos = Sql.getFila("select a.idusuario,a.contrasena, b.idcompania,b.compania, c.cargo, a.nombre, a.apellidos,D.CARGOTODO, a.email, a.telefono , e.departamento, a.id_adm_departamento, a.sueldo "
+            String[] datos = Sql.getFila("select a.idusuario,a.contrasena, b.idcompania,b.compania, c.cargo, a.nombre, a.apellidos,D.CARGOTODO, a.email, a.telefono , e.departamento, a.id_adm_departamento, a.sueldo, a.IDROL "
                     + "from usuario a , COMPANIA b , rol c , TODOROL D, ADM_DEPARTAMENTO  E "
                     + "where a.USUARIO = '"+usuario+"' and a.CONTRASENA = '"+contra+"' and a.IDCOMPANIA = b.IDCOMPANIA and a.IDROL = c.IDROL AND A.IDROLTODO=D.IDROLTODO and a.ESTADO = 'a' AND a.id_adm_departamento = e.id_departamento");
            System.out.println("arreglo");
@@ -56,6 +56,7 @@ public class Ingreso extends HttpServlet {
                  String departamento = datos[10];
                  String idDepartamento = datos[11];
                  String sueldo = datos[12];
+                 String idRol = datos[13];
                 // habilitamos la sesion
                 HttpSession session = request.getSession(true);
                 // mover a la pagina la consulta de el select
@@ -75,7 +76,8 @@ public class Ingreso extends HttpServlet {
                 session.setAttribute("ipDB","jdbc:oracle:thin:@181.198.203.205:1521:xe");
                 session.setAttribute("userDB","RRHH");
                 session.setAttribute("passDB","RRHH");
-                 
+                session.setAttribute("permisos", COMUN.PermisoHelper.cargarPermisos(Integer.parseInt(id.trim()), Integer.parseInt(idRol.trim())));
+
                     
                 if(cargo.equals("ADMINISTRACION") ||cargo.equals("ASISTENTE") ||cargo.equals("ADMINISTRADOR")||cargo.equals("ANALISTA")|| cargo.equals("JEFE") || cargo.equals("CONTRALOR") || cargo.equals("PASANTE")){
                     response.sendRedirect("Proyectos/PRO_Dashboard.jsp");

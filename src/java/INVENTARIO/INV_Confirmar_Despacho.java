@@ -22,9 +22,7 @@ public class INV_Confirmar_Despacho extends HttpServlet {
             return;
         }
 
-        String cargo = (String) session.getAttribute("cargo");
-        if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-                || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_DESPACHAR")) {
             response.sendRedirect(request.getContextPath() + "/sesionInvalida.jsp");
             return;
         }

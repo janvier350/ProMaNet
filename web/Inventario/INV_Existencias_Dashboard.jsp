@@ -15,7 +15,7 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EXISTENCIAS")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
