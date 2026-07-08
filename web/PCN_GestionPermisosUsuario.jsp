@@ -39,14 +39,14 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>ProMaNet | Permisos de Inventario</title>
+    <title>ProMaNet | Permisos por modulo</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 <div class="container" style="margin-top:20px;">
     <a href="PCN_ListadoUsuario.jsp" class="btn btn-default"><i class="fa fa-arrow-left mr-1"></i> Volver al listado</a>
-    <h3 class="mt-3">Permisos de Inventario</h3>
+    <h3 class="mt-3">Permisos por modulo</h3>
 
     <% if (msgExito != null) { %>
     <div class="alert alert-success"><%=msgExito%></div>
@@ -79,6 +79,14 @@
 
     <form method="post" action="PCN_GuardarPermisosUsuario">
         <input type="hidden" name="idUser" value="<%=idUser%>">
+        <%
+            PreparedStatement stMod = cn.prepareStatement(
+                "SELECT DISTINCT MODULO FROM APP_PERMISO WHERE ESTADO = 'A' ORDER BY MODULO");
+            ResultSet rsMod = stMod.executeQuery();
+            while (rsMod.next()) {
+                String modulo = rsMod.getString(1);
+        %>
+        <h4 class="mt-4"><%=modulo%></h4>
         <table class="table table-bordered table-striped">
             <thead>
                 <tr>
@@ -91,7 +99,8 @@
             <tbody>
             <%
                 PreparedStatement stPerm = cn.prepareStatement(
-                    "SELECT ID_PERMISO, CODIGO, DESCRIPCION FROM APP_PERMISO WHERE MODULO = 'INVENTARIO' AND ESTADO = 'A' ORDER BY ID_PERMISO");
+                    "SELECT ID_PERMISO, CODIGO, DESCRIPCION FROM APP_PERMISO WHERE MODULO = ? AND ESTADO = 'A' ORDER BY ID_PERMISO");
+                stPerm.setString(1, modulo);
                 ResultSet rsPerm = stPerm.executeQuery();
                 while (rsPerm.next()) {
                     int idPermiso = rsPerm.getInt(1);
@@ -129,15 +138,19 @@
             <%
                 }
                 rsPerm.close(); stPerm.close();
-                cn.close();
-            }catch(Exception e){ e.printStackTrace();
-            %>
-                <tr><td colspan="4" class="text-danger">Error: <%=e.getMessage()%></td></tr>
-            <%
-            }
             %>
             </tbody>
         </table>
+        <%
+            }
+            rsMod.close(); stMod.close();
+            cn.close();
+            }catch(Exception e){ e.printStackTrace();
+        %>
+            <div class="text-danger">Error: <%=e.getMessage()%></div>
+        <%
+            }
+        %>
         <button type="submit" class="btn btn-primary"><i class="fa fa-save mr-1"></i> Guardar</button>
     </form>
 </div>

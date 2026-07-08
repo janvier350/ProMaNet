@@ -57,11 +57,11 @@ String compania = (String) session.getAttribute("compania");
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
+             if(!COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO")){
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
-             
+
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn3 = DriverManager.getConnection(url, user, pass);
 
