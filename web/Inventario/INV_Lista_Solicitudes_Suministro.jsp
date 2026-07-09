@@ -107,6 +107,9 @@
         <% if (puedeDespachar) { %>
         <a class="nav-link" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
         <% } %>
+        <% if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_SOLICITAR")) { %>
+        <a class="nav-link" href="INV_Solicitar_Suministro_Detalle.jsp"><i class="fa fa-plus-circle mr-2"></i>Solicitar Suministro</a>
+        <% } %>
         <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
         <% if (puedeRegistrarIngreso) { %>
         <div class="nav-section">Ingresos</div>
