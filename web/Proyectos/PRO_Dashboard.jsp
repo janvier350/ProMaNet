@@ -177,6 +177,16 @@ String compania = (String) session.getAttribute("compania");
                             <span class="nav-link-text ms-1">Recursos</span>
                         </a>
                     </li>
+                    <% if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Movilizacion/MOV_Calendario.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-car text-info text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Movilizacion</span>
+                        </a>
+                    </li>
+                    <% } %>
 <!--                    <li class="nav-item">
                         <a class="nav-link " href="../ReporteGastos/ReporteGastosIndivi.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
