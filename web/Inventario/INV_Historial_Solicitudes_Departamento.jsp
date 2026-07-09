@@ -220,7 +220,7 @@
                                     </a>
                                     <% } %>
                                     <% if ("PENDIENTE".equals(estado)) { %>
-                                    <a href="INV_Delete_Solicitud_Egreso?idCab=<%=idCab%>" class="btn btn-sm btn-danger ml-1" title="Eliminar solicitud"
+                                    <a href="../INV_Delete_Solicitud_Egreso?idCab=<%=idCab%>" class="btn btn-sm btn-danger ml-1" title="Eliminar solicitud"
                                        onclick="return confirm('¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.');">
                                         <i class="fa fa-trash"></i> Eliminar
                                     </a>
@@ -286,7 +286,7 @@ $('#modalDetalle').on('show.bs.modal', function(event) {
     } else {
         $('#modalAccionBtn').html(
             '<span class="badge-pendiente mr-2"><i class="fa fa-clock-o mr-1"></i>Pendiente de despacho</span>' +
-            '<a href="INV_Delete_Solicitud_Egreso?idCab='+id+'" class="btn btn-danger btn-sm" ' +
+            '<a href="../INV_Delete_Solicitud_Egreso?idCab='+id+'" class="btn btn-danger btn-sm" ' +
             'onclick="return confirm(\'¿Está seguro de que desea eliminar esta solicitud? Esta acción no se puede deshacer.\');">' +
             '<i class="fa fa-trash mr-1"></i>Eliminar</a>'
         );
