@@ -23,7 +23,7 @@ public class MOV_EventosJson extends HttpServlet {
             case "APROBADA": return "#28a745";
             case "RECHAZADA": return "#dc3545";
             case "CANCELADA": return "#6c757d";
-            case "COMPLETADA": return "#17a2b8";
+            case "MOVILIZADO": return "#17a2b8";
             default: return "#6c757d";
         }
     }

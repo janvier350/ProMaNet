@@ -45,7 +45,7 @@
         .badge-APROBADA{background:#d1e7dd;color:#0f5132;}
         .badge-RECHAZADA{background:#f8d7da;color:#842029;}
         .badge-CANCELADA{background:#e2e3e5;color:#41464b;}
-        .badge-COMPLETADA{background:#cff4fc;color:#055160;}
+        .badge-MOVILIZADO{background:#cff4fc;color:#055160;}
         #modalDetalle .table{table-layout:fixed;width:100%;}
         #modalDetalle .table th{width:38%;word-break:break-word;}
         #modalDetalle .table td{word-break:break-word;white-space:normal;}
@@ -162,7 +162,7 @@
                             <option value="APROBADA">Aprobadas</option>
                             <option value="RECHAZADA">Rechazadas</option>
                             <option value="CANCELADA">Canceladas</option>
-                            <option value="COMPLETADA">Completadas</option>
+                            <option value="MOVILIZADO">Movilizadas</option>
                         </select>
                     </div>
                     <div class="form-check mb-0">
@@ -288,6 +288,10 @@
 
                 <div id="detAccionesEditables" style="display:none;">
                     <hr>
+                    <div id="detFechaEditBox" class="mb-3" style="display:none;">
+                        <label class="form-label">Fecha (reagendar)</label>
+                        <input type="date" id="detFechaEdit" class="form-control form-control-sm">
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -317,6 +321,7 @@
 
 <form id="formAccion" method="post" style="display:none;">
     <input type="hidden" name="idSolicitud" id="accIdSolicitud">
+    <input type="hidden" name="fecha" id="accFecha">
     <input type="hidden" name="horaInicio" id="accHoraInicio">
     <input type="hidden" name="horaFin" id="accHoraFin">
     <input type="hidden" name="accion" id="accAccion">
@@ -452,10 +457,14 @@ function mostrarDetalle(event) {
     }
 
     var esDueno = (p.idUsuario == miIdUsuario);
-    var editable = puedeGestionar || (esDueno && p.estado === 'PENDIENTE');
+    var esEditableEstado = (p.estado === 'PENDIENTE' || p.estado === 'APROBADA');
+    var puedeReagendar = puedeGestionar && esEditableEstado;
+    var editable = puedeReagendar || (esDueno && p.estado === 'PENDIENTE');
     document.getElementById('detAccionesEditables').style.display = editable ? '' : 'none';
     document.getElementById('detRechazoBox').style.display = 'none';
+    document.getElementById('detFechaEditBox').style.display = puedeReagendar ? '' : 'none';
     if (editable) {
+        document.getElementById('detFechaEdit').value = p.fecha;
         document.getElementById('detHoraInicioEdit').value = p.horaInicio;
         document.getElementById('detHoraFinEdit').value = p.horaFin;
     }
@@ -492,6 +501,15 @@ function mostrarDetalle(event) {
         botones.appendChild(btnRechazar);
     }
 
+    if (puedeGestionar && p.estado === 'APROBADA') {
+        var btnMovilizar = document.createElement('button');
+        btnMovilizar.type = 'button';
+        btnMovilizar.className = 'btn btn-info btn-sm';
+        btnMovilizar.innerHTML = '<i class="fa fa-flag-checkered me-1"></i>Marcar Movilizado';
+        btnMovilizar.onclick = function() { enviarAccion(ctx + '/MOV_GestionarSolicitud', 'MOVILIZAR'); };
+        botones.appendChild(btnMovilizar);
+    }
+
     var puedeCancelar = (puedeGestionar && (p.estado === 'PENDIENTE' || p.estado === 'APROBADA'))
             || (esDueno && p.estado === 'PENDIENTE');
     if (puedeCancelar) {
@@ -514,6 +532,8 @@ function mostrarDetalle(event) {
 
 function enviarAccion(url, accion) {
     document.getElementById('accIdSolicitud').value = eventoActual.id;
+    document.getElementById('accFecha').value = document.getElementById('detFechaEditBox').style.display !== 'none'
+            ? document.getElementById('detFechaEdit').value : '';
     document.getElementById('accHoraInicio').value = document.getElementById('detHoraInicioEdit').value;
     document.getElementById('accHoraFin').value = document.getElementById('detHoraFinEdit').value;
     document.getElementById('accAccion').value = accion || '';

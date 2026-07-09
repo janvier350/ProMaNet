@@ -30,13 +30,15 @@ public class MOV_GestionarSolicitud extends HttpServlet {
         }
 
         String idSolicitud = request.getParameter("idSolicitud");
-        String accion = request.getParameter("accion"); // APROBAR | RECHAZAR
+        String accion = request.getParameter("accion"); // APROBAR | RECHAZAR | MOVILIZAR
         String motivoRechazo = request.getParameter("motivoRechazo");
+        String fechaNueva = request.getParameter("fecha");
         String horaInicio = request.getParameter("horaInicio");
         String horaFin = request.getParameter("horaFin");
         String idUsuarioSesion = (String) session.getAttribute("cod");
 
-        if (idSolicitud == null || !("APROBAR".equals(accion) || "RECHAZAR".equals(accion))) {
+        if (idSolicitud == null
+                || !("APROBAR".equals(accion) || "RECHAZAR".equals(accion) || "MOVILIZAR".equals(accion))) {
             response.sendRedirect(request.getContextPath() + "/Movilizacion/MOV_Calendario.jsp");
             return;
         }
@@ -55,14 +57,16 @@ public class MOV_GestionarSolicitud extends HttpServlet {
                     return;
                 }
 
-                String idMovilizador = null, fecha = null;
+                String idMovilizador = null, fechaActual = null;
                 try (PreparedStatement st = cn.prepareStatement(
                         "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD') FROM MOV_SOLICITUD WHERE ID_MOV_SOLICITUD = ?")) {
                     st.setInt(1, Integer.parseInt(idSolicitud));
                     try (ResultSet rs = st.executeQuery()) {
-                        if (rs.next()) { idMovilizador = rs.getString(1); fecha = rs.getString(2); }
+                        if (rs.next()) { idMovilizador = rs.getString(1); fechaActual = rs.getString(2); }
                     }
                 }
+
+                String fecha = (fechaNueva != null && !fechaNueva.trim().isEmpty()) ? fechaNueva : fechaActual;
 
                 if (idMovilizador != null && Horario.hayChoque(cn, idMovilizador, fecha, horaInicio, horaFin, idSolicitud)) {
                     session.setAttribute("msg_error", "Ese movilizador ya tiene otra solicitud en ese horario.");
@@ -71,15 +75,21 @@ public class MOV_GestionarSolicitud extends HttpServlet {
                 }
 
                 try (PreparedStatement stHora = cn.prepareStatement(
-                        "UPDATE MOV_SOLICITUD SET HORA_INICIO = ?, HORA_FIN = ? WHERE ID_MOV_SOLICITUD = ?")) {
-                    stHora.setString(1, horaInicio);
-                    stHora.setString(2, horaFin);
-                    stHora.setInt(3, Integer.parseInt(idSolicitud));
+                        "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ? WHERE ID_MOV_SOLICITUD = ?")) {
+                    stHora.setString(1, fecha);
+                    stHora.setString(2, horaInicio);
+                    stHora.setString(3, horaFin);
+                    stHora.setInt(4, Integer.parseInt(idSolicitud));
                     stHora.executeUpdate();
                 }
             }
 
-            String nuevoEstado = "APROBAR".equals(accion) ? "APROBADA" : "RECHAZADA";
+            String nuevoEstado;
+            switch (accion) {
+                case "APROBAR": nuevoEstado = "APROBADA"; break;
+                case "MOVILIZAR": nuevoEstado = "MOVILIZADO"; break;
+                default: nuevoEstado = "RECHAZADA";
+            }
             try (PreparedStatement st = cn.prepareStatement(
                     "UPDATE MOV_SOLICITUD SET ESTADO = ?, IDUSUARIO_GESTIONA = ?, FECHA_GESTION = SYSDATE, MOTIVO_RECHAZO = ? " +
                     "WHERE ID_MOV_SOLICITUD = ?")) {
@@ -90,7 +100,8 @@ public class MOV_GestionarSolicitud extends HttpServlet {
                 st.executeUpdate();
             }
 
-            session.setAttribute("msg_exito", "Solicitud " + ("APROBAR".equals(accion) ? "aprobada" : "rechazada") + " correctamente.");
+            String msgAccion = "APROBAR".equals(accion) ? "aprobada" : "MOVILIZAR".equals(accion) ? "marcada como movilizada" : "rechazada";
+            session.setAttribute("msg_exito", "Solicitud " + msgAccion + " correctamente.");
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("msg_error", "Error al procesar la solicitud: " + e.getMessage());

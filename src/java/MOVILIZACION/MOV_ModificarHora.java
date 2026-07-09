@@ -26,6 +26,7 @@ public class MOV_ModificarHora extends HttpServlet {
         }
 
         String idSolicitud = request.getParameter("idSolicitud");
+        String fechaNueva = request.getParameter("fecha");
         String horaInicio = request.getParameter("horaInicio");
         String horaFin = request.getParameter("horaFin");
         String idUsuarioSesion = (String) session.getAttribute("cod");
@@ -43,7 +44,7 @@ public class MOV_ModificarHora extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
-            String idMovilizador = null, fecha = null, estado = null, idDueno = null;
+            String idMovilizador = null, fechaActual = null, estado = null, idDueno = null;
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD'), ESTADO, IDUSUARIO " +
                     "FROM MOV_SOLICITUD WHERE ID_MOV_SOLICITUD = ?")) {
@@ -51,7 +52,7 @@ public class MOV_ModificarHora extends HttpServlet {
                 try (ResultSet rs = st.executeQuery()) {
                     if (rs.next()) {
                         idMovilizador = rs.getString(1);
-                        fecha = rs.getString(2);
+                        fechaActual = rs.getString(2);
                         estado = rs.getString(3);
                         idDueno = rs.getString(4);
                     }
@@ -71,6 +72,11 @@ public class MOV_ModificarHora extends HttpServlet {
                 return;
             }
 
+            // Solo quien gestiona (Smoran) puede reagendar la fecha; el
+            // solicitante solo puede ajustar la hora del mismo dia.
+            String fecha = (puedeGestionar && fechaNueva != null && !fechaNueva.trim().isEmpty())
+                    ? fechaNueva : fechaActual;
+
             if (Horario.hayChoque(cn, idMovilizador, fecha, horaInicio, horaFin, idSolicitud)) {
                 session.setAttribute("msg_error", "Ese movilizador ya tiene otra solicitud en ese horario.");
                 response.sendRedirect(request.getContextPath() + "/Movilizacion/MOV_Calendario.jsp");
@@ -78,10 +84,11 @@ public class MOV_ModificarHora extends HttpServlet {
             }
 
             try (PreparedStatement stUpd = cn.prepareStatement(
-                    "UPDATE MOV_SOLICITUD SET HORA_INICIO = ?, HORA_FIN = ? WHERE ID_MOV_SOLICITUD = ?")) {
-                stUpd.setString(1, horaInicio);
-                stUpd.setString(2, horaFin);
-                stUpd.setInt(3, Integer.parseInt(idSolicitud));
+                    "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ? WHERE ID_MOV_SOLICITUD = ?")) {
+                stUpd.setString(1, fecha);
+                stUpd.setString(2, horaInicio);
+                stUpd.setString(3, horaFin);
+                stUpd.setInt(4, Integer.parseInt(idSolicitud));
                 stUpd.executeUpdate();
             }
 
