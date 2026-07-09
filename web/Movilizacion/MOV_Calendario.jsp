@@ -46,6 +46,9 @@
         .badge-RECHAZADA{background:#f8d7da;color:#842029;}
         .badge-CANCELADA{background:#e2e3e5;color:#41464b;}
         .badge-COMPLETADA{background:#cff4fc;color:#055160;}
+        #modalDetalle .table{table-layout:fixed;width:100%;}
+        #modalDetalle .table th{width:38%;word-break:break-word;}
+        #modalDetalle .table td{word-break:break-word;white-space:normal;}
         @media (max-width: 576px) {
             .fc .fc-toolbar{flex-direction:column;gap:.5rem;}
             .fc .fc-toolbar-title{font-size:.95rem;}
@@ -271,7 +274,7 @@
             <div class="modal-body">
                 <p><span class="badge-estado" id="detEstadoBadge"></span></p>
                 <table class="table table-sm">
-                    <tr><th style="width:40%">Fecha</th><td id="detFecha"></td></tr>
+                    <tr><th>Fecha</th><td id="detFecha"></td></tr>
                     <tr><th>Hora</th><td id="detHora"></td></tr>
                     <tr><th>Solicitante</th><td id="detSolicitante"></td></tr>
                     <tr><th>Departamento</th><td id="detDepartamento"></td></tr>
