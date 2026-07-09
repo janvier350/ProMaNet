@@ -46,8 +46,8 @@ public class MOV_EventosJson extends HttpServlet {
         String end = request.getParameter("end");
         if (start != null && start.length() >= 10) start = start.substring(0, 10);
         if (end != null && end.length() >= 10) end = end.substring(0, 10);
-        String estado = request.getParameter("estado");
-        if (estado != null && estado.trim().isEmpty()) estado = null;
+        String estadoFiltro = request.getParameter("estado");
+        if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) estadoFiltro = null;
 
         Connection cn = null;
         try {
@@ -72,7 +72,7 @@ public class MOV_EventosJson extends HttpServlet {
             try (PreparedStatement st = cn.prepareStatement(sql)) {
                 st.setString(1, start); st.setString(2, start);
                 st.setString(3, end); st.setString(4, end);
-                st.setString(5, estado); st.setString(6, estado);
+                st.setString(5, estadoFiltro); st.setString(6, estadoFiltro);
                 try (ResultSet rs = st.executeQuery()) {
                     while (rs.next()) {
                         String fecha = rs.getString(2);
@@ -82,7 +82,7 @@ public class MOV_EventosJson extends HttpServlet {
 
                         JSONObject ev = new JSONObject();
                         ev.put("id", rs.getInt(1));
-                        ev.put("title", rs.getString(9) + " - " + rs.getString(8));
+                        ev.put("title", rs.getString(10) + " - " + rs.getString(9));
                         ev.put("start", fecha + "T" + horaInicio);
                         ev.put("end", fecha + "T" + horaFin);
                         ev.put("color", colorEstado(estado));
