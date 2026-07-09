@@ -1,4 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.util.List"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.Map"%>
+<%@page import="java.util.LinkedHashMap"%>
 <%
     String cargo       = (String) session.getAttribute("cargo");
     String nombre      = (String) session.getAttribute("nombre");
@@ -15,6 +22,35 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
     boolean puedeGestionar = COMUN.PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR");
+
+    List<Map<String,String>> movilizadores = new ArrayList<>();
+    List<Map<String,String>> motivos = new ArrayList<>();
+    try (Connection cnCat = Servlets.Conexion.getConnection()) {
+        if (cnCat != null) {
+            try (PreparedStatement st = cnCat.prepareStatement(
+                    "SELECT ID_MOVILIZADOR, NOMBRE FROM MOV_MOVILIZADOR WHERE ESTADO = 'A' ORDER BY NOMBRE");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    Map<String,String> m = new LinkedHashMap<>();
+                    m.put("id", rs.getString(1));
+                    m.put("nombre", rs.getString(2));
+                    movilizadores.add(m);
+                }
+            }
+            try (PreparedStatement st = cnCat.prepareStatement(
+                    "SELECT ID_MOTIVO, DESCRIPCION FROM MOV_MOTIVO WHERE ESTADO = 'A' ORDER BY ID_MOTIVO");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    Map<String,String> m = new LinkedHashMap<>();
+                    m.put("id", rs.getString(1));
+                    m.put("descripcion", rs.getString(2));
+                    motivos.add(m);
+                }
+            }
+        }
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
 
     String msgExito = (String) session.getAttribute("msg_exito");
     String msgError = (String) session.getAttribute("msg_error");
@@ -228,24 +264,17 @@
                     <div class="mb-3">
                         <label class="form-label">Movilizador</label>
                         <select name="idMovilizador" id="solMovilizador" class="form-control" required>
-                            <option value="1">Carlos Briones</option>
-                            <option value="2">Particular</option>
+                            <% for (java.util.Map<String,String> mv : movilizadores) { %>
+                            <option value="<%=mv.get("id")%>"><%=mv.get("nombre")%></option>
+                            <% } %>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Motivo</label>
                         <select name="idMotivo" class="form-control" required>
-                            <option value="1">Entrega de documentos</option>
-                            <option value="2">Retiro de documentos</option>
-                            <option value="3">Movilizar personal</option>
-                            <option value="4">Traslado de activos (sillas, laptops)</option>
-                            <option value="5">Outsourcing</option>
-                            <option value="6">Cobros</option>
-                            <option value="7">Pagos</option>
-                            <option value="8">Cambio cheques</option>
-                            <option value="9">Movilizacion Xavier Parrales</option>
-                            <option value="10">Entrega de efectivo</option>
-                            <option value="11">Retiro de efectivo</option>
+                            <% for (java.util.Map<String,String> mt : motivos) { %>
+                            <option value="<%=mt.get("id")%>"><%=mt.get("descripcion")%></option>
+                            <% } %>
                         </select>
                     </div>
                     <div class="mb-3">
