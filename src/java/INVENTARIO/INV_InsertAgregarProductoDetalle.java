@@ -52,9 +52,9 @@ public class INV_InsertAgregarProductoDetalle extends HttpServlet {
             response.sendRedirect("sesionExpirada.jsp");
             return;
         }
-        if (cargo.equals("JEFE") || cargo.equals("CONTRALOR")) {
-        } else {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
             response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
         String id_suministro_ingreso_det = "";
         Connection cn = null;

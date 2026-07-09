@@ -53,11 +53,11 @@ public class INV_InsertProveedor extends HttpServlet {
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("JEFE")||cargo.equals("ASISTENTE")){
-        }else{
+        if(!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")){
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
-        
+
          String idProveedor = "";
         Connection cn = null;
         PreparedStatement st = null;

@@ -23,7 +23,8 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
-    boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR");
+    boolean esAdmin = COMUN.PermisoHelper.tiene(session, "INVENTARIO_VER_TODAS");
+    boolean puedeRegistrarIngreso = COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS");
 
     String compania = "";
     try {
@@ -91,7 +92,7 @@
         <a class="nav-link active" href="INV_Solicitar_Suministro_Detalle.jsp"><i class="fa fa-plus-circle mr-2"></i>Solicitar Suministro</a>
         <% } %>
         <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
-        <% if (esAdmin) { %>
+        <% if (puedeRegistrarIngreso) { %>
         <div class="nav-section">Ingresos</div>
         <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
         <% } %>

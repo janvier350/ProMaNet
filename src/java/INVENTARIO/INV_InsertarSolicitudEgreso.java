@@ -101,8 +101,7 @@ public class INV_InsertarSolicitudEgreso extends HttpServlet {
             cn.close();
 
             session.setAttribute("msg_exito", "Solicitud #" + idCab + " registrada correctamente. Pendiente de despacho.");
-            boolean esAdmin = cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-                    || cargo.equals("CONTRALOR") || cargo.equals("JEFE");
+            boolean esAdmin = COMUN.PermisoHelper.tiene(session, "INVENTARIO_VER_TODAS");
             if (esAdmin) {
                 response.sendRedirect(request.getContextPath() + "/Inventario/INV_Lista_Solicitudes_Suministro.jsp");
             } else {

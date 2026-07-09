@@ -21,9 +21,7 @@ public class INV_Terminar_Ingreso extends HttpServlet {
             return;
         }
 
-        String cargo = (String) session.getAttribute("cargo");
-        if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
-                || cargo.equals("CONTRALOR") || cargo.equals("JEFE"))) {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
             response.sendRedirect(request.getContextPath() + "/sesionInvalida.jsp");
             return;
         }

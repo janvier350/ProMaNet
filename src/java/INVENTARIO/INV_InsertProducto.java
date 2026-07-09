@@ -72,9 +72,9 @@ valor2 = descripcionUnidad;
             response.sendRedirect("sesionExpirada.jsp");
             return;
         }
-        if (cargo.equals("JEFE") || cargo.equals("ASISTENTE")) {
-        } else {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
             response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
 
         String id_producto = "";

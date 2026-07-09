@@ -18,7 +18,7 @@
     if (!(departamento.equals("MARKETING") || departamento.equals("TECNOLOGÍA") || departamento.equals("ADMINISTRACIÓN"))) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 

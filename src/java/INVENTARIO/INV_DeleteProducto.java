@@ -52,9 +52,9 @@ public class INV_DeleteProducto extends HttpServlet {
             response.sendRedirect("../sesionExpirada.jsp");
             return;
         }
-        if (cargo.equals("JEFE") || cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || cargo.equals("RECEPCION")) {
-        } else {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
             response.sendRedirect("../sesionInvalida.jsp");
+            return;
         }
 
         Connection cn = null;

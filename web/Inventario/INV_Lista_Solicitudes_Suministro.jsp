@@ -23,6 +23,7 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
     boolean puedeDespachar = COMUN.PermisoHelper.tiene(session, "INVENTARIO_DESPACHAR");
+    boolean puedeRegistrarIngreso = COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS");
 
     String compania = "";
     try {
@@ -107,7 +108,7 @@
         <a class="nav-link" href="INV_Existencias_Dashboard.jsp"><i class="fa fa-bar-chart mr-2"></i>Existencias y Alertas</a>
         <% } %>
         <a class="nav-link" href="INV_Historial_Solicitudes_Departamento.jsp"><i class="fa fa-building mr-2"></i>Historial por Departamento</a>
-        <% if (puedeDespachar) { %>
+        <% if (puedeRegistrarIngreso) { %>
         <div class="nav-section">Ingresos</div>
         <a class="nav-link" href="INV_Ingreso_Suministro2.jsp"><i class="fa fa-plus-circle mr-2"></i>Registrar ingreso</a>
         <% } %>

@@ -63,8 +63,7 @@ public class INV_Insert_Ingreso_Suministro_Cab extends HttpServlet {
             response.sendRedirect("../sesionExpirada.jsp");
             return;
         }
-        if (cargo.equals("ADMINISTRADOR") || cargo.equals("ADMINISTRACION") || cargo.equals("CONTRALOR")|| cargo.equals("JEFE")) {
-        } else {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
             response.sendRedirect("../sesionInvalida.jsp");
             return;
         }
