@@ -39,6 +39,9 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <style>
         body{background:#f4f6f9;font-family:'Segoe UI',Arial,sans-serif;margin:0;}
         .topbar{background:#3d5a99;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;}
@@ -230,7 +233,7 @@
                     </div>
                     <div class="form-group">
                         <label>Producto</label>
-                        <select class="form-control" name="idProducto" required>
+                        <select class="form-control" id="selectProductoAgregar" name="idProducto" required>
                             <%
                                 try {
                                     DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
@@ -284,5 +287,15 @@
 </div>
 
 <footer class="footer">&copy; 2026 Overclocking &mdash; ProMaNet versi&oacute;n 2.0</footer>
+<script>
+    $(document).ready(function() {
+        $('#selectProductoAgregar').select2({
+            theme: 'bootstrap',
+            width: '100%',
+            placeholder: 'Buscar producto...',
+            dropdownParent: $('#exampleModalSignUpAgregar')
+        });
+    });
+</script>
 </body>
 </html>
