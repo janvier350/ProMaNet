@@ -309,13 +309,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Destino</label>
-                        <div class="input-group">
-                            <select name="idDestino" id="solDestino" class="form-control select2-modal" required>
-                                <% for (java.util.Map<String,String> ds : destinos) { %>
-                                <option value="<%=ds.get("id")%>"><%=ds.get("descripcion")%></option>
-                                <% } %>
-                            </select>
-                            <button type="button" class="btn btn-outline-secondary" id="btnNuevoDestino"><i class="fa fa-plus"></i></button>
+                        <div class="d-flex align-items-start" style="gap:6px;">
+                            <div class="flex-grow-1">
+                                <select name="idDestino" id="solDestino" class="form-control select2-modal" required>
+                                    <% for (java.util.Map<String,String> ds : destinos) { %>
+                                    <option value="<%=ds.get("id")%>"><%=ds.get("descripcion")%></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary flex-shrink-0" id="btnNuevoDestino" title="Agregar destino"><i class="fa fa-plus"></i></button>
                         </div>
                         <% if (destinos.isEmpty()) { %>
                         <small class="text-danger">No hay destinos registrados todavia. Usa el boton "+" para agregar el primero.</small>
@@ -323,11 +325,16 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Motivo</label>
-                        <select name="idMotivo" class="form-control select2-modal" required>
-                            <% for (java.util.Map<String,String> mt : motivos) { %>
-                            <option value="<%=mt.get("id")%>"><%=mt.get("descripcion")%></option>
-                            <% } %>
-                        </select>
+                        <div class="d-flex align-items-start" style="gap:6px;">
+                            <div class="flex-grow-1">
+                                <select name="idMotivo" id="solMotivo" class="form-control select2-modal" required>
+                                    <% for (java.util.Map<String,String> mt : motivos) { %>
+                                    <option value="<%=mt.get("id")%>"><%=mt.get("descripcion")%></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary flex-shrink-0" id="btnNuevoMotivo" title="Agregar motivo"><i class="fa fa-plus"></i></button>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Comentario / Observacion</label>
@@ -357,6 +364,30 @@
                     <div class="mb-3">
                         <label class="form-label">Descripcion</label>
                         <input type="text" name="descripcion" class="form-control" placeholder="Ej. SRI, Produbanco, Oficina Norte" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn bg-gradient-primary btn-sm"><i class="fa fa-check me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nuevo Motivo -->
+<div class="modal fade" id="modalNuevoMotivo" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="post" action="../MOV_InsertMotivo">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-tag me-2"></i>Nuevo Motivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Descripcion</label>
+                        <input type="text" name="descripcion" class="form-control" placeholder="Ej. Tramite bancario" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -486,6 +517,8 @@ var modalDetalleEl = document.getElementById('modalDetalle');
 var modalDetalle = new bootstrap.Modal(modalDetalleEl);
 var modalNuevoDestinoEl = document.getElementById('modalNuevoDestino');
 var modalNuevoDestino = new bootstrap.Modal(modalNuevoDestinoEl);
+var modalNuevoMotivoEl = document.getElementById('modalNuevoMotivo');
+var modalNuevoMotivo = new bootstrap.Modal(modalNuevoMotivoEl);
 var modalTutorialEl = document.getElementById('modalTutorial');
 var modalTutorial = new bootstrap.Modal(modalTutorialEl);
 
@@ -517,6 +550,10 @@ $('#detDestinoEdit').select2({
 document.getElementById('btnNuevoDestino').addEventListener('click', function() {
     modalSolicitar.hide();
     modalNuevoDestino.show();
+});
+document.getElementById('btnNuevoMotivo').addEventListener('click', function() {
+    modalSolicitar.hide();
+    modalNuevoMotivo.show();
 });
 
 function sumarUnaHora(hora) {
@@ -592,7 +629,7 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
         mostrarDetalle(info.event);
     },
     eventContent: function(arg) {
-        if (arg.view.type === 'listWeek') {
+        if (arg.view.type !== 'timeGridWeek') {
             return true;
         }
         var p = arg.event.extendedProps;
