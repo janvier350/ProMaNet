@@ -879,7 +879,7 @@ String compania = (String) session.getAttribute("compania");
                                             </div>
                                         </div>-->
                 </div>
-
+                <br>
                 <% if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
                 <div class="row">
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
