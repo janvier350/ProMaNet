@@ -92,15 +92,7 @@
         .fc .fc-toolbar-title{font-size:1.05rem;}
         .fc-event{cursor:pointer;}
         .fc-timegrid-event .fc-event-main-frame{overflow:visible;}
-        .fc-timegrid-event .fc-event-title{
-            white-space:normal;
-            overflow:hidden;
-            display:-webkit-box;
-            -webkit-line-clamp:3;
-            -webkit-box-orient:vertical;
-            line-height:1.15;
-        }
-        .fc-timegrid-event .fc-event-time{white-space:normal;}
+        .mov-event-content{white-space:normal;overflow:visible;font-size:.72rem;line-height:1.2;padding:1px 2px;}
         .fc-list-event-title a{white-space:normal;}
         .badge-estado{padding:.4em .75em;border-radius:.5rem;font-size:.75rem;font-weight:600;}
         .badge-PENDIENTE{background:#fff3cd;color:#856404;}
@@ -171,9 +163,9 @@
                 </div>
             </div>
         </div>
-        <a href="https://youtu.be/AGd9hJCuhSo" target="_blank" class="btn btn-danger btn-sm w-100 mb-3">Tutorial: Solicitar Movilizacion</a>
+        <button type="button" class="btn btn-danger btn-sm w-100 mb-3" onclick="abrirTutorial('AGd9hJCuhSo','Tutorial: Solicitar Movilizacion')">Tutorial: Solicitar Movilizacion</button>
         <% if (puedeGestionar) { %>
-        <a href="https://youtu.be/174NEH_rfvo" target="_blank" class="btn btn-danger btn-sm w-100 mb-3">Tutorial: Gestion de Movilizacion</a>
+        <button type="button" class="btn btn-danger btn-sm w-100 mb-3" onclick="abrirTutorial('174NEH_rfvo','Tutorial: Gestion de Movilizacion')">Tutorial: Gestion de Movilizacion</button>
         <% } %>
         <a href="../cerrar.jsp" class="btn btn-dark btn-sm w-100 mb-3">Cerrar Sesi&oacute;n</a>
     </div>
@@ -374,6 +366,23 @@
     </div>
 </div>
 
+<!-- Modal: Video Tutorial -->
+<div class="modal fade" id="modalTutorial" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tutorialTitulo">Tutorial</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="ratio ratio-16x9">
+                    <iframe id="tutorialIframe" src="" title="Tutorial" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Detalle de Solicitud -->
 <div class="modal fade" id="modalDetalle" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -466,6 +475,17 @@ var modalDetalleEl = document.getElementById('modalDetalle');
 var modalDetalle = new bootstrap.Modal(modalDetalleEl);
 var modalNuevoDestinoEl = document.getElementById('modalNuevoDestino');
 var modalNuevoDestino = new bootstrap.Modal(modalNuevoDestinoEl);
+var modalTutorialEl = document.getElementById('modalTutorial');
+var modalTutorial = new bootstrap.Modal(modalTutorialEl);
+
+function abrirTutorial(idVideo, titulo) {
+    document.getElementById('tutorialTitulo').textContent = titulo;
+    document.getElementById('tutorialIframe').src = 'https://www.youtube.com/embed/' + idVideo + '?autoplay=1';
+    modalTutorial.show();
+}
+modalTutorialEl.addEventListener('hidden.bs.modal', function() {
+    document.getElementById('tutorialIframe').src = '';
+});
 
 $(modalSolicitarEl).find('.select2-modal').select2({
     theme: 'bootstrap-5',
@@ -554,6 +574,17 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
     },
     eventClick: function(info) {
         mostrarDetalle(info.event);
+    },
+    eventContent: function(arg) {
+        if (arg.view.type === 'listWeek') {
+            return true;
+        }
+        var p = arg.event.extendedProps;
+        var div = document.createElement('div');
+        div.className = 'mov-event-content';
+        var destinoTxt = (p.destino && p.destino !== '-') ? (' - ' + p.destino) : '';
+        div.innerHTML = '<b>' + arg.timeText + '</b><br>' + p.solicitante + '<br>' + p.motivo + destinoTxt;
+        return { domNodes: [div] };
     },
     eventDidMount: function(info) {
         var p = info.event.extendedProps;
