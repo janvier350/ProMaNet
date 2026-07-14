@@ -34,14 +34,22 @@ public class MOV_InsertarSolicitud extends HttpServlet {
         String horaFin = request.getParameter("horaFin");
         String idMovilizador = request.getParameter("idMovilizador");
         String idMotivo = request.getParameter("idMotivo");
+        String idDestino = request.getParameter("idDestino");
         String comentario = request.getParameter("comentario");
 
         String idUsuario = (String) session.getAttribute("cod");
         String idDepartamento = (String) session.getAttribute("idDepartamento");
 
-        if (fecha == null || horaInicio == null || idMovilizador == null || idMotivo == null
-                || fecha.trim().isEmpty() || horaInicio.trim().isEmpty()) {
-            session.setAttribute("msg_error", "Debe indicar fecha, hora de inicio, movilizador y motivo.");
+        // Solo quien gestiona (Smoran) puede elegir el movilizador. Todos
+        // los demas quedan fijos en Carlos Briones (ID_MOVILIZADOR=1), sin
+        // importar lo que venga en el formulario.
+        if (!PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR")) {
+            idMovilizador = "1";
+        }
+
+        if (fecha == null || horaInicio == null || idMovilizador == null || idMotivo == null || idDestino == null
+                || fecha.trim().isEmpty() || horaInicio.trim().isEmpty() || idDestino.trim().isEmpty()) {
+            session.setAttribute("msg_error", "Debe indicar fecha, hora de inicio, destino y motivo.");
             response.sendRedirect(request.getContextPath() + "/Movilizacion/MOV_Calendario.jsp");
             return;
         }
@@ -75,18 +83,19 @@ public class MOV_InsertarSolicitud extends HttpServlet {
             }
 
             try (PreparedStatement st = cn.prepareStatement(
-                    "INSERT INTO MOV_SOLICITUD (ID_MOV_SOLICITUD, ID_MOVILIZADOR, ID_MOTIVO, FECHA, " +
+                    "INSERT INTO MOV_SOLICITUD (ID_MOV_SOLICITUD, ID_MOVILIZADOR, ID_MOTIVO, ID_DESTINO, FECHA, " +
                     "HORA_INICIO, HORA_FIN, IDUSUARIO, ID_DEPARTAMENTO, COMENTARIO, ESTADO) " +
-                    "VALUES (?, ?, ?, TO_DATE(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?, 'PENDIENTE')")) {
+                    "VALUES (?, ?, ?, ?, TO_DATE(?,'YYYY-MM-DD'), ?, ?, ?, ?, ?, 'PENDIENTE')")) {
                 st.setInt(1, idNuevo);
                 st.setInt(2, Integer.parseInt(idMovilizador));
                 st.setInt(3, Integer.parseInt(idMotivo));
-                st.setString(4, fecha);
-                st.setString(5, horaInicio);
-                st.setString(6, horaFin);
-                st.setInt(7, Integer.parseInt(idUsuario));
-                st.setInt(8, Integer.parseInt(idDepartamento));
-                st.setString(9, comentario);
+                st.setInt(4, Integer.parseInt(idDestino));
+                st.setString(5, fecha);
+                st.setString(6, horaInicio);
+                st.setString(7, horaFin);
+                st.setInt(8, Integer.parseInt(idUsuario));
+                st.setInt(9, Integer.parseInt(idDepartamento));
+                st.setString(10, comentario);
                 st.executeUpdate();
             }
 

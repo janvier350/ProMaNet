@@ -25,6 +25,7 @@
 
     List<Map<String,String>> movilizadores = new ArrayList<>();
     List<Map<String,String>> motivos = new ArrayList<>();
+    List<Map<String,String>> destinos = new ArrayList<>();
     try (Connection cnCat = Servlets.Conexion.getConnection()) {
         if (cnCat != null) {
             try (PreparedStatement st = cnCat.prepareStatement(
@@ -45,6 +46,16 @@
                     m.put("id", rs.getString(1));
                     m.put("descripcion", rs.getString(2));
                     motivos.add(m);
+                }
+            }
+            try (PreparedStatement st = cnCat.prepareStatement(
+                    "SELECT ID_DESTINO, DESCRIPCION FROM MOV_DESTINO WHERE ESTADO = 'A' ORDER BY DESCRIPCION");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    Map<String,String> m = new LinkedHashMap<>();
+                    m.put("id", rs.getString(1));
+                    m.put("descripcion", rs.getString(2));
+                    destinos.add(m);
                 }
             }
         }
@@ -71,6 +82,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <style>
         #calendar{max-width:100%;}
         .fc{font-size:.85rem;}
@@ -276,15 +291,34 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Movilizador</label>
-                        <select name="idMovilizador" id="solMovilizador" class="form-control" required>
+                        <% if (puedeGestionar) { %>
+                        <select name="idMovilizador" id="solMovilizador" class="form-control select2-modal">
                             <% for (java.util.Map<String,String> mv : movilizadores) { %>
                             <option value="<%=mv.get("id")%>"><%=mv.get("nombre")%></option>
                             <% } %>
                         </select>
+                        <% } else { %>
+                        <input type="text" class="form-control" value="Carlos Briones" readonly>
+                        <input type="hidden" name="idMovilizador" id="solMovilizador" value="1">
+                        <% } %>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Destino</label>
+                        <div class="input-group">
+                            <select name="idDestino" id="solDestino" class="form-control select2-modal" required>
+                                <% for (java.util.Map<String,String> ds : destinos) { %>
+                                <option value="<%=ds.get("id")%>"><%=ds.get("descripcion")%></option>
+                                <% } %>
+                            </select>
+                            <button type="button" class="btn btn-outline-secondary" id="btnNuevoDestino"><i class="fa fa-plus"></i></button>
+                        </div>
+                        <% if (destinos.isEmpty()) { %>
+                        <small class="text-danger">No hay destinos registrados todavia. Usa el boton "+" para agregar el primero.</small>
+                        <% } %>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Motivo</label>
-                        <select name="idMotivo" class="form-control" required>
+                        <select name="idMotivo" class="form-control select2-modal" required>
                             <% for (java.util.Map<String,String> mt : motivos) { %>
                             <option value="<%=mt.get("id")%>"><%=mt.get("descripcion")%></option>
                             <% } %>
@@ -299,6 +333,30 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
                     <button type="submit" class="btn bg-gradient-primary btn-sm"><i class="fa fa-check me-1"></i>Solicitar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Nuevo Destino -->
+<div class="modal fade" id="modalNuevoDestino" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="post" action="../MOV_InsertDestino">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-map-marker me-2"></i>Nuevo Destino</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Descripcion</label>
+                        <input type="text" name="descripcion" class="form-control" placeholder="Ej. SRI, Produbanco, Oficina Norte" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn bg-gradient-primary btn-sm"><i class="fa fa-check me-1"></i>Guardar</button>
                 </div>
             </form>
         </div>
@@ -321,6 +379,7 @@
                     <tr><th>Solicitante</th><td id="detSolicitante"></td></tr>
                     <tr><th>Departamento</th><td id="detDepartamento"></td></tr>
                     <tr><th>Movilizador</th><td id="detMovilizador"></td></tr>
+                    <tr><th>Destino</th><td id="detDestino"></td></tr>
                     <tr><th>Motivo</th><td id="detMotivo"></td></tr>
                     <tr><th>Comentario</th><td id="detComentario"></td></tr>
                     <tr><th>Solicitado el</th><td id="detFechaSolicitud"></td></tr>
@@ -333,6 +392,14 @@
                     <div id="detFechaEditBox" class="mb-3" style="display:none;">
                         <label class="form-label">Fecha (reagendar)</label>
                         <input type="date" id="detFechaEdit" class="form-control form-control-sm">
+                    </div>
+                    <div id="detMovilizadorEditBox" class="mb-3" style="display:none;">
+                        <label class="form-label">Movilizador</label>
+                        <select id="detMovilizadorEdit" class="form-control form-control-sm">
+                            <% for (java.util.Map<String,String> mv : movilizadores) { %>
+                            <option value="<%=mv.get("id")%>"><%=mv.get("nombre")%></option>
+                            <% } %>
+                        </select>
                     </div>
                     <div class="row">
                         <div class="col-md-6">
@@ -366,6 +433,7 @@
     <input type="hidden" name="fecha" id="accFecha">
     <input type="hidden" name="horaInicio" id="accHoraInicio">
     <input type="hidden" name="horaFin" id="accHoraFin">
+    <input type="hidden" name="idMovilizador" id="accIdMovilizador">
     <input type="hidden" name="accion" id="accAccion">
     <input type="hidden" name="motivoRechazo" id="accMotivoRechazo">
 </form>
@@ -385,6 +453,24 @@ var modalSolicitarEl = document.getElementById('modalSolicitar');
 var modalSolicitar = new bootstrap.Modal(modalSolicitarEl);
 var modalDetalleEl = document.getElementById('modalDetalle');
 var modalDetalle = new bootstrap.Modal(modalDetalleEl);
+var modalNuevoDestinoEl = document.getElementById('modalNuevoDestino');
+var modalNuevoDestino = new bootstrap.Modal(modalNuevoDestinoEl);
+
+$(modalSolicitarEl).find('.select2-modal').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    dropdownParent: $(modalSolicitarEl)
+});
+$('#detMovilizadorEdit').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    dropdownParent: $(modalDetalleEl)
+});
+
+document.getElementById('btnNuevoDestino').addEventListener('click', function() {
+    modalSolicitar.hide();
+    modalNuevoDestino.show();
+});
 
 function sumarUnaHora(hora) {
     var partes = hora.split(':');
@@ -481,6 +567,7 @@ function mostrarDetalle(event) {
     document.getElementById('detSolicitante').textContent = p.solicitante;
     document.getElementById('detDepartamento').textContent = p.departamento;
     document.getElementById('detMovilizador').textContent = p.movilizador;
+    document.getElementById('detDestino').textContent = p.destino;
     document.getElementById('detMotivo').textContent = p.motivo;
     document.getElementById('detComentario').textContent = p.comentario || '-';
     document.getElementById('detFechaSolicitud').textContent = p.fechaSolicitud;
@@ -505,10 +592,14 @@ function mostrarDetalle(event) {
     document.getElementById('detAccionesEditables').style.display = editable ? '' : 'none';
     document.getElementById('detRechazoBox').style.display = 'none';
     document.getElementById('detFechaEditBox').style.display = puedeReagendar ? '' : 'none';
+    document.getElementById('detMovilizadorEditBox').style.display = puedeReagendar ? '' : 'none';
     if (editable) {
         document.getElementById('detFechaEdit').value = p.fecha;
         document.getElementById('detHoraInicioEdit').value = p.horaInicio;
         document.getElementById('detHoraFinEdit').value = p.horaFin;
+    }
+    if (puedeReagendar) {
+        document.getElementById('detMovilizadorEdit').value = p.idMovilizador;
     }
 
     var botones = document.getElementById('detBotones');
@@ -561,12 +652,29 @@ function mostrarDetalle(event) {
         btnCancelar.innerHTML = '<i class="fa fa-ban me-1"></i>Cancelar solicitud';
         btnCancelar.onclick = function() {
             if (confirm('¿Cancelar esta solicitud de movilizacion?')) {
-                document.getElementById('accIdSolicitud').value = event.id;
+                document.getElementById('accIdSolicitud').value = eventoActual.id;
                 document.getElementById('formAccion').action = ctx + '/MOV_CancelarSolicitud';
                 document.getElementById('formAccion').submit();
             }
         };
         botones.appendChild(btnCancelar);
+    }
+
+    var puedeEliminar = puedeGestionar
+            || (esDueno && (p.estado === 'PENDIENTE' || p.estado === 'RECHAZADA' || p.estado === 'CANCELADA'));
+    if (puedeEliminar) {
+        var btnEliminar = document.createElement('button');
+        btnEliminar.type = 'button';
+        btnEliminar.className = 'btn btn-danger btn-sm';
+        btnEliminar.innerHTML = '<i class="fa fa-trash me-1"></i>Eliminar solicitud';
+        btnEliminar.onclick = function() {
+            if (confirm('¿Eliminar definitivamente esta solicitud de movilizacion? Esta accion no se puede deshacer.')) {
+                document.getElementById('accIdSolicitud').value = eventoActual.id;
+                document.getElementById('formAccion').action = ctx + '/MOV_EliminarSolicitud';
+                document.getElementById('formAccion').submit();
+            }
+        };
+        botones.appendChild(btnEliminar);
     }
 
     modalDetalle.show();
@@ -578,6 +686,8 @@ function enviarAccion(url, accion) {
             ? document.getElementById('detFechaEdit').value : '';
     document.getElementById('accHoraInicio').value = document.getElementById('detHoraInicioEdit').value;
     document.getElementById('accHoraFin').value = document.getElementById('detHoraFinEdit').value;
+    document.getElementById('accIdMovilizador').value = document.getElementById('detMovilizadorEditBox').style.display !== 'none'
+            ? document.getElementById('detMovilizadorEdit').value : '';
     document.getElementById('accAccion').value = accion || '';
     document.getElementById('accMotivoRechazo').value = document.getElementById('detMotivoRechazoInput').value;
     document.getElementById('formAccion').action = url;

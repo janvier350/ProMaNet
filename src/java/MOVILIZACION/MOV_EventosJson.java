@@ -57,13 +57,15 @@ public class MOV_EventosJson extends HttpServlet {
             String sql = "SELECT s.ID_MOV_SOLICITUD, TO_CHAR(s.FECHA,'YYYY-MM-DD'), s.HORA_INICIO, s.HORA_FIN, " +
                     "s.ESTADO, s.COMENTARIO, s.MOTIVO_RECHAZO, m.NOMBRE AS MOVILIZADOR, mo.DESCRIPCION AS MOTIVO, " +
                     "u.NOMBRE||' '||u.APELLIDOS AS SOLICITANTE, u.IDUSUARIO, d.DEPARTAMENTO, " +
-                    "ug.NOMBRE||' '||ug.APELLIDOS AS GESTIONADO_POR, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY HH24:MI') AS FECHA_SOLICITUD " +
+                    "ug.NOMBRE||' '||ug.APELLIDOS AS GESTIONADO_POR, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY HH24:MI') AS FECHA_SOLICITUD, " +
+                    "s.ID_MOVILIZADOR, de.DESCRIPCION AS DESTINO " +
                     "FROM MOV_SOLICITUD s " +
                     "JOIN MOV_MOVILIZADOR m ON s.ID_MOVILIZADOR = m.ID_MOVILIZADOR " +
                     "JOIN MOV_MOTIVO mo ON s.ID_MOTIVO = mo.ID_MOTIVO " +
                     "JOIN USUARIO u ON s.IDUSUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ADM_DEPARTAMENTO d ON TO_CHAR(s.ID_DEPARTAMENTO) = d.ID_DEPARTAMENTO " +
                     "LEFT JOIN USUARIO ug ON s.IDUSUARIO_GESTIONA = ug.IDUSUARIO " +
+                    "LEFT JOIN MOV_DESTINO de ON s.ID_DESTINO = de.ID_DESTINO " +
                     "WHERE (? IS NULL OR TO_CHAR(s.FECHA,'YYYY-MM-DD') >= ?) " +
                     "AND (? IS NULL OR TO_CHAR(s.FECHA,'YYYY-MM-DD') < ?) " +
                     "AND (? IS NULL OR s.ESTADO = ?) " +
@@ -101,6 +103,8 @@ public class MOV_EventosJson extends HttpServlet {
                         props.put("gestionadoPor", rs.getString(13) != null ? rs.getString(13) : "");
                         props.put("motivoRechazo", rs.getString(7) != null ? rs.getString(7) : "");
                         props.put("fechaSolicitud", rs.getString(14));
+                        props.put("idMovilizador", rs.getInt(15));
+                        props.put("destino", rs.getString(16) != null ? rs.getString(16) : "-");
                         ev.put("extendedProps", props);
 
                         eventos.put(ev);
