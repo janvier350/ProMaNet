@@ -87,10 +87,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <style>
-        #calendar{max-width:100%;}
+        #calendar{max-width:100%;--fc-timegrid-slot-height:3.4em;}
         .fc{font-size:.85rem;}
         .fc .fc-toolbar-title{font-size:1.05rem;}
         .fc-event{cursor:pointer;}
+        .fc-timegrid-event-harness{overflow:visible;}
+        .fc-timegrid-event{overflow:visible;}
         .fc-timegrid-event .fc-event-main-frame{overflow:visible;}
         .mov-event-content{white-space:normal;overflow:visible;font-size:.72rem;line-height:1.2;padding:1px 2px;}
         .fc-list-event-title a{white-space:normal;}
@@ -421,6 +423,14 @@
                             <% } %>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Destino</label>
+                        <select id="detDestinoEdit" class="form-control form-control-sm">
+                            <% for (java.util.Map<String,String> ds : destinos) { %>
+                            <option value="<%=ds.get("id")%>"><%=ds.get("descripcion")%></option>
+                            <% } %>
+                        </select>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -454,6 +464,7 @@
     <input type="hidden" name="horaInicio" id="accHoraInicio">
     <input type="hidden" name="horaFin" id="accHoraFin">
     <input type="hidden" name="idMovilizador" id="accIdMovilizador">
+    <input type="hidden" name="idDestino" id="accIdDestino">
     <input type="hidden" name="accion" id="accAccion">
     <input type="hidden" name="motivoRechazo" id="accMotivoRechazo">
 </form>
@@ -493,6 +504,11 @@ $(modalSolicitarEl).find('.select2-modal').select2({
     dropdownParent: $(modalSolicitarEl)
 });
 $('#detMovilizadorEdit').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    dropdownParent: $(modalDetalleEl)
+});
+$('#detDestinoEdit').select2({
     theme: 'bootstrap-5',
     width: '100%',
     dropdownParent: $(modalDetalleEl)
@@ -646,6 +662,7 @@ function mostrarDetalle(event) {
         document.getElementById('detFechaEdit').value = p.fecha;
         document.getElementById('detHoraInicioEdit').value = p.horaInicio;
         document.getElementById('detHoraFinEdit').value = p.horaFin;
+        $('#detDestinoEdit').val(p.idDestino).trigger('change');
     }
     if (puedeReagendar) {
         document.getElementById('detMovilizadorEdit').value = p.idMovilizador;
@@ -737,6 +754,7 @@ function enviarAccion(url, accion) {
     document.getElementById('accHoraFin').value = document.getElementById('detHoraFinEdit').value;
     document.getElementById('accIdMovilizador').value = document.getElementById('detMovilizadorEditBox').style.display !== 'none'
             ? document.getElementById('detMovilizadorEdit').value : '';
+    document.getElementById('accIdDestino').value = document.getElementById('detDestinoEdit').value;
     document.getElementById('accAccion').value = accion || '';
     document.getElementById('accMotivoRechazo').value = document.getElementById('detMotivoRechazoInput').value;
     document.getElementById('formAccion').action = url;

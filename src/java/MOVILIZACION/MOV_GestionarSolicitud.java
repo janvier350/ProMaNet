@@ -36,6 +36,7 @@ public class MOV_GestionarSolicitud extends HttpServlet {
         String horaInicio = request.getParameter("horaInicio");
         String horaFin = request.getParameter("horaFin");
         String idMovilizadorNuevo = request.getParameter("idMovilizador");
+        String idDestinoNuevo = request.getParameter("idDestino");
         String idUsuarioSesion = (String) session.getAttribute("cod");
 
         if (idSolicitud == null
@@ -58,18 +59,24 @@ public class MOV_GestionarSolicitud extends HttpServlet {
                     return;
                 }
 
-                String idMovilizadorActual = null, fechaActual = null;
+                String idMovilizadorActual = null, fechaActual = null, idDestinoActual = null;
                 try (PreparedStatement st = cn.prepareStatement(
-                        "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD') FROM MOV_SOLICITUD WHERE ID_MOV_SOLICITUD = ?")) {
+                        "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD'), ID_DESTINO FROM MOV_SOLICITUD WHERE ID_MOV_SOLICITUD = ?")) {
                     st.setInt(1, Integer.parseInt(idSolicitud));
                     try (ResultSet rs = st.executeQuery()) {
-                        if (rs.next()) { idMovilizadorActual = rs.getString(1); fechaActual = rs.getString(2); }
+                        if (rs.next()) {
+                            idMovilizadorActual = rs.getString(1);
+                            fechaActual = rs.getString(2);
+                            idDestinoActual = rs.getString(3);
+                        }
                     }
                 }
 
                 String fecha = (fechaNueva != null && !fechaNueva.trim().isEmpty()) ? fechaNueva : fechaActual;
                 String idMovilizador = (idMovilizadorNuevo != null && !idMovilizadorNuevo.trim().isEmpty())
                         ? idMovilizadorNuevo : idMovilizadorActual;
+                String idDestino = (idDestinoNuevo != null && !idDestinoNuevo.trim().isEmpty())
+                        ? idDestinoNuevo : idDestinoActual;
 
                 if (idMovilizador != null && Horario.hayChoque(cn, idMovilizador, fecha, horaInicio, horaFin, idSolicitud)) {
                     session.setAttribute("msg_error", "Ese movilizador ya tiene otra solicitud en ese horario.");
@@ -78,12 +85,17 @@ public class MOV_GestionarSolicitud extends HttpServlet {
                 }
 
                 try (PreparedStatement stHora = cn.prepareStatement(
-                        "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ?, ID_MOVILIZADOR = ? WHERE ID_MOV_SOLICITUD = ?")) {
+                        "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ?, ID_MOVILIZADOR = ?, ID_DESTINO = ? WHERE ID_MOV_SOLICITUD = ?")) {
                     stHora.setString(1, fecha);
                     stHora.setString(2, horaInicio);
                     stHora.setString(3, horaFin);
                     stHora.setInt(4, Integer.parseInt(idMovilizador));
-                    stHora.setInt(5, Integer.parseInt(idSolicitud));
+                    if (idDestino != null) {
+                        stHora.setInt(5, Integer.parseInt(idDestino));
+                    } else {
+                        stHora.setNull(5, java.sql.Types.INTEGER);
+                    }
+                    stHora.setInt(6, Integer.parseInt(idSolicitud));
                     stHora.executeUpdate();
                 }
             }
