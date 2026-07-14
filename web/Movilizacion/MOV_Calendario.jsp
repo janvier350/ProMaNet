@@ -91,6 +91,17 @@
         .fc{font-size:.85rem;}
         .fc .fc-toolbar-title{font-size:1.05rem;}
         .fc-event{cursor:pointer;}
+        .fc-timegrid-event .fc-event-main-frame{overflow:visible;}
+        .fc-timegrid-event .fc-event-title{
+            white-space:normal;
+            overflow:hidden;
+            display:-webkit-box;
+            -webkit-line-clamp:3;
+            -webkit-box-orient:vertical;
+            line-height:1.15;
+        }
+        .fc-timegrid-event .fc-event-time{white-space:normal;}
+        .fc-list-event-title a{white-space:normal;}
         .badge-estado{padding:.4em .75em;border-radius:.5rem;font-size:.75rem;font-weight:600;}
         .badge-PENDIENTE{background:#fff3cd;color:#856404;}
         .badge-APROBADA{background:#d1e7dd;color:#0f5132;}
@@ -543,6 +554,13 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
     },
     eventClick: function(info) {
         mostrarDetalle(info.event);
+    },
+    eventDidMount: function(info) {
+        var p = info.event.extendedProps;
+        info.el.title = p.solicitante + ' - ' + p.motivo + '\n' +
+            'Destino: ' + p.destino + '\n' +
+            'Horario: ' + p.horaInicio + ' - ' + p.horaFin + '\n' +
+            'Estado: ' + p.estado;
     }
 });
 calendar.render();

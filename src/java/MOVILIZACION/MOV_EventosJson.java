@@ -82,9 +82,12 @@ public class MOV_EventosJson extends HttpServlet {
                         String horaFin = rs.getString(4);
                         String estado = rs.getString(5);
 
+                        String destinoTitulo = rs.getString(16);
+
                         JSONObject ev = new JSONObject();
                         ev.put("id", rs.getInt(1));
-                        ev.put("title", rs.getString(10) + " - " + rs.getString(9));
+                        ev.put("title", rs.getString(10) + " - " + rs.getString(9)
+                                + (destinoTitulo != null ? " - " + destinoTitulo : ""));
                         ev.put("start", fecha + "T" + horaInicio);
                         ev.put("end", fecha + "T" + horaFin);
                         ev.put("color", colorEstado(estado));
