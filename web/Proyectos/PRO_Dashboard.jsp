@@ -819,7 +819,33 @@ String compania = (String) session.getAttribute("compania");
                                     </div>
                                 </div>
                             </a>
-                        
+
+                        <% } else if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
+
+                            <a href="../Movilizacion/MOV_Calendario.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Solicitar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    MOVILIZACION
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-info text-sm font-weight-bolder">Consulte el calendario y</span>
+                                                    <b class="text-info">solicite movilizacion</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
+                                                <i class="fa fa-car text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
                         <% }%>
                         </div>
                     </div>
@@ -879,8 +905,10 @@ String compania = (String) session.getAttribute("compania");
                                             </div>
                                         </div>-->
                 </div>
+                <% boolean muestraComputadoras = !usuario.equals("uparrales")
+                        && (cargo.equals("ADMINISTRADOR") || apellidos.equals("Varas Herrera") || cargo.equals("JEFE")); %>
+                <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
                 <br>
-                <% if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
                 <div class="row">
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
