@@ -136,6 +136,19 @@
         </ul>
     </div>
     <div class="sidenav-footer mx-3">
+        <div class="card card-plain shadow-none" id="sidenavCard">
+            <img class="w-50 mx-auto" src="../assets/img/illustrations/icon-documentation.svg" alt="sidebar_illustration">
+            <div class="card-body text-center p-3 w-100 pt-0">
+                <div class="docs-info">
+                    <h6 class="mb-0">Necesitas ayuda?</h6>
+                    <p class="text-xs font-weight-bold mb-0">Visita nuestro Tutorial</p>
+                </div>
+            </div>
+        </div>
+        <a href="https://youtu.be/AGd9hJCuhSo" target="_blank" class="btn btn-danger btn-sm w-100 mb-3">Tutorial: Solicitar Movilizacion</a>
+        <% if (puedeGestionar) { %>
+        <a href="https://youtu.be/174NEH_rfvo" target="_blank" class="btn btn-danger btn-sm w-100 mb-3">Tutorial: Gestion de Movilizacion</a>
+        <% } %>
         <a href="../cerrar.jsp" class="btn btn-dark btn-sm w-100 mb-3">Cerrar Sesi&oacute;n</a>
     </div>
 </aside>
