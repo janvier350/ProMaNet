@@ -757,6 +757,36 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+
+                    <% if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                        <div class="card">
+                            <a href="../Movilizacion/MOV_Calendario.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Solicitar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    MOVILIZACION
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-info text-sm font-weight-bolder">Consulte el calendario y</span>
+                                                    <b class="text-info">solicite movilizacion</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
+                                                <i class="fa fa-car text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
 <!--                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Inventario/INV_Solicitar_Suministro_Detalle.jsp">
