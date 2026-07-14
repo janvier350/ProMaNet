@@ -49,6 +49,7 @@ String compania = (String) session.getAttribute("compania");
      int retomar =0;
     String fechaFormateada = ""; // Variable para guardar el valor del input
     String corte = "";
+    String corteTexto = ""; // corte, pero legible en espanol, solo para mostrar en pantalla
     
     if(session.getAttribute("usuario")==null){
              response.sendRedirect("../sesionExpirada.jsp");
@@ -83,6 +84,8 @@ String compania = (String) session.getAttribute("compania");
                 if (fecha != null) {
                     java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
                     corte = sdf.format(fecha);
+                    java.text.SimpleDateFormat sdfEs = new java.text.SimpleDateFormat("d 'de' MMMM 'del' yyyy", new java.util.Locale("es", "ES"));
+                    corteTexto = sdfEs.format(fecha);
 
                     if (hoy.after(fecha)) {
                         validacionFecha = 1;
@@ -421,13 +424,13 @@ System.out.println("Estado del corte: " + validacionFecha);
 
                                 </div>
                                 <hr class="horizontal dark">
-                                <p>Solicite su anticipo de sueldo antes de la fecha límite <h3><%= corte %></h3></p>
+                                <p>Solicite su anticipo de sueldo antes de la fecha límite <h3><%= corteTexto %></h3></p>
 
                                 <% if (validacionFecha == 1) { %>
-                                <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius:8px;">
+                                <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius:8px;color:#fff;">
                                     <i class="fa fa-exclamation-triangle me-3" style="font-size:1.5rem;"></i>
-                                    <div>
-                                        <strong>Plazo vencido.</strong> La fecha límite para solicitar anticipos fue el <strong><%= corte %></strong>. No es posible realizar nuevas solicitudes.
+                                    <div style="color:#fff;">
+                                        <strong style="color:#fff;">Plazo vencido.</strong> La fecha límite para solicitar anticipos fue el <strong style="color:#fff;"><%= corteTexto %></strong>. No es posible realizar nuevas solicitudes.
                                     </div>
                                 </div>
                                 <% } else { %>
