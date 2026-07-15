@@ -39,10 +39,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ADMINISTRACION")||nombre.equals("Jonathan")){
-           
+        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ADMINISTRACION")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }%>
 <!DOCTYPE html>
 <html>
@@ -103,7 +104,7 @@
                   <li><a href="Agenda.jsp">AGENDA</a></li>
                 <%if(usuario.equals("uparrales")){%>
                    <li><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                    <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                 <%}%>
                 <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -201,7 +202,7 @@
         <th class="text-center">Id</th>                  
         <th class="text-center">Nombres</th>  
         <th class="text-center">Email</th>
-        <th class="text-center">Compañia</th>
+        <th class="text-center">Compaï¿½ia</th>
         <th class="text-center">Rol</th>
         <th class="text-center">Revisar</th>
         <!-- <th class="text-center">Eliminar</th> -->

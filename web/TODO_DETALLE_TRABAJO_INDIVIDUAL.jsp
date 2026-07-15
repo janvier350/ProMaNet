@@ -31,10 +31,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||nombre.equals("Jonathan")){
-           
+        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
@@ -84,7 +85,7 @@
                 <li><a href="Contactos.jsp">CONTACTOS</a></li>
                 <%if(usuario.equals("uparrales")){%>
                     <li><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                     <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                 <%}%>
                 <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -283,11 +284,11 @@
             $('#show_password').on('change',function(event){
             // Si el checkbox esta "checkeado"
             if($('#show_password').is(':checked')){
-               // Convertimos el input de contraseña a texto.
+               // Convertimos el input de contraseï¿½a a texto.
                $('#password').get(0).type='text';
             // En caso contrario..
             } else {
-               // Lo convertimos a contraseña.
+               // Lo convertimos a contraseï¿½a.
                $('#password').get(0).type='password';
             }
          });

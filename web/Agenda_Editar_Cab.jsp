@@ -52,9 +52,10 @@
              return;
              }
         if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
@@ -216,7 +217,7 @@
                  <li class="active"><a href="Agenda.jsp">AGENDA</a></li>
                 <%if(usuario.equals("uparrales")){%>
                     <li><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                <%}else if(COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")){%>
                     <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                 <%}%>
                 <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -288,7 +289,7 @@
                                 </li>
                             </ul>
                         </li>
-                <li><a href="cerrar.jsp">CERRAR SESIÓN</a></li>
+                <li><a href="cerrar.jsp">CERRAR SESIï¿½N</a></li>
             </ul>
         </div>
         </nav>  
@@ -312,7 +313,7 @@
         </div>
                         <div class=" container panel-success" align="center">
 		<div class="panel-heading">
-                                                <h3 class="panel-title"><b>Editar agenda de la reunión</b></h3>
+                                                <h3 class="panel-title"><b>Editar agenda de la reuniï¿½n</b></h3>
                                                 <!--<span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>-->
                                     </div>
 		<div class="panel-body"> <%String idCabeceraDetalle = idRegistroAgenda;%>
@@ -443,7 +444,7 @@
                                 <div class="row">
                                 <div class="col-lg-12">
                                     <div class="form-group">
-                                        <label for="Observacion" class="form-control-label">Observación</label>
+                                        <label for="Observacion" class="form-control-label">Observaciï¿½n</label>
                                         <input class="form-control" id="observacion" name="observacion"  value="<%=observacion%>">
                                         <!--<textarea type="text" class="form-control" id="observacion" name="observacion" value="<%=observacion%>"></textarea>-->
                                     </div>  
@@ -477,7 +478,7 @@
 
                       <!-- Copyright -->
                       <div class="text-center text-warning p-3" style="background-color: #0a4275;">
-                        © 2023 Copyright:
+                        ï¿½ 2023 Copyright:
                         <a class="text-white" href="https://overclocking.com.ec/">overclocking.com.ec</a>
                       </div>
                       <!-- Copyright -->

@@ -24,9 +24,10 @@
              return;
              }
         if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")){
-           
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>

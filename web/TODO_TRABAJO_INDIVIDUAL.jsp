@@ -35,10 +35,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||nombre.equals("Jonathan")){
-           
+        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
@@ -88,7 +89,7 @@
                 <li><a href="Contactos.jsp">CONTACTOS</a></li>
                 <%if(usuario.equals("uparrales")){%>
                     <li><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                     <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                 <%}%>
                 <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -275,7 +276,7 @@
     %>
  <div class="alert alert-danger" style = "height:35px;padding-top:8px;width:25%;Float:left;margin-left:10%">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                    ×</button>
+                    ï¿½</button>
                 <span class="glyphicon glyphicon-exclamation-sign"></span>
                     Tienes <%= contadorTareas%> pendientes.
     </div>
@@ -302,7 +303,7 @@
 
     <div class="alert alert-success" style = "height:35px;padding-top:8px;width:25%;Float:left;margin-left:10%;">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                    ×</button>
+                    ï¿½</button>
                <span class="glyphicon glyphicon-ok"></span> 
                    Tienes  <%= contadorTareas%> terminados.
     </div>
@@ -329,7 +330,7 @@
     %>
  <div class="alert btn-primary" style = "height:35px;padding-top:8px;width:25%;Float:left;margin-left:10%">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">
-                    ×</button>
+                    ï¿½</button>
                 <span class="glyphicon glyphicon-exclamation-sign"></span>
                     Tienes <%= contadorTareas%> tareas asignadas.
     </div>
@@ -409,11 +410,11 @@
             $('#show_password').on('change',function(event){
             // Si el checkbox esta "checkeado"
             if($('#show_password').is(':checked')){
-               // Convertimos el input de contraseña a texto.
+               // Convertimos el input de contraseï¿½a a texto.
                $('#password').get(0).type='text';
             // En caso contrario..
             } else {
-               // Lo convertimos a contraseña.
+               // Lo convertimos a contraseï¿½a.
                $('#password').get(0).type='password';
             }
          });
