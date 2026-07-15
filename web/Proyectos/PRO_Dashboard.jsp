@@ -43,6 +43,7 @@ String compania = (String) session.getAttribute("compania");
              if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA")){
                 }else{
                     response.sendRedirect("sesionInvalida.jsp");
+                    return;
              }
              
  String EstTrab ="";
@@ -209,7 +210,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                         <!--control de acceso--> 
                         <%if(usuario.equals("uparrales")){%>
-                        <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
+                        <%}else if(COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")){%>
 <!--                        <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -794,7 +795,7 @@ String compania = (String) session.getAttribute("compania");
 <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
 <%if(usuario.equals("uparrales")){%>
-                        <%}else if(cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")||cargo.equals("JEFE")){%>
+                        <%}else if(cargo.equals("ADMINISTRADOR")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||cargo.equals("JEFE")){%>
                         
 
                             <a href="../Inventario/INV_Equipos.jsp">
@@ -906,7 +907,7 @@ String compania = (String) session.getAttribute("compania");
                                         </div>-->
                 </div>
                 <% boolean muestraComputadoras = !usuario.equals("uparrales")
-                        && (cargo.equals("ADMINISTRADOR") || apellidos.equals("Varas Herrera") || cargo.equals("JEFE")); %>
+                        && (cargo.equals("ADMINISTRADOR") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL") || cargo.equals("JEFE")); %>
                 <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
                 <br>
                 <div class="row">
@@ -1203,7 +1204,7 @@ String compania = (String) session.getAttribute("compania");
                                                 <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
                                               </div>-->
                                 <div class="table-responsive overflow-auto" style="max-height: 400px;">
-                                    <% if(apellidos.equals("Varas Herrera")){%>
+                                    <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                                     <table class="table align-items-center ">
                                         <button type="#" class="btn btn-success"  href="">
                                             <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp">
@@ -1568,7 +1569,7 @@ String compania = (String) session.getAttribute("compania");
 
                         </div>
                     </div>
-                    <%if(apellidos.equals("Varas Herrera")||departamento.equals("MARKETING")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
+                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||departamento.equals("MARKETING")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header pb-0 p-3">

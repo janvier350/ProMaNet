@@ -25,10 +25,7 @@ public class PCN_GuardarPermisosUsuario extends HttpServlet {
             return;
         }
 
-        String cargo = (String) session.getAttribute("cargo");
-        String apellidos = (String) session.getAttribute("apellidos");
-        if (!(cargo.equals("CONTRALOR") || cargo.equals("JEFE") || cargo.equals("ADMINISTRACION")
-                || cargo.equals("ADMINISTRADOR") || apellidos.equals("Varas Herrera"))) {
+        if (!COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")) {
             response.sendRedirect(request.getContextPath() + "/sesionInvalida.jsp");
             return;
         }

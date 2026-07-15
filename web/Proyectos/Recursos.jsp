@@ -30,9 +30,9 @@
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
+             if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
 %>
 <!DOCTYPE html>
@@ -141,7 +141,7 @@
                         </a>
                         <!--control de acceso--> 
                         <%if(usuario.equals("uparrales")){%>
-                        <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                        <%}else if(COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")){%>
 
                         <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
