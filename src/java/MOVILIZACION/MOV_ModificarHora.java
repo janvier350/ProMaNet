@@ -31,6 +31,8 @@ public class MOV_ModificarHora extends HttpServlet {
         String horaFin = request.getParameter("horaFin");
         String idMovilizadorNuevo = request.getParameter("idMovilizador");
         String idDestinoNuevo = request.getParameter("idDestino");
+        String idMotivoNuevo = request.getParameter("idMotivo");
+        String comentarioNuevo = request.getParameter("comentario");
         String idUsuarioSesion = (String) session.getAttribute("cod");
         boolean puedeGestionar = PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR");
 
@@ -46,9 +48,9 @@ public class MOV_ModificarHora extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
-            String idMovilizadorActual = null, fechaActual = null, estado = null, idDueno = null, idDestinoActual = null;
+            String idMovilizadorActual = null, fechaActual = null, estado = null, idDueno = null, idDestinoActual = null, idMotivoActual = null, comentarioActual = null;
             try (PreparedStatement st = cn.prepareStatement(
-                    "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD'), ESTADO, IDUSUARIO, ID_DESTINO " +
+                    "SELECT ID_MOVILIZADOR, TO_CHAR(FECHA,'YYYY-MM-DD'), ESTADO, IDUSUARIO, ID_DESTINO, ID_MOTIVO, COMENTARIO " +
                     "FROM MOV_SOLICITUD WHERE ID_MOV_SOLICITUD = ?")) {
                 st.setInt(1, Integer.parseInt(idSolicitud));
                 try (ResultSet rs = st.executeQuery()) {
@@ -58,6 +60,8 @@ public class MOV_ModificarHora extends HttpServlet {
                         estado = rs.getString(3);
                         idDueno = rs.getString(4);
                         idDestinoActual = rs.getString(5);
+                        idMotivoActual = rs.getString(6);
+                        comentarioActual = rs.getString(7);
                     }
                 }
             }
@@ -82,11 +86,14 @@ public class MOV_ModificarHora extends HttpServlet {
                     ? fechaNueva : fechaActual;
             String idMovilizador = (puedeGestionar && idMovilizadorNuevo != null && !idMovilizadorNuevo.trim().isEmpty())
                     ? idMovilizadorNuevo : idMovilizadorActual;
-            // El destino lo puede cambiar tanto el solicitante (mientras
-            // este PENDIENTE, ya validado en "autorizado" arriba) como
-            // Smoran.
+            // El destino, el motivo y el comentario los puede cambiar tanto
+            // el solicitante (mientras este PENDIENTE, ya validado en
+            // "autorizado" arriba) como Smoran.
             String idDestino = (idDestinoNuevo != null && !idDestinoNuevo.trim().isEmpty())
                     ? idDestinoNuevo : idDestinoActual;
+            String idMotivo = (idMotivoNuevo != null && !idMotivoNuevo.trim().isEmpty())
+                    ? idMotivoNuevo : idMotivoActual;
+            String comentario = (comentarioNuevo != null) ? comentarioNuevo.trim() : comentarioActual;
 
             if (Horario.hayChoque(cn, idMovilizador, fecha, horaInicio, horaFin, idSolicitud)) {
                 session.setAttribute("msg_error", "Ese movilizador ya tiene otra solicitud en ese horario.");
@@ -95,7 +102,7 @@ public class MOV_ModificarHora extends HttpServlet {
             }
 
             try (PreparedStatement stUpd = cn.prepareStatement(
-                    "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ?, ID_MOVILIZADOR = ?, ID_DESTINO = ? WHERE ID_MOV_SOLICITUD = ?")) {
+                    "UPDATE MOV_SOLICITUD SET FECHA = TO_DATE(?,'YYYY-MM-DD'), HORA_INICIO = ?, HORA_FIN = ?, ID_MOVILIZADOR = ?, ID_DESTINO = ?, ID_MOTIVO = ?, COMENTARIO = ? WHERE ID_MOV_SOLICITUD = ?")) {
                 stUpd.setString(1, fecha);
                 stUpd.setString(2, horaInicio);
                 stUpd.setString(3, horaFin);
@@ -105,7 +112,13 @@ public class MOV_ModificarHora extends HttpServlet {
                 } else {
                     stUpd.setNull(5, java.sql.Types.INTEGER);
                 }
-                stUpd.setInt(6, Integer.parseInt(idSolicitud));
+                stUpd.setInt(6, Integer.parseInt(idMotivo));
+                if (comentario != null && !comentario.isEmpty()) {
+                    stUpd.setString(7, comentario);
+                } else {
+                    stUpd.setNull(7, java.sql.Types.VARCHAR);
+                }
+                stUpd.setInt(8, Integer.parseInt(idSolicitud));
                 stUpd.executeUpdate();
             }
 

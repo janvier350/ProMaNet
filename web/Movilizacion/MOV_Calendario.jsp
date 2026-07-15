@@ -462,6 +462,14 @@
                             <% } %>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo</label>
+                        <select id="detMotivoEdit" class="form-control form-control-sm">
+                            <% for (java.util.Map<String,String> mt : motivos) { %>
+                            <option value="<%=mt.get("id")%>"><%=mt.get("descripcion")%></option>
+                            <% } %>
+                        </select>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
@@ -475,6 +483,10 @@
                                 <input type="time" id="detHoraFinEdit" class="form-control form-control-sm">
                             </div>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comentario / Observacion</label>
+                        <textarea id="detComentarioEdit" class="form-control form-control-sm" rows="2"></textarea>
                     </div>
                     <div id="detRechazoBox" style="display:none;">
                         <div class="mb-3">
@@ -496,6 +508,8 @@
     <input type="hidden" name="horaFin" id="accHoraFin">
     <input type="hidden" name="idMovilizador" id="accIdMovilizador">
     <input type="hidden" name="idDestino" id="accIdDestino">
+    <input type="hidden" name="idMotivo" id="accIdMotivo">
+    <input type="hidden" name="comentario" id="accComentario">
     <input type="hidden" name="accion" id="accAccion">
     <input type="hidden" name="motivoRechazo" id="accMotivoRechazo">
 </form>
@@ -542,6 +556,11 @@ $('#detMovilizadorEdit').select2({
     dropdownParent: $(modalDetalleEl)
 });
 $('#detDestinoEdit').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    dropdownParent: $(modalDetalleEl)
+});
+$('#detMotivoEdit').select2({
     theme: 'bootstrap-5',
     width: '100%',
     dropdownParent: $(modalDetalleEl)
@@ -699,7 +718,9 @@ function mostrarDetalle(event) {
         document.getElementById('detFechaEdit').value = p.fecha;
         document.getElementById('detHoraInicioEdit').value = p.horaInicio;
         document.getElementById('detHoraFinEdit').value = p.horaFin;
+        document.getElementById('detComentarioEdit').value = p.comentario || '';
         $('#detDestinoEdit').val(p.idDestino).trigger('change');
+        $('#detMotivoEdit').val(p.idMotivo).trigger('change');
     }
     if (puedeReagendar) {
         document.getElementById('detMovilizadorEdit').value = p.idMovilizador;
@@ -792,6 +813,8 @@ function enviarAccion(url, accion) {
     document.getElementById('accIdMovilizador').value = document.getElementById('detMovilizadorEditBox').style.display !== 'none'
             ? document.getElementById('detMovilizadorEdit').value : '';
     document.getElementById('accIdDestino').value = document.getElementById('detDestinoEdit').value;
+    document.getElementById('accIdMotivo').value = document.getElementById('detMotivoEdit').value;
+    document.getElementById('accComentario').value = document.getElementById('detComentarioEdit').value;
     document.getElementById('accAccion').value = accion || '';
     document.getElementById('accMotivoRechazo').value = document.getElementById('detMotivoRechazoInput').value;
     document.getElementById('formAccion').action = url;

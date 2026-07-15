@@ -58,7 +58,7 @@ public class MOV_EventosJson extends HttpServlet {
                     "s.ESTADO, s.COMENTARIO, s.MOTIVO_RECHAZO, m.NOMBRE AS MOVILIZADOR, mo.DESCRIPCION AS MOTIVO, " +
                     "u.NOMBRE||' '||u.APELLIDOS AS SOLICITANTE, u.IDUSUARIO, d.DEPARTAMENTO, " +
                     "ug.NOMBRE||' '||ug.APELLIDOS AS GESTIONADO_POR, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY HH24:MI') AS FECHA_SOLICITUD, " +
-                    "s.ID_MOVILIZADOR, de.DESCRIPCION AS DESTINO, s.ID_DESTINO " +
+                    "s.ID_MOVILIZADOR, de.DESCRIPCION AS DESTINO, s.ID_DESTINO, s.ID_MOTIVO " +
                     "FROM MOV_SOLICITUD s " +
                     "JOIN MOV_MOVILIZADOR m ON s.ID_MOVILIZADOR = m.ID_MOVILIZADOR " +
                     "JOIN MOV_MOTIVO mo ON s.ID_MOTIVO = mo.ID_MOTIVO " +
@@ -109,6 +109,7 @@ public class MOV_EventosJson extends HttpServlet {
                         props.put("idMovilizador", rs.getInt(15));
                         props.put("destino", rs.getString(16) != null ? rs.getString(16) : "-");
                         props.put("idDestino", rs.getInt(17));
+                        props.put("idMotivo", rs.getInt(18));
                         ev.put("extendedProps", props);
 
                         eventos.put(ev);
