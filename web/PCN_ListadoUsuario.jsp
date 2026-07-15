@@ -195,8 +195,9 @@
                     <tr>
                         <th class="text-center" style="font-size: 16px">Buscar</th>
                         <th class="text-center" style="font-size: 16px">Crear</th>
+                        <th class="text-center" style="font-size: 16px">Permisos por Depto.</th>
                         <th class="text-center" style="font-size: 16px" colspan="4">Exportar</th>
-                        
+
                     </tr>
                 </thead>
                 <tbody>
@@ -207,17 +208,22 @@
                     <td align="center" >
                         <button type="button" class="btn btn-default " href="#" data-toggle="modal" data-target="#myModal">
                             <i class="material-icons" style="color:#000 ;font-size:30px;">note_add</i>
-                        </button> 
+                        </button>
+                    </td>
+                    <td align="center">
+                        <a type="button" class="btn btn-default " href="PCN_GestionPermisosDepartamento.jsp" title="Permisos por departamento">
+                            <i class="material-icons" style="color:#000;font-size:30px">groups</i>
+                        </a>
                     </td>
                     <td align="center">
                         <a type="button" class="btn btn-default " href="#">
-                            <i class="material-icons" style="color:#000;font-size:30px">description</i>     
+                            <i class="material-icons" style="color:#000;font-size:30px">description</i>
                         </a>
                         <a type="button" class="btn btn-default"  href="NewServlet">
-                           <i class="material-icons" style="color:#000;font-size:30px">picture_as_pdf</i>    
+                           <i class="material-icons" style="color:#000;font-size:30px">picture_as_pdf</i>
                         </a>
                     </td>
-                </tr> 
+                </tr>
                 </tbody>
             </table>
         </div>
