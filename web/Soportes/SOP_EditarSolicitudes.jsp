@@ -33,9 +33,10 @@
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+             if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
              
          String soporte = request.getParameter("soporte");
@@ -454,7 +455,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                 <i class="ni education_hat mr-2"></i><b>Solicitar soporte: </b> 
                                 <div class="input-group mb-3">
                                      
-                       <% if(apellidos.equals("Varas Herrera")){%>
+                       <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                        <textarea  type="form-control"  name="soporteEditar" class="form-control" disabled="true" placeholder="Detalle su solicitud de soporte tecnico."><%=soporte %> </textarea>
                       <%  }else{
                   %>
@@ -487,9 +488,9 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
               </div>
                     </div>
                             
-                          <% if(apellidos.equals("Varas Herrera")){%>
-                          
-                          
+                          <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+
+
                           <%}else{%>
                                         <div class="modal-footer">
                                             <button type="#" class="btn btn-info"  href="">
@@ -518,7 +519,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 </div>-->
                  
                   <hr class="horizontal dark">
-                  <% if(apellidos.equals("Varas Herrera")){%>
+                  <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                   <form action="../InsertReporteTecnico" method="POST">
                       <div class="row">
                          <div class="col-md-12">

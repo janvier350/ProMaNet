@@ -46,9 +46,10 @@ String compania = (String) session.getAttribute("compania");
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+             if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
         
             
@@ -923,7 +924,7 @@ try{
                                                                           </div>
                                                                         </div>
                                                                          </td>-->
-                                                <% if(apellidos.equals("Varas Herrera")){%>
+                                                <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                                                 <td class="align-middle">
                                                     <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= rsa.getString(8)%>&fecha=<%= rsa.getString(1)%>&soporte=<%= rsa.getString(5)%>&prioridad=<%= rsa.getString(6)%>&estado=<%= rsa.getString(7)%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
                                                 </td>
