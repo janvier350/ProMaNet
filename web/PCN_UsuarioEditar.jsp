@@ -30,10 +30,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||apellidos.equals("Varas Herrera")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
 <!DOCTYPE html>
@@ -328,11 +327,11 @@
             $('#show_password').on('change',function(event){
             // Si el checkbox esta "checkeado"
             if($('#show_password').is(':checked')){
-               // Convertimos el input de contraseña a texto.
+               // Convertimos el input de contraseï¿½a a texto.
                $('#password').get(0).type='text';
             // En caso contrario..
             } else {
-               // Lo convertimos a contraseña.
+               // Lo convertimos a contraseï¿½a.
                $('#password').get(0).type='password';
             }
          });

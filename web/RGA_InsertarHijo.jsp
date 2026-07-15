@@ -28,7 +28,7 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-    if(!(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||nombre.equals("Jonathan"))){
+    if (!COMUN.PermisoHelper.tiene(session, "REPORTES_GASTOS_ASIGNADOS")) {
              response.sendRedirect("sesionInvalida.jsp");
              return;
              }

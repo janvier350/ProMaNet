@@ -16,8 +16,7 @@
     } else if (session.isNew()) {
         response.sendRedirect("sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("CONTRALOR") || cargo.equals("JEFE") || cargo.equals("ADMINISTRACION")
-            || cargo.equals("ADMINISTRADOR") || apellidos.equals("Varas Herrera"))) {
+    if (!COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")) {
         response.sendRedirect("sesionInvalida.jsp"); return;
     }
 

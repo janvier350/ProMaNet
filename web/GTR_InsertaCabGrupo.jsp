@@ -23,10 +23,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(nombre.equals("Jonathan")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
+        if (!COMUN.PermisoHelper.tiene(session, "GESTION_GRUPOS_TRABAJO")) {
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
@@ -75,7 +74,7 @@
              e.printStackTrace();
         }}else{%> 
             <script type="text/javascript" class="init">
-                alert("No se puede Añadir. No tiene permisos para esta opción !!")
+                alert("No se puede Aï¿½adir. No tiene permisos para esta opciï¿½n !!")
             </script>
         <%}%> 
         <script type="text/javascript" class="init">

@@ -27,10 +27,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(nombre.equals("Jonathan")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
+        if (!COMUN.PermisoHelper.tiene(session, "GESTION_GRUPOS_TRABAJO")) {
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>

@@ -33,10 +33,11 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")||nombre.equals("Jonathan")){
-           
+        if(cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
