@@ -63,6 +63,20 @@ public class CTRL_Editar_Anticipo extends HttpServlet {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             cn = DriverManager.getConnection(url, user, pass);
 
+            // 0. Validar que el plazo de anticipos siga vigente
+            String sqlCorte = "SELECT FECHA_CORTE FROM (SELECT FECHA_CORTE FROM CTRL_FECHA_CORTE_ANTICIPO " +
+                    "WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1";
+            try (PreparedStatement stCorte = cn.prepareStatement(sqlCorte);
+                 ResultSet rsCorte = stCorte.executeQuery()) {
+                if (rsCorte.next()) {
+                    java.sql.Date fechaCorte = rsCorte.getDate(1);
+                    if (fechaCorte != null && new java.util.Date().after(fechaCorte)) {
+                        response.sendRedirect("../ProMaNet/Control/ADM_Solicitar_Anticipo.jsp?error=El plazo para editar anticipos ya vencio");
+                        return;
+                    }
+                }
+            }
+
             // 1. Validar el sueldo actual
             String sqlCheck = "SELECT sueldo FROM ctrl_anticipos WHERE id_ctrl_anticipo = ?";
             st = cn.prepareStatement(sqlCheck);
