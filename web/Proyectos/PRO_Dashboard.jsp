@@ -121,7 +121,7 @@ String compania = (String) session.getAttribute("compania");
                     </li>
                     
                     <% 
- if(apellidos.equals("Naranjo Espinoza")||apellidos.equals("Varas Herrera")){%>
+ if(apellidos.equals("Naranjo Espinoza")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -210,7 +210,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                         <!--control de acceso--> 
                         <%if(usuario.equals("uparrales")){%>
-                        <%}else if(COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")){%>
+                        <%}else if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
 <!--                        <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -1204,7 +1204,7 @@ String compania = (String) session.getAttribute("compania");
                                                 <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
                                               </div>-->
                                 <div class="table-responsive overflow-auto" style="max-height: 400px;">
-                                    <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+                                    <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                                     <table class="table align-items-center ">
                                         <button type="#" class="btn btn-success"  href="">
                                             <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp">

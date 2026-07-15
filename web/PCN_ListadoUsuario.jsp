@@ -280,6 +280,9 @@
                             <a href="PCN_GestionPermisosUsuario.jsp?idUser=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-warning me-1" title="Permisos">
                                 <i class="fa fa-unlock-alt"></i>
                             </a>
+                            <a href="PCN_ListadoUsuario.jsp?id=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-success me-1" title="Ver jefe asignado">
+                                <i class="fa fa-eye"></i>
+                            </a>
                             <a href="PCN_EliminarUsuario.jsp?idUser=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Eliminar este usuario?');">
                                 <i class="fa fa-trash"></i>
                             </a>
