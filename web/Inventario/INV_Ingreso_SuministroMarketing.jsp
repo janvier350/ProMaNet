@@ -59,10 +59,12 @@ String compania = (String) session.getAttribute("compania");
              if(departamento.equals("MARKETING")||departamento.equals("TECNOLOGÍA")||departamento.equals("ADMINISTRACIÓN")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
+             if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
 %>
 <html>

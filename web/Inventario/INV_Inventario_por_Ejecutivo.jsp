@@ -46,8 +46,9 @@ String compania = (String) session.getAttribute("compania");
              if(departamento.equals("TECNOLOGÍA")||departamento.equals("ADMINISTRACIÓN")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
-             
+
     if(session.getAttribute("usuario")==null){
              response.sendRedirect("../sesionExpirada.jsp");
              return;
@@ -55,9 +56,10 @@ String compania = (String) session.getAttribute("compania");
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")||cargo.equals("JEFE")){
+             if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
    %>
 <html>

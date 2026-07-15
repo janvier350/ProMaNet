@@ -46,9 +46,10 @@ String compania = (String) session.getAttribute("compania");
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")||cargo.equals("JEFE")){
+             if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
 %>
 <html>
