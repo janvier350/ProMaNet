@@ -11,6 +11,12 @@
         import="java.sql.*"
         import=" java.util.Date"
         %>
+<%!
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#39;");
+    }
+%>
 <%   String nombre = (String) session.getAttribute("nombre");
     String apellidos = (String) session.getAttribute("apellidos");
     String user = (String) session.getAttribute("userDB");
@@ -220,10 +226,8 @@
                         <tr>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7 ps-4">Id</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Departamento</th>
-                            <th class="text-uppercase text-xs font-weight-bolder opacity-7">Nombres</th>
-                            <th class="text-uppercase text-xs font-weight-bolder opacity-7">Email</th>
+                            <th class="text-uppercase text-xs font-weight-bolder opacity-7">Nombres / Email</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Compania</th>
-                            <th class="text-uppercase text-xs font-weight-bolder opacity-7">Rol-RG</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Rol-TD</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7 text-end pe-4">Acciones</th>
                         </tr>
@@ -240,6 +244,7 @@
                         rsCountUser.close(); stCountUser.close();
 
                         String sql = "select A.IDUSUARIO, A.NOMBRE||' '||A.APELLIDOS AS NOMBRES, A.EMAIL, A.IDCOMPANIA, B.COMPANIA, A.IDROL, C.CARGO , A.IDROLTODO, d.cargotodo, e.departamento"
+                                + ", A.NOMBRE, A.APELLIDOS, A.TELEFONO, A.USUARIO, A.CONTRASENA, A.ID_ADM_DEPARTAMENTO"
                                 + " from USUARIO A, COMPANIA B, ROL C, todorol D, adm_departamento E "
                                 + " WHERE A.IDCOMPANIA = B.IDCOMPANIA AND A.IDROL = C.IDROL AND A.ESTADO='a' AND a.idroltodo = d.idroltodo AND a.id_adm_departamento = e.id_departamento ORDER BY 2";
                         PreparedStatement st = cn.prepareStatement(sql);
@@ -250,20 +255,30 @@
                     <tr class="fila-usuario" data-search="<%=textoFila%>">
                         <td class="ps-4"><span class="text-sm"><%=rs.getString(1)%></span></td>
                         <td><span class="text-sm"><%=rs.getString(10)%></span></td>
-                        <td><span class="text-sm font-weight-bold"><%=rs.getString(2)%></span></td>
-                        <td><span class="text-sm"><%=rs.getString(3)%></span></td>
+                        <td>
+                            <span class="text-sm font-weight-bold d-block"><%=rs.getString(2)%></span>
+                            <span class="text-xs text-secondary d-block text-truncate" style="max-width:260px;" title="<%=rs.getString(3)%>"><%=rs.getString(3)%></span>
+                        </td>
                         <td><span class="text-sm"><%=rs.getString(5)%></span></td>
-                        <td><span class="text-sm"><%=rs.getString(7)%></span></td>
                         <td><span class="text-sm"><%=rs.getString(9)%></span></td>
-                        <td class="text-end pe-4">
-                            <a href="PCN_UsuarioEditar.jsp?idUser=<%=rs.getString(1)%>&idRolTodo=<%=rs.getString(8)%>" class="btn btn-icon-sm btn-outline-info me-1" title="Editar">
+                        <td class="text-end pe-4 text-nowrap">
+                            <button type="button" class="btn btn-icon-sm btn-outline-info me-1" title="Editar"
+                                data-id="<%=rs.getString(1)%>"
+                                data-nombre="<%=esc(rs.getString(11))%>"
+                                data-apellido="<%=esc(rs.getString(12))%>"
+                                data-telefono="<%=esc(rs.getString(13))%>"
+                                data-email="<%=esc(rs.getString(3))%>"
+                                data-usuario="<%=esc(rs.getString(14))%>"
+                                data-pass="<%=esc(rs.getString(15))%>"
+                                data-idcia="<%=rs.getString(4)%>"
+                                data-idrol="<%=rs.getString(6)%>"
+                                data-idroltodo="<%=rs.getString(8)%>"
+                                data-iddepartamento="<%=rs.getString(16)%>"
+                                onclick="abrirEditar(this)">
                                 <i class="fa fa-pencil"></i>
-                            </a>
+                            </button>
                             <a href="PCN_GestionPermisosUsuario.jsp?idUser=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-warning me-1" title="Permisos">
                                 <i class="fa fa-unlock-alt"></i>
-                            </a>
-                            <a href="PCN_ListadoUsuario.jsp?id=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-success me-1" title="Ver jefe asignado">
-                                <i class="fa fa-eye"></i>
                             </a>
                             <a href="PCN_EliminarUsuario.jsp?idUser=<%=rs.getString(1)%>" class="btn btn-icon-sm btn-outline-danger" title="Eliminar" onclick="return confirm('¿Eliminar este usuario?');">
                                 <i class="fa fa-trash"></i>
@@ -276,7 +291,7 @@
                     }catch(Exception e){
                         e.printStackTrace();
                     %>
-                    <tr><td colspan="8" class="text-danger ps-4">Error: <%=e.getMessage()%></td></tr>
+                    <tr><td colspan="6" class="text-danger ps-4">Error: <%=e.getMessage()%></td></tr>
                     <%
                     }
                     %>
@@ -457,6 +472,157 @@
     </div>
 </div>
 
+<!-- Modal: Editar Usuario -->
+<div class="modal fade" id="modalEditar" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <form id="formEditar" action="PCN_EditarUsuario.jsp" method="POST">
+                <input type="hidden" name="idUser" id="editIdUser">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-pencil me-2"></i>Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nombres</label>
+                                <input type="text" name="nombre" id="editNombre" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Apellidos</label>
+                                <input type="text" name="apellido" id="editApellido" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Telefono</label>
+                                <input type="text" name="telefono" id="editTelefono" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="text" name="email" id="editEmail" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Usuario</label>
+                                <input type="text" name="usuario" id="editUsuario" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contrasena</label>
+                                <input type="password" name="contrasena" id="editPass" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Compania</label>
+                                <select class="form-control" id="editIdCia" name="idCia">
+                                    <%
+                                        try {
+                                            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                            Connection cnCiaEdit = DriverManager.getConnection(url, user, pass);
+                                            PreparedStatement stCiaEdit = cnCiaEdit.prepareStatement("select * from COMPANIA where estado = 'a' order by 2");
+                                            ResultSet rsCiaEdit = stCiaEdit.executeQuery();
+                                            while (rsCiaEdit.next()) {
+                                    %>
+                                    <option value="<%=rsCiaEdit.getString(1)%>"><%=rsCiaEdit.getString(3)%></option>
+                                    <%
+                                            }
+                                            rsCiaEdit.close(); stCiaEdit.close(); cnCiaEdit.close();
+                                        } catch (Exception e) { e.printStackTrace(); }
+                                    %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Rol</label>
+                                <select class="form-control" id="editIdRol" name="idRol">
+                                    <%
+                                        try {
+                                            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                            Connection cnRolEdit = DriverManager.getConnection(url, user, pass);
+                                            PreparedStatement stRolEdit = cnRolEdit.prepareStatement("select * from ROL where estado = 'a' order by 2");
+                                            ResultSet rsRolEdit = stRolEdit.executeQuery();
+                                            while (rsRolEdit.next()) {
+                                    %>
+                                    <option value="<%=rsRolEdit.getString(1)%>"><%=rsRolEdit.getString(2)%></option>
+                                    <%
+                                            }
+                                            rsRolEdit.close(); stRolEdit.close(); cnRolEdit.close();
+                                        } catch (Exception e) { e.printStackTrace(); }
+                                    %>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Rol para TO-DO</label>
+                                <select class="form-control" id="editIdRolTodo" name="idRolTodo">
+                                    <%
+                                        try {
+                                            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                            Connection cnRolTodoEdit = DriverManager.getConnection(url, user, pass);
+                                            PreparedStatement stRolTodoEdit = cnRolTodoEdit.prepareStatement("select * from TODOROL where estado = 'A' order by 2");
+                                            ResultSet rsRolTodoEdit = stRolTodoEdit.executeQuery();
+                                            while (rsRolTodoEdit.next()) {
+                                    %>
+                                    <option value="<%=rsRolTodoEdit.getString(1)%>"><%=rsRolTodoEdit.getString(2)%></option>
+                                    <%
+                                            }
+                                            rsRolTodoEdit.close(); stRolTodoEdit.close(); cnRolTodoEdit.close();
+                                        } catch (Exception e) { e.printStackTrace(); }
+                                    %>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Departamento</label>
+                                <select class="form-control" id="editIdDepartamento" name="idDepartamento">
+                                    <%
+                                        try {
+                                            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                                            Connection cnDeptoEdit = DriverManager.getConnection(url, user, pass);
+                                            PreparedStatement stDeptoEdit = cnDeptoEdit.prepareStatement("select * from ADM_DEPARTAMENTO where estado = 'A' order by 2");
+                                            ResultSet rsDeptoEdit = stDeptoEdit.executeQuery();
+                                            while (rsDeptoEdit.next()) {
+                                    %>
+                                    <option value="<%=rsDeptoEdit.getString(1)%>"><%=rsDeptoEdit.getString(2)%></option>
+                                    <%
+                                            }
+                                            rsDeptoEdit.close(); stDeptoEdit.close(); cnDeptoEdit.close();
+                                        } catch (Exception e) { e.printStackTrace(); }
+                                    %>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="submit" class="btn bg-gradient-primary btn-sm"><i class="fa fa-check me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Jefe asignado -->
 <div class="modal fade" id="myModalJEFE" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -517,6 +683,22 @@ document.getElementById('statUsuarios').textContent = '<%=totalUsuarios%>';
 var idUserVerJefe = <%=idUserDigits%>;
 if (idUserVerJefe > 0) {
     new bootstrap.Modal(document.getElementById('myModalJEFE')).show();
+}
+
+var modalEditar = new bootstrap.Modal(document.getElementById('modalEditar'));
+function abrirEditar(btn) {
+    document.getElementById('editIdUser').value = btn.dataset.id;
+    document.getElementById('editNombre').value = btn.dataset.nombre;
+    document.getElementById('editApellido').value = btn.dataset.apellido;
+    document.getElementById('editTelefono').value = btn.dataset.telefono;
+    document.getElementById('editEmail').value = btn.dataset.email;
+    document.getElementById('editUsuario').value = btn.dataset.usuario;
+    document.getElementById('editPass').value = btn.dataset.pass;
+    document.getElementById('editIdCia').value = btn.dataset.idcia;
+    document.getElementById('editIdRol').value = btn.dataset.idrol;
+    document.getElementById('editIdRolTodo').value = btn.dataset.idroltodo;
+    document.getElementById('editIdDepartamento').value = btn.dataset.iddepartamento;
+    modalEditar.show();
 }
 
 var inputBuscar = document.getElementById('buscarUsuario');
