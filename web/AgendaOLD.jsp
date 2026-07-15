@@ -26,10 +26,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
 <!DOCTYPE html>
@@ -141,7 +140,7 @@
                                 <li class="dropdown-submenu">
                                     <a tabindex="-1" href="#">Asignacion</a>
                                     <ul class="dropdown-menu">
-                                      <li><a href="RGA_Listado.jsp">Asignación Reporte de Gastos</a></li>
+                                      <li><a href="RGA_Listado.jsp">Asignaciï¿½n Reporte de Gastos</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -260,7 +259,7 @@
                         <th class="text-center titulo ">DEPARTAMENTO</th>
                         <th class="text-center titulo ">EJECUTIVO</th>  
                         <th class="text-center titulo ">CLIENTE</th>  
-                        <th class="text-center titulo ">OBSERVACIÓN</th>  
+                        <th class="text-center titulo ">OBSERVACIï¿½N</th>  
                        
                         <th class="text-center titulo ">ACCIONES</th>
                         
@@ -514,7 +513,7 @@
             <div class="row">
             <div class="col-lg-12">
                 <div class="form-group">
-                    <label for="Observacion" class="form-control-label">Observación</label>
+                    <label for="Observacion" class="form-control-label">Observaciï¿½n</label>
                     <textarea class="form-control" id="observacion" name="observacion" ></textarea>
                 </div>  
             </div>
@@ -600,7 +599,7 @@
                     
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cerrar</button>
-                <button type="button" id="boton" class="btn btn-success"> Confirmar selección </button>
+                <button type="button" id="boton" class="btn btn-success"> Confirmar selecciï¿½n </button>
                 <button type="submit"  class="btn btn-primary">Guardar</button>
                 
                 

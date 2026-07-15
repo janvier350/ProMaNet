@@ -36,10 +36,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
    

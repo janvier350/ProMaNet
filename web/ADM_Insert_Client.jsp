@@ -27,10 +27,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "CLIENTES_GESTIONAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }%>
 <!DOCTYPE html>
 <html>
@@ -76,7 +75,7 @@
              e.printStackTrace();
         }}else{%> 
             <script type="text/javascript" class="init">
-                alert("No se puede Añadir. No tiene permisos para esta opción !!")
+                alert("No se puede Aï¿½adir. No tiene permisos para esta opciï¿½n !!")
             </script>
         <%}%> 
         <script type="text/javascript" class="init">

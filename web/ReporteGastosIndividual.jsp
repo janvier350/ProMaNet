@@ -37,10 +37,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "REPORTE_GASTOS_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
         String EstA ="";
    if(anioSel==null || anioSel.equals(null)){
@@ -240,7 +239,7 @@
     <table class=" " >
     <tr>
         <th style="text-align:center" >Buscar </th>
-        <th style="text-align:center" colspan="5">Añadir Mes </th>
+        <th style="text-align:center" colspan="5">Aï¿½adir Mes </th>
         <th style="text-align:center" colspan="4"> Graficos</th>
     <%if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%> 
         <th style="text-align:center" colspan="4"><b> Personal Asignado</b></th>
@@ -251,20 +250,20 @@
         <input type="text" class="form-control" placeholder="Buscar.." style="width:80%"  id="myInput" required>
         </td> 
         <td style="text-align:center" colspan="5">
-            <a href="generarReporteGastos" class="btn btn-success" title="Añadir" style="width: 75px; border-radius: 5px;">
+            <a href="generarReporteGastos" class="btn btn-success" title="Aï¿½adir" style="width: 75px; border-radius: 5px;">
             <!--<i class="fa fa-calendar" style="font-size:20px"></i>-->
              <i class="material-icons" font-size:30px">date_range</i>
             </a>
         </td>
         <!--prueba de servlet para generar automatico el mes de reporte de gastos-->
 <!--        <td style="text-align:center" colspan="5">
-            <a href="generarReporteGastosMes" class="btn btn-warning" title="Añadir" style="width: 75px; border-radius: 5px;">
+            <a href="generarReporteGastosMes" class="btn btn-warning" title="Aï¿½adir" style="width: 75px; border-radius: 5px;">
             <i class="fa fa-calendar" style="font-size:20px"></i>
              <i class="material-icons" font-size:30px">date_range</i>
             </a>
         </td>-->
         <td style="text-align:center" colspan="5">
-            <a href="generarReporteGastos" class="btn btn-danger" title="Añadir" style="width: 75px; border-radius: 5px;">
+            <a href="generarReporteGastos" class="btn btn-danger" title="Aï¿½adir" style="width: 75px; border-radius: 5px;">
             <!--<i class="fa fa-calendar" style="font-size:20px"></i>-->
              <i class="material-icons" font-size:30px">date_range</i>
             </a>
@@ -288,7 +287,7 @@
     <br>
     <form name="formul">                  
         <select class="form-control" name="miSelect" onChange='CambiaAnio()'>
-        <option>Seleccione el Año:</option>
+        <option>Seleccione el Aï¿½o:</option>
          <%try{
                 DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                 Connection   cn = DriverManager.getConnection(url, user, pass);

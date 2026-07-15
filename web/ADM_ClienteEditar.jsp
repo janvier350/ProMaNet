@@ -29,10 +29,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "CLIENTES_GESTIONAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
 <!DOCTYPE html>
@@ -155,7 +154,7 @@
                   <div class="col-lg-2">
                       <input value="<%= rs.getString(6)%>" type="text"  name="Ruc" class="form-control"  />
                   </div>      
-                  <label  for="Direccion" class="col-lg-1 control-label">Dirección</label>
+                  <label  for="Direccion" class="col-lg-1 control-label">Direcciï¿½n</label>
                   <div class="col-lg-2">
                       <input value="<%= rs.getString(4)%>" type="text"  name="Direccion" class="form-control"   />
                   </div>   
@@ -165,7 +164,7 @@
                   </div>  
                </div>
                <div class="form-group">
-                  <label  for="Contacto" class="col-lg-1 control-label">Contácto</label>
+                  <label  for="Contacto" class="col-lg-1 control-label">Contï¿½cto</label>
                   <div class="col-lg-2">
                       <input value="<%= rs.getString(3)%>" type="text"  name="Contacto" class="form-control"  />
                   </div>
@@ -173,7 +172,7 @@
                   <div class="col-lg-2">
                       <input value="<%= rs.getString(8)%>" type="text"  name="Email" class="form-control" />
                   </div>
-                  <label  for="TELEFONO" class="col-lg-1 control-label">Teléfono</label>
+                  <label  for="TELEFONO" class="col-lg-1 control-label">Telï¿½fono</label>
                   <div class="col-lg-2">
                       <input value="<%= rs.getString(7)%>" type="text"  name="Telefono" class="form-control" />
                   </div>

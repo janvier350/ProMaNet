@@ -25,10 +25,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "CLIENTES_GESTIONAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
 <!DOCTYPE html>
@@ -262,7 +261,7 @@
             <div class="row">
             <div class="col-lg-6 ">
             <div class="form-group">
-                <label class=" control-label" for=" Telefono" >Teléfono</label>
+                <label class=" control-label" for=" Telefono" >Telï¿½fono</label>
                 <input type="text" name="telefono" id="telefono" class="form-control" required />
             </div>
             </div>

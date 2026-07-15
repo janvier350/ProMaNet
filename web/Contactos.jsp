@@ -23,10 +23,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
 <!DOCTYPE html>
@@ -128,7 +127,7 @@
                                 <li class="dropdown-submenu">
                                     <a tabindex="-1" href="#">Asignacion</a>
                                     <ul class="dropdown-menu">
-                                      <li><a href="RGA_Listado.jsp">Asignación Reporte de Gastos</a></li>
+                                      <li><a href="RGA_Listado.jsp">Asignaciï¿½n Reporte de Gastos</a></li>
                                     </ul>
                                 </li>
                             </ul>
@@ -256,7 +255,7 @@
 
     <!-- Copyright -->
     <div class="text-center text-warning p-3" style="background-color: #0a4275;">
-      © 2023 Copyright:
+      ï¿½ 2023 Copyright:
       <a class="text-white" href="https://overclocking.com.ec/">overclocking.com.ec</a>
     </div>
     <!-- Copyright -->

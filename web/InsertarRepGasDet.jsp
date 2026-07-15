@@ -34,10 +34,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
-         response.sendRedirect("sesionInvalida.jsp");
+        if (!COMUN.PermisoHelper.tiene(session, "REPORTE_GASTOS_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
         }
    %>
    
@@ -119,7 +118,7 @@
         }
          }else{ %> 
             <script type="text/javascript" class="init">
-                alert("No se puede Añadir. Mes Invalido!!")
+                alert("No se puede Aï¿½adir. Mes Invalido!!")
             </script>
         <%}%> 
         <script type="text/javascript">

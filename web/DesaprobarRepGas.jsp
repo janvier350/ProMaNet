@@ -23,7 +23,7 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-    if(!cargo.equals("ADMINISTRACION")){
+    if (!COMUN.PermisoHelper.tiene(session, "REPORTE_GASTOS_DESAPROBAR")) {
              response.sendRedirect("sesionInvalida.jsp");
              return;
              }

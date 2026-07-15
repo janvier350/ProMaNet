@@ -40,9 +40,10 @@
              return;
              }
         if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
+
         }else{
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
    %>
 <!DOCTYPE html>
@@ -171,7 +172,7 @@
                                 </li>
                             </ul>
                         </li>
-                <li><a href="cerrar.jsp">CERRAR SESIÓN</a></li>
+                <li><a href="cerrar.jsp">CERRAR SESIï¿½N</a></li>
             </ul>
         </div>
         </nav>  
@@ -195,7 +196,7 @@
         </div>
                         <div class=" container panel-success" align="center">
 		<div class="panel-heading">
-                                                <h3 class="panel-title"><b>Selección de colegas que lo acompañaran en la reunión</b></h3>
+                                                <h3 class="panel-title"><b>Selecciï¿½n de colegas que lo acompaï¿½aran en la reuniï¿½n</b></h3>
                                                 <!--<span class="pull-right clickable"><i class="glyphicon glyphicon-chevron-up"></i></span>-->
                                     </div>
 		<div class="panel-body"> <%String idCabeceraDetalle = idRegistroAgenda;%>
@@ -267,7 +268,7 @@
                                              </u>  
                                             
                                              <div class="modal-footer">
-                                             <button type="button" id="boton" class="btn btn-success"> Confirmar selección </button>
+                                             <button type="button" id="boton" class="btn btn-success"> Confirmar selecciï¿½n </button>
                                                 <a class = "btn btn-danger" type="button" href="Agenda.jsp">Cerrar</a>
                                                 <button type="submit"  class="btn btn-primary">Guardar</button>
                                             </div> 
@@ -305,7 +306,7 @@
 
     <!-- Copyright -->
     <div class="text-center text-warning p-3" style="background-color: #0a4275;">
-      © 2023 Copyright:
+      ï¿½ 2023 Copyright:
       <a class="text-white" href="https://overclocking.com.ec/">overclocking.com.ec</a>
     </div>
     <!-- Copyright -->
