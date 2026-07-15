@@ -24,7 +24,14 @@
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
     String depart = "";
-    
+
+    if (session.getAttribute("usuario") == null) {
+        response.sendRedirect("../sesionExpirada.jsp"); return;
+    }
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER")) {
+        response.sendRedirect("../sesionInvalida.jsp"); return;
+    }
+
     String idUsuario = request.getParameter("idUsuario");
     if (idUsuario != null && !idUsuario.isEmpty()) {
         try {

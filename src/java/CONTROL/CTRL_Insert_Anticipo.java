@@ -39,12 +39,15 @@ public class CTRL_Insert_Anticipo extends HttpServlet {
         String key = "";
         String url = new String("" + ip);
         
-        String idUsuario = request.getParameter("idUsuario");
+        // idUsuario e idDepartamento se toman de la sesion, no del
+        // formulario: si no, cualquiera con acceso a Anticipos podria
+        // registrar una solicitud a nombre de otro usuario.
+        String idUsuario = (String) session.getAttribute("cod");
         String sueldo = request.getParameter("sueldo");
         String anticipo = request.getParameter("anticipo");
-        String idDepartamento = request.getParameter("idDepartamento");
+        String idDepartamento = (String) session.getAttribute("idDepartamento");
         String estado = "PENDIENTE";
-        
+
         if (session.getAttribute("usuario") == null) {
             response.sendRedirect("sesionExpirada.jsp");
             return;

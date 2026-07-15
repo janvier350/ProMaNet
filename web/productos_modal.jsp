@@ -29,6 +29,13 @@ String compania = (String) session.getAttribute("compania");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
+
+    if (session.getAttribute("usuario") == null) {
+        response.sendRedirect("sesionExpirada.jsp"); return;
+    }
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
+        response.sendRedirect("sesionInvalida.jsp"); return;
+    }
 %>
 <table class="table table-striped table-hover">
     <thead>

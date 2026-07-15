@@ -53,9 +53,27 @@ public class INV_Subir_Imagen_Equipo extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuario") == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Sesion no valida.");
+            return;
+        }
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_GESTIONAR")) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "No autorizado.");
+            return;
+        }
+
         String equipoId = request.getParameter("equipoId");
         String idInvEquipo = request.getParameter("idInvEquipo");
         Part filePart = request.getPart("imagen");
+
+        // equipoId siempre deberia ser numerico -- si no lo es, se rechaza
+        // (evita que se use para escapar del directorio de imagenes).
+        if (equipoId != null && !equipoId.matches("\\d+")) {
+            response.getWriter().println("Error: equipoId invalido.");
+            return;
+        }
 
         if (filePart != null && equipoId != null && !equipoId.isEmpty()) {
             String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();

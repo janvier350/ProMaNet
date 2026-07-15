@@ -45,13 +45,14 @@ public class InsertNuevoEquipo extends HttpServlet {
             response.sendRedirect("sesionExpirada.jsp");
             return;
         }
-  //validar departamento
-             
-             if(departamentoSesion.equals("TECNOLOGÍA")){
-                }else{
-                    response.sendRedirect("../sesionInvalida.jsp");
-             }
-        if (!cargo.equals("JEFE") && !cargo.equals("Varas Herrera")) {
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_GESTIONAR")) {
+            response.sendRedirect("../sesionInvalida.jsp");
+            return;
+        }
+        //validar departamento: solo TECNOLOGIA registra equipos nuevos
+        // (SUPERADMIN_ACCESO_TOTAL se salta esta restriccion tambien).
+        boolean esSuperAdmin = COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL");
+        if (!esSuperAdmin && (departamentoSesion == null || !departamentoSesion.equals("TECNOLOGÍA"))) {
             response.sendRedirect("../sesionInvalida.jsp");
             return;
         }

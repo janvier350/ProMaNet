@@ -113,12 +113,9 @@ public class CTRL_Anticipo_PDF extends HttpServlet {
         return;
     }
     
-    if (cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR") || 
-        cargo.equals("ASISTENTE") || cargo.equals("PASANTE") || 
-        cargo.equals("CONTRALOR") || cargo.equals("JEFE")) {
-        // OK
-    } else {
+    if (!COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO")) {
         response.sendRedirect("sesionInvalida.jsp");
+        return;
     }
 
     try (PrintWriter out = response.getWriter()) {

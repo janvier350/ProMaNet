@@ -44,11 +44,27 @@ private static final String IMAGE_DIRECTORY = "C:/Inventario";
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuario") == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Sesion no valida.");
+            return;
+        }
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER")) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "No autorizado.");
+            return;
+        }
+
         String nombre = request.getParameter("nombre"); // ejemplo: equipo_123.jpg
 
         if (nombre == null || nombre.isEmpty()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Nombre de imagen no proporcionado.");
+            return;
+        }
+        // Evitar path traversal (ej. nombre=../../etc/passwd): solo se
+        // permite el nombre de archivo suelto, sin separadores de ruta.
+        if (nombre.contains("/") || nombre.contains("\\") || nombre.contains("..")) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Nombre de imagen invalido.");
             return;
         }
 

@@ -40,6 +40,17 @@ public class AddPhotoServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuario") == null) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        }
+        if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_GESTIONAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
+
         PrintWriter out = response.getWriter();
         try {
             String fechaini = request.getParameter("fecha");

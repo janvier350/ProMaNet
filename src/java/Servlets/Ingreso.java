@@ -76,7 +76,7 @@ public class Ingreso extends HttpServlet {
                 session.setAttribute("ipDB","jdbc:oracle:thin:@181.198.203.205:1521:xe");
                 session.setAttribute("userDB","RRHH");
                 session.setAttribute("passDB","RRHH");
-                session.setAttribute("permisos", COMUN.PermisoHelper.cargarPermisos(Integer.parseInt(id.trim()), Integer.parseInt(idRol.trim())));
+                session.setAttribute("permisos", COMUN.PermisoHelper.cargarPermisos(Integer.parseInt(id.trim()), Integer.parseInt(idRol.trim()), departamento));
 
                     
                 if(cargo.equals("ADMINISTRACION") ||cargo.equals("ASISTENTE") ||cargo.equals("ADMINISTRADOR")||cargo.equals("ANALISTA")|| cargo.equals("JEFE") || cargo.equals("CONTRALOR") || cargo.equals("PASANTE")){

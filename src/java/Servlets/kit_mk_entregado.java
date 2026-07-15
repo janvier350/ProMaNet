@@ -40,56 +40,24 @@ public class kit_mk_entregado extends HttpServlet {
         url = new String(""+ip);
         
         String idNotificacion = request.getParameter("idNotificacion");
-          String departamento = (String) session.getAttribute("departamento");
-            String usuario = (String) session.getAttribute("usuario");
-            String apellidos = (String) session.getAttribute("apellidos");
-//        
-//            String estado = "ENTREGADO -   "+usuario;
-//             if(session.getAttribute("usuario")==null){
-//             response.sendRedirect("sesionExpirada.jsp");
-//             return;
-//             }else if (session.isNew()){
-//             response.sendRedirect("sesionExpirada.jsp");
-//             return;
-//             }
-//             
-//               if(departamento.equals("TECNOLOGÍA")){
-//        }else{
-//         response.sendRedirect("sesionInvalida.jsp");
-//        }
-//               
-//                String sql = "update ADM_NOTIFICACIONES set ESTADO = "+estado+"  WHERE IDNOTIFICACIONES  = "+idNotificacion;
-//                 
-//                  System.out.println(sql);
-//        try{
-//            DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-//            Connection cn = DriverManager.getConnection(url, user, pass);
-//            PreparedStatement st = cn.prepareStatement(sql);
-//            ResultSet rs = st.executeQuery(); 
-//             System.out.println(sql);
-//            cn.commit();
-//            rs.close();
-//            st.close();
-//            cn.close();
-//        }catch(Exception e){
-//             e.printStackTrace();
-//        }
-String estado = "ENTREGADO - " + usuario;
+        String departamento = (String) session.getAttribute("departamento");
+        String usuario = (String) session.getAttribute("usuario");
+        String apellidos = (String) session.getAttribute("apellidos");
 
-//if (session.getAttribute("usuario") == null) {
-//    response.sendRedirect("sesionExpirada.jsp");
-//    return;
-//} else if (session.isNew()) {
-//    response.sendRedirect("sesionExpirada.jsp");
-//    return;
-//}
+        if (usuario == null) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        } else if (session.isNew()) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        }
 
-if(apellidos.equals("Varas Herrera")||departamento.equals("MARKETING")||cargo.equals("CONTRALOR")){
-    
-}else{
-    response.sendRedirect("sesionInvalida.jsp");
-    return;
-}
+        String estado = "ENTREGADO - " + usuario;
+
+        if (!COMUN.PermisoHelper.tiene(session, "KIT_BIENVENIDA_ENTREGAR")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
 
 String sql = "UPDATE ADM_NOTIFICACIONES SET KIT_MK = ? WHERE IDNOTIFICACIONES = ?";
 

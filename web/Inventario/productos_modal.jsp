@@ -32,6 +32,12 @@ String compania = (String) session.getAttribute("compania");
     
     String roltodo = (String) session.getAttribute("roltodo");
 
+    if (session.getAttribute("usuario") == null) {
+        response.sendRedirect("../sesionExpirada.jsp"); return;
+    }
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
+        response.sendRedirect("../sesionInvalida.jsp"); return;
+    }
 %>
   <head>
  <!--     Fonts and icons     -->
@@ -128,14 +134,15 @@ try {
                "    inv_unidad_medida u " +
                "    ON b.id_unidad = u.id_unidad_medida " +
                "WHERE " +
-               "    a.id_suministro_ingreso_cab ="+id+" ";
+               "    a.id_suministro_ingreso_cab = ? ";
 
-                                       
+
                                      }else if(roltodo.equals("ASISTENTE")){
-//                                       
+//
                                      }
                                    PreparedStatement st = cn.prepareStatement(query3);
-                                   ResultSet rs = st.executeQuery();      
+                                   st.setInt(1, Integer.parseInt(id));
+                                   ResultSet rs = st.executeQuery();
                                     boolean hasData = false;
                                while (rs.next()) {
                                hasData = true;

@@ -50,6 +50,17 @@ public class FormulariosServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+
+        jakarta.servlet.http.HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("usuario") == null) {
+            response.sendRedirect("sesionExpirada.jsp");
+            return;
+        }
+        if (!COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) {
+            response.sendRedirect("sesionInvalida.jsp");
+            return;
+        }
+
         PrintWriter out = response.getWriter();
 
         String idRegistroAgenda = request.getParameter("idRegistroAgenda");

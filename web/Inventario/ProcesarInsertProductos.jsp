@@ -33,6 +33,12 @@ String compania = (String) session.getAttribute("compania");
     
     String roltodo = (String) session.getAttribute("roltodo");
 
+    if (session.getAttribute("usuario") == null) {
+        response.sendRedirect("../sesionExpirada.jsp"); return;
+    }
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
+        response.sendRedirect("../sesionInvalida.jsp"); return;
+    }
 
     request.setCharacterEncoding("UTF-8");
 
