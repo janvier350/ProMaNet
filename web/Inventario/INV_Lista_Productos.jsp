@@ -39,6 +39,7 @@ String compania = (String) session.getAttribute("compania");
              if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
    %>
 <html>
@@ -177,7 +178,7 @@ String compania = (String) session.getAttribute("compania");
           </a>
             <!--control de acceso--> 
             <%if(usuario.equals("uparrales")){%>
-             <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
+             <%}else if(COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")){%>
             <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
               <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>

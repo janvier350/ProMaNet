@@ -54,6 +54,7 @@ String compania = (String) session.getAttribute("compania");
              }
              if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA")){                }else{
                     response.sendRedirect("sesionInvalida.jsp");
+                    return;
              }
              
  String EstTrab ="";
@@ -1242,7 +1243,7 @@ String compania = (String) session.getAttribute("compania");
 
                         </div>
                     </div>
-                    <%if(apellidos.equals("Varas Herrera")||departamento.equals("MARKETING")||cargo.equals("CONTRALOR")){%>
+                    <%if(COMUN.PermisoHelper.tiene(session, "KIT_BIENVENIDA_ENTREGAR")){%>
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header pb-0 p-3">

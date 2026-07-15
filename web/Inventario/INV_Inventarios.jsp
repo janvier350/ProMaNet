@@ -47,12 +47,14 @@ String compania = (String) session.getAttribute("compania");
              if(departamento.equals("MARKETING")||departamento.equals("TECNOLOGÍA")||departamento.equals("ADMINISTRACIÓN")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
-             
+
 //             validar rol
-             if(cargo.equals("ADMINISTRADOR")||cargo.equals("ADMINISTRACION")||cargo.equals("JEFE")||cargo.equals("CONTRALOR")){
+             if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
              
  String EstTrab ="";
@@ -183,7 +185,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                         <!--control de acceso--> 
                         <%if(usuario.equals("uparrales")){%>
-                        <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||apellidos.equals("Varas Herrera")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
+                        <%}else if(COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")){%>
                         <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -1275,7 +1277,7 @@ String compania = (String) session.getAttribute("compania");
                                                 <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
                                               </div>-->
                                 <div class="table-responsive overflow-auto" style="max-height: 400px;">
-                                    <% if(apellidos.equals("Varas Herrera")||apellidos.equals("Bravo")){%>
+                                    <% if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")){%>
                                     <div class="row">
 <!--                                        <div>
                                             <button type="#" class="btn btn-danger"  href="">
@@ -1680,7 +1682,7 @@ String exitencia = "SELECT " +
 
                         </div>
                     </div>
-                    <%if(apellidos.equals("Varas Herrera")){%>
+                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header pb-0 p-3">
