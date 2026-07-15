@@ -27,9 +27,9 @@
              }else if (session.isNew()){
              response.sendRedirect("sesionExpirada.jsp");
              return;}
-    if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-    }else{
-        response.sendRedirect("sesionInvalida.jsp");}
+    if(!COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){
+        response.sendRedirect("sesionInvalida.jsp");
+        return;}
    %>
 <!DOCTYPE html>
 <html>
@@ -77,7 +77,7 @@
                              <li><a href="Contactos.jsp">CONTACTOS</a></li>
                              <%if(usuario.equals("uparrales")){%>
                                 <li class="active"><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                             <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                             <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                                 <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                              <%}%>
                              <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -311,7 +311,7 @@
             <td type="text"title="Tarea Terminada con exito." style="background-color: #99ff66">  <%= rs.getString(8)%></td>
             <%}%>
             <%if(rs.getString(8).equals("RETOMAR")){  r = r+1;%>
-            <td type="text"title="Tarea REVERSADO, en espera de acción del ejecutivo a cargo de esta tarea." style="background-color: #ff9800">  <%= rs.getString(8)%></td>
+            <td type="text"title="Tarea REVERSADO, en espera de acciï¿½n del ejecutivo a cargo de esta tarea." style="background-color: #ff9800">  <%= rs.getString(8)%></td>
             <%}%>
             <!--<td type="text"title="El proyecto se encuentra en proceso"> <%= rs.getString(8)%></td>-->  
             
@@ -320,7 +320,7 @@
             <%if(roltodo.equals("JEFE")){%>                                                                                                                                                                                                              
                 <td><a class="btn btn-xs btn-default"  data-bs-toggle="tooltip" title="Retomar tarea al asistente!" href="TODO_ReversarDetTrab.jsp?idCab=<%=cabTrab%>&DetTrab=<%=rs.getString(1)%>"><i class="fa fa-ban" style="color:red;font-size:27px"></i></a></td>              
                 <td ><a class="btn btn-xs btn-warning "data-bs-toggle="tooltip" title="Modificar o agregar comentario a esta tarea!" href="TODO_EditarDetTrab.jsp?idCab=<%=cabTrab%>&DetTrab=<%=rs.getString(1)%>"><i class="material-icons " style="color:white">mode_edit</i></a></td>
-                <td ><a class="btn btn-xs btn-danger" data-bs-toggle="tooltip" title="Elimina esta tarea, eliminación en cascada (las tareas aplicadas en este proceso se eliminaran)!" href="TODO_EliminarTrabajo.jsp?idCab=<%=cabTrab%>&idDetTrab=<%=rs.getString(1)%>"><i class="material-icons " style="color:white">delete_forever</i></a></td>
+                <td ><a class="btn btn-xs btn-danger" data-bs-toggle="tooltip" title="Elimina esta tarea, eliminaciï¿½n en cascada (las tareas aplicadas en este proceso se eliminaran)!" href="TODO_EliminarTrabajo.jsp?idCab=<%=cabTrab%>&idDetTrab=<%=rs.getString(1)%>"><i class="material-icons " style="color:white">delete_forever</i></a></td>
              <%}else if(roltodo.equals("ASISTENTE")){%>
                  <td ><a class="btn btn-xs btn-success" data-bs-toggle="tooltip" title="Agregue comentarios en este proceso.!" href="TODO_det_Trabajo.jsp?idCabTrab=<%=cabTrab%>&DetTrab=<%=rs.getString(1)%>"><i class="material-icons " style="color:white">note_add</i></a></td>
              <%}%>

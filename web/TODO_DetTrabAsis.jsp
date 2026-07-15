@@ -30,9 +30,9 @@
              }else if (session.isNew()){
              response.sendRedirect("sesionExpirada.jsp");
              return;}
-    if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-    }else{
-        response.sendRedirect("sesionInvalida.jsp");}
+    if(!COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){
+        response.sendRedirect("sesionInvalida.jsp");
+        return;}
    %>
 <!DOCTYPE html>
 <html>
@@ -80,7 +80,7 @@
                  <li><a href="Contactos.jsp">CONTACTOS</a></li>
                  <%if(usuario.equals("uparrales")){%>
                     <li class="active"><a href="TODO_CabTrabXP.jsp">TO-DO</a></li> 
-                 <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                 <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                     <li><a href="TODO_Cab_Trabajo.jsp">TO-DO</a></li> 
                  <%}%>
                  <li><a href="ReporteGastosIndividual.jsp">REPORTE DE GASTOS</a></li>
@@ -157,7 +157,7 @@
                                 <a href="TODO_CabTrabXP.jsp" class="btn btn-success">
                                    <i class="material-icons"  style="font-size:30px;">subdirectory_arrow_left</i>
                                 </a> 
-                             <%}else if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")){%>
+                             <%}else if(COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")){%>
                                 <a href="TODO_Cab_Trabajo.jsp" class="btn btn-success">
                                    <i class="material-icons"  style="font-size:30px;">subdirectory_arrow_left</i>
                                 </a>
