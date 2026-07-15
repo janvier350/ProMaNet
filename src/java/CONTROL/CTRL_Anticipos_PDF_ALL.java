@@ -59,41 +59,47 @@ public class CTRL_Anticipos_PDF_ALL extends HttpServlet {
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
     String fecha = request.getParameter("fecha");
-    
+    String estadoFiltro = request.getParameter("estado");
+    if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) {
+        estadoFiltro = null;
+    }
+
     String url = new String("" + ip);
-    
+
     String fechaImpresion = "";
-    
+
     String mesAnio = "";
+    int mesFiltro = 0;
+    int anioFiltro = 0;
 
     String fechaParam = request.getParameter("fecha");
     if (fechaParam != null && !fechaParam.isEmpty()) {
         fecha = fechaParam;
-        
+
         // Extraer mes y año de la fecha
         try {
             if (fechaParam.contains("-")) {
                 String[] partes = fechaParam.split("-");
                 if (partes.length >= 2) {
-                    int año = Integer.parseInt(partes[0]);
-                    int mes = Integer.parseInt(partes[1]);
-                    
-                    String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", 
+                    anioFiltro = Integer.parseInt(partes[0]);
+                    mesFiltro = Integer.parseInt(partes[1]);
+
+                    String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
                                       "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"};
-                    
-                    mesAnio = meses[mes - 1] + " " + año;
+
+                    mesAnio = meses[mesFiltro - 1] + " " + anioFiltro;
                 }
             }
             else if (fechaParam.contains("/")) {
                 String[] partes = fechaParam.split("/");
                 if (partes.length >= 3) {
-                    int mes = Integer.parseInt(partes[1]);
-                    int año = Integer.parseInt(partes[2]);
-                    
-                    String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", 
+                    mesFiltro = Integer.parseInt(partes[1]);
+                    anioFiltro = Integer.parseInt(partes[2]);
+
+                    String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
                                       "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"};
-                    
-                    mesAnio = meses[mes - 1] + " " + año;
+
+                    mesAnio = meses[mesFiltro - 1] + " " + anioFiltro;
                 }
             }
         } catch (Exception e) {
@@ -101,11 +107,19 @@ public class CTRL_Anticipos_PDF_ALL extends HttpServlet {
         }
     } else {
         LocalDate hoy = LocalDate.now();
-        String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", 
+        String[] meses = {"ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
                           "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"};
-        
+
         mesAnio = meses[hoy.getMonthValue() - 1] + " " + hoy.getYear();
         fecha = hoy.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        mesFiltro = hoy.getMonthValue();
+        anioFiltro = hoy.getYear();
+    }
+
+    if (mesFiltro == 0 || anioFiltro == 0) {
+        LocalDate hoy = LocalDate.now();
+        mesFiltro = hoy.getMonthValue();
+        anioFiltro = hoy.getYear();
     }
 
     // CORREGIDO: Usar LocalDateTime en lugar de LocalDate
@@ -129,10 +143,15 @@ try {
                   "FROM ctrl_anticipos a " +
                   "INNER JOIN usuario u ON a.id_usuario = u.idusuario " +
                   "INNER JOIN adm_departamento d ON a.id_departamento = d.id_departamento " +
-                  "WHERE TRUNC(a.fecha_solicitud, 'MM') = TRUNC(SYSDATE, 'MM') " +
+                  "WHERE TRUNC(a.fecha_solicitud, 'MM') = TO_DATE(?, 'MM/YYYY') " +
+                  (estadoFiltro != null ? "AND a.estado = ? " : "") +
                   "ORDER BY a.fecha_solicitud DESC";
-    
+
     PreparedStatement stSum = cnSum.prepareStatement(sql4);
+    stSum.setString(1, String.format("%02d/%d", mesFiltro, anioFiltro));
+    if (estadoFiltro != null) {
+        stSum.setString(2, estadoFiltro);
+    }
     ResultSet rsSum = stSum.executeQuery();
     
     while (rsSum.next()) {
@@ -204,7 +223,7 @@ out.println("<div class='reporte-card'>");
 // Header
 out.println("    <div class='text-center mb-4'>");
 out.println("        <h1 class='header-title'><i class='fas fa-chart-line me-3'></i>" + mesAnio + "</h1>");
-out.println("        <h3 class='subheader-title'>REPORTE DE ANTICIPOS SOLICITADOS</h3>");
+out.println("        <h3 class='subheader-title'>REPORTE DE ANTICIPOS " + ("PAGADO".equals(estadoFiltro) ? "PAGADOS" : "SOLICITADOS") + "</h3>");
 out.println("        <div class='separator'></div>");
 out.println("    </div>");
 

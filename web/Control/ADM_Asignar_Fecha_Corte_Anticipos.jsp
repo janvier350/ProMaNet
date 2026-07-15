@@ -600,7 +600,11 @@ function validarFecha() {
                                                         </td>
 
                                                         <td>
-
+                                                            <a href="../CTRL_Anticipos_PDF_ALL?fecha=<%=rsa5.getString(2)%>&estado=PAGADO"
+                                                               target="_blank"
+                                                               class="btn btn-sm btn-success mb-0">
+                                                                <i class="fas fa-file-pdf me-1"></i> Ver pagados
+                                                            </a>
                                                         </td>
 
                                                     </tr>
