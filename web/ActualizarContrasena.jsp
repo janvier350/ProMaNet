@@ -1,5 +1,5 @@
 <%-- 
-    Document   : Actualizar Contraseña
+    Document   : Actualizar Contraseï¿½a
     Created on : 11-Apr-2017, 14:21:18
     Author     : Jquinde
 --%>
@@ -25,10 +25,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
+        if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
      %>
 <!DOCTYPE html>
@@ -73,12 +72,12 @@
              e.printStackTrace();
         }%>
          <script type="text/javascript">
-            alert("Contraseña Cambiada Correctamente!!")
+            alert("Contraseï¿½a Cambiada Correctamente!!")
             location.href = 'index.jsp';
          </script>
          <% }else{ %>
             <script type="text/javascript" class="init">
-               alert("No se puede Actualizar. Contraseña Invalida!!")
+               alert("No se puede Actualizar. Contraseï¿½a Invalida!!")
                location.href = 'Home.jsp';
             </script>
         <%}%> 

@@ -33,10 +33,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
+        if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }%>
 <!DOCTYPE html>
 <html>
@@ -77,9 +76,9 @@
             mensaje.innerHTML = ''; // Limpiar el mensaje anterior
 
             if (longitudTexto > maxCaracteres) {
-                mensaje.innerHTML = '<span class="mensaje-error">Has excedido el límite de 1000 caracteres por ' + (longitudTexto - maxCaracteres) + ' caracteres.</span>';
+                mensaje.innerHTML = '<span class="mensaje-error">Has excedido el lï¿½mite de 1000 caracteres por ' + (longitudTexto - maxCaracteres) + ' caracteres.</span>';
             } else {
-                mensaje.innerHTML = 'Te faltan ' + (maxCaracteres - longitudTexto) + ' caracteres para alcanzar el límite de 1000.';
+                mensaje.innerHTML = 'Te faltan ' + (maxCaracteres - longitudTexto) + ' caracteres para alcanzar el lï¿½mite de 1000.';
             }
         }
     </script>
@@ -230,7 +229,7 @@
                                 <input type="date" name="fecha" value=<%=fec%>  class="form-control" placeholder="fecha" style="width:80%" required>
                             </div>
                             <div class="form-group">
-                                <label for="ali">Alimentación</label>
+                                <label for="ali">Alimentaciï¿½n</label>
                                 <input type="number" step="any" min ="0" name="alimentacion" value=<%=ali%> class="form-control" placeholder="alimentacion" style="width:80%" required>
                             </div>                    
                              <div class="form-group">
@@ -267,7 +266,7 @@
                     </select>
                 </div>
                     <div class="form-group">
-                                <label for="obs">Observación</label>
+                                <label for="obs">Observaciï¿½n</label>
                                 <input type="text" name="trabajo" id="Obva" value="<%=ob%>" class="form-control" placeholder="tranporte" style="width:80%" oninput ="contarLetras()" >
                                 <span id="mensaje"></span>
                             </div>

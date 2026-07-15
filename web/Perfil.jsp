@@ -51,9 +51,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
+             if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
                     response.sendRedirect("sesionInvalida.jsp");
+                    return;
              }%>
     <header>
     <div class="container-fluid">
@@ -215,7 +215,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
             <p style="font-family: arial"> <strong>Rol : </strong> <%=cargo%> </p>
             <p style="font-family: arial"> <%=compania%></p>
             <p style="font-family: arial"> <strong> Email : </strong> <%=email%></p>
-             <p style="font-family: arial"> <strong> Teléfono : </strong> <%=telefono%></p>
+             <p style="font-family: arial"> <strong> Telï¿½fono : </strong> <%=telefono%></p>
 <!--            <button type="button" class="btn btn-default " href="#" data-toggle="modal" data-target="#myModal">
                 <i class="material-icons" style="color:#000 ;font-size:30px;">note_add</i></a>
             </button> -->
@@ -230,8 +230,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
             <p style="font-family: arial"> <strong> PROCESADOR :</strong> <%=procesador%></p>
             <p style="font-family: arial"> <strong> Serial :</strong> <%=serial%></p>
             <p style="font-family: arial"> <strong> FECHA COMPRA : </strong> <%=fechacompra%></p>
-            <p style="font-family: arial"> <strong> FECHA ASIGNACIÓN : </strong> <%=fechaasignacion%></p>
-            <p style="font-family: arial"> <strong> Ubicación :</strong> <%=ubicacionoficina%></p>
+            <p style="font-family: arial"> <strong> FECHA ASIGNACIï¿½N : </strong> <%=fechaasignacion%></p>
+            <p style="font-family: arial"> <strong> Ubicaciï¿½n :</strong> <%=ubicacionoficina%></p>
             <p style="font-family: arial"> <strong> Observaciones :</strong> <%=observaciones%></p>
             
             <br><!-- comment -->
@@ -239,19 +239,19 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 <i class="fa fa-youtube" aria-hidden="true"></i>  Ver Tutorial</a> 
         </div>
         <div class=" col-lg-4">
-        <h2>CAMBIAR CONTRASEÑA</h2>
+        <h2>CAMBIAR CONTRASEï¿½A</h2>
         <form action="ActualizarContrasena.jsp" method="post"> 
             <div class="form-group">
-                <label for="passv1">Contraseña Actual</label>
-                <input type="password" name="pass1" id="passv1" class="form-control" placeholder="Contraseña Actual" required> 
+                <label for="passv1">Contraseï¿½a Actual</label>
+                <input type="password" name="pass1" id="passv1" class="form-control" placeholder="Contraseï¿½a Actual" required> 
             </div> 
             <div class="form-group">
-                <label for="passv2">Nueva Contraseña</label>
-                <input type="password" name="pass2" id="passv2" class="form-control" placeholder="Contraseña Nueva" required><br>   
+                <label for="passv2">Nueva Contraseï¿½a</label>
+                <input type="password" name="pass2" id="passv2" class="form-control" placeholder="Contraseï¿½a Nueva" required><br>   
             </div>
             <div class="form-group">
                 <button type="submit"  class="btn btn-success">
-                <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEÑA</button>
+                <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEï¿½A</button>
             </div>  
         </form>
         </div>
@@ -268,7 +268,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
 <footer class="bg-body-tertiary text-center text-lg-start">
   <!-- Copyright -->
   <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.05);">
-    © 2023 Copyright:
+    ï¿½ 2023 Copyright:
     <a class="text-body" href="https://overclocking.com.ec/">overclocking.com.ec</a>
   </div>
   <!-- Copyright -->

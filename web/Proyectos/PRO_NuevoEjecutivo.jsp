@@ -33,9 +33,10 @@
              response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||apellidos.equals("Varas Herrera")){
+             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
                 }else{
                     response.sendRedirect("../sesionInvalida.jsp");
+                    return;
              }
    %>
 <!DOCTYPE html>
@@ -872,7 +873,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                       <td class="align-middle">
                           
                           
-                          <%if(usuario.equals("jvaras")||rsa1.getString(10).equals("PENDIENTE")){%>
+                          <%if(rsa1.getString(10).equals("PENDIENTE")){%>
                           <button class="btn btn-link text-primary mb-0">
                             <a href="../Proyectos/PRO_EliminarNotificacion.jsp?idNotificacion=<%= rsa1.getString(11)%>">Cancelar <i  class="fa fa-trash-alt text-xs"></i></a>
                         </button>

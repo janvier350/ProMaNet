@@ -32,9 +32,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-             if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-                }else{
+             if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
                     response.sendRedirect("sesionInvalida.jsp");
+                    return;
              }
    %>
 <html>
@@ -198,19 +198,19 @@ String imagen =""; String marca =""; String modelo =""; String serial ="";
                 <i class="fa fa-youtube" aria-hidden="true"></i>  Ver Tutorial</a> 
         </div>
         <div class=" col-lg-4">
-        <h2>CAMBIAR CONTRASEÑA</h2>
+        <h2>CAMBIAR CONTRASEï¿½A</h2>
         <form action="ActualizarContrasena.jsp" method="post"> 
             <div class="form-group">
-                <label for="passv1">Contraseña Actual</label>
-                <input type="password" name="pass1" id="passv1" class="form-control" placeholder="Contraseña Actual" required> 
+                <label for="passv1">Contraseï¿½a Actual</label>
+                <input type="password" name="pass1" id="passv1" class="form-control" placeholder="Contraseï¿½a Actual" required> 
             </div> 
             <div class="form-group">
-                <label for="passv2">Nueva Contraseña</label>
-                <input type="password" name="pass2" id="passv2" class="form-control" placeholder="Contraseña Nueva" required><br>   
+                <label for="passv2">Nueva Contraseï¿½a</label>
+                <input type="password" name="pass2" id="passv2" class="form-control" placeholder="Contraseï¿½a Nueva" required><br>   
             </div>
             <div class="form-group">
                 <button type="submit"  class="btn btn-primary">
-                <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEÑA</button>
+                <i class="fa fa-save" aria-hidden="true"></i>  GUARDAR CONTRASEï¿½A</button>
             </div>  
         </form>
         </div>
@@ -248,8 +248,8 @@ String imagen =""; String marca =""; String modelo =""; String serial ="";
 	</div>
 
 	<div class="nav-links">
-            <a href="../ProMaNet/Proyectos/PRO_Dashboard.jsp" class="link"> Gestión de Proyectos</a>
-                <a href="Perfil.jsp" class="link" >CAMBIAR CONTRASEÑA</a>
+            <a href="../ProMaNet/Proyectos/PRO_Dashboard.jsp" class="link"> Gestiï¿½n de Proyectos</a>
+                <a href="Perfil.jsp" class="link" >CAMBIAR CONTRASEï¿½A</a>
                  <a href="Agenda.jsp" class="link" >AGENDA</a>
                 <a href="ReporteGastosIndividual.jsp" class="link">Reportes de Gastos</a>
                 <a href="Contactos.jsp" class="link" >CONTACTOS</a>
@@ -352,7 +352,7 @@ String imagen =""; String marca =""; String modelo =""; String serial ="";
             <span></span>
             <h3> Reporte de <span class="blue-text"><a href="ReporteGastosIndividual.jsp"> Gastos</a></span></h3>
             <h4>
-              <a href="ReporteGastosIndividual.jsp"> Registre su reporte de gastos aquí! </a>
+              <a href="ReporteGastosIndividual.jsp"> Registre su reporte de gastos aquï¿½! </a>
             </h4>
           </div>
         </div>
@@ -363,7 +363,7 @@ String imagen =""; String marca =""; String modelo =""; String serial ="";
             <span></span>
             <h3>Buscar <span class="blue-text"> <a href="Contactos.jsp"> contactos </a></span></h3>
             <h4>
-              <a href="Contactos.jsp"> Consulte información de sus compañeros aquí! </a>
+              <a href="Contactos.jsp"> Consulte informaciï¿½n de sus compaï¿½eros aquï¿½! </a>
             </h4>
           </div>
         </div>
@@ -418,7 +418,7 @@ String imagen =""; String marca =""; String modelo =""; String serial ="";
     
 
     <section class="copy-right">
-     <div class="text-center"><p>Copyright © 2020- 2021, Buadnet S.A.  All rights reserved.</p></div>
+     <div class="text-center"><p>Copyright ï¿½ 2020- 2021, Buadnet S.A.  All rights reserved.</p></div>
     </section>
 
     </section> 

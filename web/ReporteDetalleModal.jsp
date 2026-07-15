@@ -35,10 +35,9 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
-        if(cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("ASISTENTE")||cargo.equals("PASANTE")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){
-           
-        }else{
+        if (!COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) {
          response.sendRedirect("sesionInvalida.jsp");
+         return;
         }
 %>
 <!DOCTYPE html>
@@ -87,9 +86,9 @@
             mensaje.innerHTML = ''; // Limpiar el mensaje anterior
 
             if (longitudTexto > maxCaracteres) {
-                mensaje.innerHTML = '<span class="mensaje-error">Has excedido el límite de 1000 caracteres por ' + (longitudTexto - maxCaracteres) + ' caracteres.</span>';
+                mensaje.innerHTML = '<span class="mensaje-error">Has excedido el lï¿½mite de 1000 caracteres por ' + (longitudTexto - maxCaracteres) + ' caracteres.</span>';
             } else {
-                mensaje.innerHTML = 'Te faltan ' + (maxCaracteres - longitudTexto) + ' caracteres para alcanzar el límite de 1000.';
+                mensaje.innerHTML = 'Te faltan ' + (maxCaracteres - longitudTexto) + ' caracteres para alcanzar el lï¿½mite de 1000.';
             }
         }
     </script>
@@ -200,18 +199,18 @@
         <%if(flag.equals("2")){%>
         
         <td style="text-align:center" colspan="5">
-            <a href="generarReporteGastosMes" class="btn btn-warning" title="Añadir" style="width: 75px; border-radius: 5px;">
+            <a href="generarReporteGastosMes" class="btn btn-warning" title="Aï¿½adir" style="width: 75px; border-radius: 5px;">
             <!--<i class="fa fa-calendar" style="font-size:20px"></i>-->
              <i class="material-icons" font-size:30px">date_range</i>
             </a>
         </td>
             <button type="submit" name="btnRegistro" class="btn btn-success" data-toggle="modal" data-target="#registrarModal" href="#" role="button" >
-                <i class="fa fa-calendar" aria-hidden="true"></i> Añadir
+                <i class="fa fa-calendar" aria-hidden="true"></i> Aï¿½adir
             </button>
             <a href="ReporteGastosIndividual.jsp" class="btn btn-info"><i class="fa fa-backward" aria-hidden="true"></i> Otra Consulta</a>                
         <%}else{%>
             <button disabled="true" type="submit" name="btnRegistro" class="btn btn-success" >
-                <i class="fa fa-calendar" aria-hidden="true"></i> Añadir
+                <i class="fa fa-calendar" aria-hidden="true"></i> Aï¿½adir
             </button>
             <a href="ReporteGastos.jsp?id=<%=idHijo%>" class="btn btn-info"><i class="fa fa-backward" aria-hidden="true"></i> Otra Consulta</a>                
         <%}%>
@@ -224,10 +223,10 @@
                 <tr>
                     
                     <th>Fecha</th>
-                    <th>Alimentación</th>
+                    <th>Alimentaciï¿½n</th>
                     <th>Transporte</th>
                     <th>Cliente</th>
-                    <th>Observación</th>
+                    <th>Observaciï¿½n</th>
                     <th>Editar</th>
                     <th>Eliminar</th>
                 </tr>
@@ -310,7 +309,7 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-12 control-label" for="Ali" >
-                                Alimentación
+                                Alimentaciï¿½n
                             </label>
                             <div class="col-sm-12">
                                 <input type="number" step="any" min ="0" name="alimentacion" id="Ali" value="3.50" class="form-control" required />
@@ -351,7 +350,7 @@
                         </div>
                         <div class="form-group">
                             <label class="col-sm-12 control-label" for="Obva">
-                                Observación
+                                Observaciï¿½n
                             </label>
                             <div class="col-sm-12">
                                 <input type="text" name="trabajo"  id="Obva"  value="Reporte de Gasto" class="form-control" oninput ="contarLetras()"/>
