@@ -418,13 +418,13 @@
 
 <!-- Modal: Detalle de Solicitud -->
 <div class="modal fade" id="modalDetalle" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title"><i class="fa fa-info-circle me-2"></i>Detalle Solicitud #<span id="detId"></span></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="detModalBody">
                 <p><span class="badge-estado" id="detEstadoBadge"></span></p>
                 <table class="table table-sm">
                     <tr><th>Fecha</th><td id="detFecha"></td></tr>
@@ -550,20 +550,27 @@ $(modalSolicitarEl).find('.select2-modal').select2({
     width: '100%',
     dropdownParent: $(modalSolicitarEl)
 });
+var detModalBodyEl = document.getElementById('detModalBody');
 $('#detMovilizadorEdit').select2({
     theme: 'bootstrap-5',
     width: '100%',
-    dropdownParent: $(modalDetalleEl)
+    dropdownParent: $(detModalBodyEl)
 });
 $('#detDestinoEdit').select2({
     theme: 'bootstrap-5',
     width: '100%',
-    dropdownParent: $(modalDetalleEl)
+    dropdownParent: $(detModalBodyEl)
 });
 $('#detMotivoEdit').select2({
     theme: 'bootstrap-5',
     width: '100%',
-    dropdownParent: $(modalDetalleEl)
+    dropdownParent: $(detModalBodyEl)
+});
+// El modal-body ahora es scrolleable (modal-dialog-scrollable); si el
+// usuario hace scroll con un select2 abierto, la lista queda flotando
+// en la posicion vieja -- se cierra para evitar que se vea superpuesta.
+$(detModalBodyEl).on('scroll', function() {
+    $('#detMovilizadorEdit, #detDestinoEdit, #detMotivoEdit').select2('close');
 });
 
 document.getElementById('btnNuevoDestino').addEventListener('click', function() {
