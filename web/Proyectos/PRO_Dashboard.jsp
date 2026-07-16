@@ -210,7 +210,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                         <!--control de acceso--> 
                         <%if(usuario.equals("uparrales")){%>
-                        <%}else if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
+                        <%}else if((departamento.equals("ADMINISTRACIÓN")||departamento.equals("TECNOLOGÍA")) && COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
 <!--                        <a class="nav-link " href="../Control/ADM_Atrasos_ALL.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
@@ -482,64 +482,6 @@ String compania = (String) session.getAttribute("compania");
             <div class="container-fluid py-4">
                 <div class="row">
 
-                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
-                        <div class="card">
-                            <a id="guardar2" onclick="document.getElementById('id01').style.display = 'block'" >
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Justificar </p>
-
-                                                <h5 class="font-weight-bolder"> ATRASO  </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-danger text-sm font-weight-bolder">15 minutos antes </span>
-                                                    <b class="text-danger ">de su horario de entrada.</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-warning shadow-primary text-center rounded-circle">
-                                                <i class="ni ni-time-alarm text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
-                    <% if (COMUN.PermisoHelper.tiene(session, "REPORTE_GASTOS_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
-                        <div class="card">
-                            <a href="../ReporteGastos/ReporteGastosIndivi.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Registros </p>
-
-                                                <h5 class="font-weight-bolder"> Reporte de Gastos </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-primary text-sm font-weight-bolder">Genere su reporte </span>
-                                                    <b class="text-primary ">de gastos diarios.</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
-                                                <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
                     <% if (COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
@@ -658,9 +600,6 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                     </div>
                     <% } %>
-                </div>
-                <br>
-                <div class="row">
 
                     <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
