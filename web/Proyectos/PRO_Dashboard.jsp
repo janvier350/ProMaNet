@@ -510,7 +510,7 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-                    <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")) { %>
+                    <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Proyectos/PRO_NuevoEjecutivo.jsp">
