@@ -20,6 +20,7 @@ String compania = (String) session.getAttribute("compania");
     String cargo = (String) session.getAttribute("cargo");    
     String nombre = (String) session.getAttribute("nombre");
     String apellidos = (String) session.getAttribute("apellidos");
+    String departamento = (String) session.getAttribute("departamento");
     String codigo = (String) session.getAttribute("cod");
     String usuario = (String) session.getAttribute("usuario");
     String user = (String) session.getAttribute("userDB");
@@ -100,7 +101,7 @@ String compania = (String) session.getAttribute("compania");
           </a>
         </li>
        <% 
- if(apellidos.equals("Naranjo Espinoza")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+ if(departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

@@ -192,7 +192,7 @@ String compania = (String) session.getAttribute("compania");
                     </li>
                     
                     <% 
- if(apellidos.equals("Naranjo Espinoza")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+ if(departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

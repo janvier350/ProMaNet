@@ -121,7 +121,7 @@ String compania = (String) session.getAttribute("compania");
                     </li>
                     
                     <% 
- if(apellidos.equals("Naranjo Espinoza")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+ if(departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -860,6 +860,64 @@ String compania = (String) session.getAttribute("compania");
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-dark shadow-success text-center rounded-circle">
                                                 <i class="ni ni-key-25 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <% if (departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Control/ADM_Dashboard.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Gestionar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    TALENTO HUMANO
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-dark text-sm font-weight-bolder">Sueldos y</span>
+                                                    <b class="text-dark"> anticipos del personal.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-faded-dark shadow-success text-center rounded-circle">
+                                                <i class="ni ni-badge text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Inventario/INV_Dashboard.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Ver</p>
+                                                <h5 class="font-weight-bolder">
+                                                    INVENTARIO SUMINISTROS
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-warning text-sm font-weight-bolder">Consulte existencias</span>
+                                                    <b class="text-warning"> de suministros.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-warning shadow-success text-center rounded-circle">
+                                                <i class="ni ni-box-2 text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
