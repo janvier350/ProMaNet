@@ -482,116 +482,27 @@ String compania = (String) session.getAttribute("compania");
             <div class="container-fluid py-4">
                 <div class="row">
 
-                    <% if (COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")) { %>
+                    <% if ((COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")||COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")||COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")||COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")||cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA"))) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="../Proyectos/PRO_Contactos.jsp">
+                            <a href="../Proyectos/PRO_AccionesAdministrativas.jsp">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
                                             <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Lista</p>
-                                                <h5 class="font-weight-bolder">CONTACTOS</h5>
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Gestione</p>
+                                                <h5 class="font-weight-bolder">
+                                                    ACCIONES ADMINISTRATIVAS
+                                                </h5>
                                                 <p class="mb-0">
-                                                    <span class="text-success text-sm font-weight-bolder"><b>Consulte   </b></span>
-                                                    <b class="text-success ">contactos de ejecutivos</b>
+                                                    <span class="text-success text-sm font-weight-bolder">Contactos, agenda,</span>
+                                                    <b class="text-success "> tareas y ejecutivos.</b>
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-success shadow-danger text-center rounded-circle">
-                                                <i class="ni ni-send text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
-                    <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-4">
-                        <div class="card">
-                            <a href="../Proyectos/PRO_NuevoEjecutivo.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">REGISTRAR</p>
-                                                <h5 class="font-weight-bolder">
-                                                    EJECUTIVO
-                                                </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-dark text-sm font-weight-bolder">Notifique el ingreso</span>
-                                                    <b class="text-dark"> de un nuevo ejecutivo.</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-faded-dark shadow-success text-center rounded-circle">
-                                                <i class="ni ni-single-02 text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
-                    <% if (COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-4">
-                        <div class="card">
-                            <a href="../TODO_Cab_Trabajo.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">TAREAS</p>
-                                                <h5 class="font-weight-bolder">
-                                                    TO-DO
-                                                </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-danger text-sm font-weight-bolder">Mejore su productividad</span>
-                                                    <b class="text-danger"> registrando tareas.</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-danger shadow-success text-center rounded-circle">
-                                                <i class="ni ni-check-bold text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
-                    <% if (COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-4">
-                        <div class="card">
-
-                            <a href="../Agenda.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">REUNIONES</p>
-                                                <h5 class="font-weight-bolder">
-                                                    AGENDA
-                                                </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-danger text-sm font-weight-bolder">Consulte sus reuniones</span> 
-                                                    <b class="text-danger ">pendientes del día</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
-                                                <i class="ni ni-calendar-grid-58 text-lg opacity-10" aria-hidden="true"></i>
+                                                <i class="ni ni-collection text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -649,36 +560,6 @@ String compania = (String) session.getAttribute("compania");
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-dark shadow-danger text-center rounded-circle">
                                                 <i class="ni ni-settings-gear-65 text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                    <% } %>
-
-                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-4">
-                        <div class="card">
-                            <a href="../Proyectos/Recursos.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">DESCARGAR</p>
-                                                <h5 class="font-weight-bolder">
-                                                    RECURSOS
-                                                </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-dark text-sm font-weight-bolder">Brochure,Portada,</span>
-                                                    <b class="text-dark"> material marketing</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-faded-dark shadow-success text-center rounded-circle">
-                                                <i class="ni ni-archive-2 text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -839,10 +720,10 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-                    <% if (COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")) { %>
+                    <% if ((departamento.equals("ADMINISTRACIÓN")||departamento.equals("TECNOLOGÍA")) && COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="../PCN_ListadoUsuario.jsp">
+                            <a href="../Soportes/SOP_Dashboard.jsp">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
@@ -852,14 +733,14 @@ String compania = (String) session.getAttribute("compania");
                                                     SISTEMAS
                                                 </h5>
                                                 <p class="mb-0">
-                                                    <span class="text-dark text-sm font-weight-bolder">Administre usuarios</span>
-                                                    <b class="text-dark"> y permisos.</b>
+                                                    <span class="text-dark text-sm font-weight-bolder">Administre soportes,</span>
+                                                    <b class="text-dark"> equipos y usuarios.</b>
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-dark shadow-success text-center rounded-circle">
-                                                <i class="ni ni-key-25 text-lg opacity-10" aria-hidden="true"></i>
+                                                <i class="ni ni-atom text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>

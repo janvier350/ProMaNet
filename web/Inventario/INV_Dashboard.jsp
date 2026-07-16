@@ -1,5 +1,5 @@
-<%-- 
- Document   : PRO_Dashboard
+<%--
+ Document   : INV_Dashboard
  Created on : 1 oct 2023, 23:56:58
  Author     : Backup
 --%>
@@ -31,8 +31,10 @@ String compania = (String) session.getAttribute("compania");
      String fecha_corte = "";
     String fecha_formateada = "";
     String fecha_corta = "";
-    
-    
+    String total_productos = "0";
+    String total_categorias = "0";
+
+
     String url = new String(""+ip);
         String FlagFiltro = request.getParameter("filtro");
 
@@ -126,8 +128,38 @@ String compania = (String) session.getAttribute("compania");
     // Manejo de error
     request.setAttribute("errorFechaCorte", "Error al obtener fecha de corte: " + e.getMessage());
 }
-    
-     
+
+    try {
+        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+        Connection cnProd = DriverManager.getConnection(url, user, pass);
+        String sqlProductos = "SELECT COUNT(*) FROM INV_PRODUCTO";
+        PreparedStatement stProd = cnProd.prepareStatement(sqlProductos);
+        ResultSet rsProd = stProd.executeQuery();
+        if (rsProd.next()) {
+            total_productos = rsProd.getString(1);
+        }
+        rsProd.close();
+        stProd.close();
+        cnProd.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    try {
+        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+        Connection cnCat = DriverManager.getConnection(url, user, pass);
+        String sqlCategorias = "SELECT COUNT(*) FROM INV_CATEGORIA WHERE ESTADO = 'A'";
+        PreparedStatement stCat = cnCat.prepareStatement(sqlCategorias);
+        ResultSet rsCat = stCat.executeQuery();
+        if (rsCat.next()) {
+            total_categorias = rsCat.getString(1);
+        }
+        rsCat.close();
+        stCat.close();
+        cnCat.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
 
 %>
 <html>
@@ -174,24 +206,15 @@ String compania = (String) session.getAttribute("compania");
             <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" href="../Proyectos/PRO_Dashboard.jsp">
+                        <a class="nav-link " href="../Proyectos/PRO_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="#">
-                            <!--<a class="nav-link " href="../Proyectos/PRO_Lista.jsp">-->
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Lista de proyectos</span>
-                        </a>
-                    </li>
-                    
-                    <% 
+
+                    <%
  if(COMUN.PermisoHelper.tiene(session, "TALENTO_HUMANO_SUMINISTROS_ACCESO")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
@@ -202,7 +225,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link " href="../Inventario/INV_Dashboard.jsp">
+                        <a class="nav-link active" href="../Inventario/INV_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-user-run text-bg-light text-sm opacity-10"></i>
                             </div>
@@ -211,51 +234,10 @@ String compania = (String) session.getAttribute("compania");
                     </li>
  <%
                 }else{
-                   
+
              }
-             
+
                         %>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../TODO_Cab_Trabajo.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-bullet-list-67 text-bg-light text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">TO - DO</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Proyectos/PRO_Contactos.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-users text-success text-sm opacity-10"></i>
-                                <!--ni ni-single-copy-04-->
-                            </div> 
-                            <span class="nav-link-text ms-1">Contactos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Agenda.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-calendar-grid-58 text-info text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Agenda</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Proyectos/Recursos.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Recursos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../ReporteGastos/ReporteGastosIndivi.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-books text-danger text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Reporte de Gastos</span>
-                        </a>
-                    </li>
 
                     <li class="nav-item mt-3">
                         <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
@@ -317,10 +299,10 @@ String compania = (String) session.getAttribute("compania");
                 <div class="container-fluid py-1 px-3">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-                            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Control</a></li>
-                            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Administracion</li>
+                            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="javascript:;">Inventario</a></li>
+                            <li class="breadcrumb-item text-sm text-white active" aria-current="page">Suministros</li>
                         </ol>
-                        <h6 class="font-weight-bolder text-white mb-0">Dashboard Talento Humano</h6>
+                        <h6 class="font-weight-bolder text-white mb-0">Dashboard Inventario Suministros</h6>
                     </nav>
                     <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
                         <div class="ms-md-auto pe-md-3 d-flex align-items-center">
@@ -439,6 +421,58 @@ String compania = (String) session.getAttribute("compania");
            
 
             <div class="container-fluid py-4">
+                <div class="row">
+                    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                        <div class="card">
+                            <div class="card-body p-3">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="numbers">
+                                            <p class="text-sm mb-0 text-uppercase font-weight-bold">Total</p>
+                                            <h5 class="font-weight-bolder">
+                                                <%=total_productos%>
+                                            </h5>
+                                            <p class="mb-0">
+                                                <span class="text-success text-sm font-weight-bolder">Productos</span>
+                                                registrados
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                                            <i class="ni ni-box-2 text-lg opacity-10" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+                        <div class="card">
+                            <div class="card-body p-3">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="numbers">
+                                            <p class="text-sm mb-0 text-uppercase font-weight-bold">Categorías</p>
+                                            <h5 class="font-weight-bolder">
+                                                <%=total_categorias%>
+                                            </h5>
+                                            <p class="mb-0">
+                                                <span class="text-success text-sm font-weight-bolder">Activas</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                                            <i class="ni ni-tag text-lg opacity-10" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
                 <div class="row">
 
                     <!--                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
@@ -635,398 +669,8 @@ String compania = (String) session.getAttribute("compania");
                     </div>-->
                 </div>
                 <br>
-                
-
-                <%
-                if(roltodo.equals("ASISTENTE")){
-           
-                %>
-                <div class="row mt-4">
-                    <div class="col-lg-7 mb-lg-0 mb-4">
-                        <div class="card z-index-2 h-100">
-                            <div class="card-header pb-0 pt-3 bg-transparent">
-                                <h6 class="text-capitalize">Tareas </h6> <p><%=roltodo%></p>
-                                <p class="text-sm mb-0">
-                                    <i class="fa fa-arrow-up text-success"></i>
-                                    <span class="font-weight-bold"> Pendies y proximamente caducar</span>  2024
-                                </p>
-                            </div>
-
-                            <!--inicio tabla asistente-->
-
-                            <table class="table align-items-center ">
-
-                                <thead>
-                                    <tr class="success">
-                                        <!--<th class="text-center">Ver</th>-->
-                                        <th class="text-center">Cliente</th>
-                                        <!--<th class="text-center">Trabajo</th>-->
-                                        <!--<th class="text-center">Jefe Asignado</th>-->
-                                        <th class="text-center">Fecha Inicio</th>
-                                        <th class="text-center">Avance</th>  
-                                        <th class="text-center">Fecha Fin</th>
-
-
-                                    </tr> 
-                                </thead>
-                                <tbody>
-
-                                    <%  
-                 try{
-                     DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                     Connection cn4 = DriverManager.getConnection(url, user, pass);
-                     String sql4 ="";
-                     sql4  = "SELECT to_char(B.FECHAHORAASIG, 'DD-MM-YY'),to_char(b.FECHAFIN, 'DD-MM-YY'),to_char(b.FECHALEGAL, 'DD-MM-YY') ,a.CLIENTE, b.TRABAJO, b.ESTTRAB,b.IDTODOCAB , B.descripcion "
-                          + " from cliente a,(SELECT DISTINCT B.IDTODOCABTRAB, A.IDTODOCAB, A.IDUSUARIO, A.DESCRIPCION, A.TRABAJO, "
-                          + " A.FECHAINCIO, A.FECHAFIN, A.FECHAHORAASIG, A.FECHALEGAL, A.FECHACONTRATO, A.IDCLIENTE, A.ESTADO, A.COMENTARIO, A.IDTODOAREA, A.ESTTRAB, A.IDTODOCABGRUPO "
-                          + " FROM TODOCABTRAB A,TODODETTRAB B, TODOASIGTAREA C WHERE A.IDTODOCAB = B.IDTODOCABTRAB AND B.IDTODODET = C.IDTODODETTRAB "
-                          + " AND C.IDUSUARIO = "+codigo+" ) b where a.IDCLIENTE = b.IDCLIENTE and b.ESTADO = 'A' and b.ESTTRAB = 'P'   order by 7 DESC";
-       
-                     PreparedStatement st4 = cn4.prepareStatement(sql4);
-                     ResultSet rs4 = st4.executeQuery();       
-                 while (rs4.next()) {%>
-
-
-                                    <tr>
-                                        <td class="w-10">
-                                            <div class="d-flex px-2 py-1 align-items-center">
-                                                <div>
-
-                                                    <a class="btn btn-xs btn-primary " href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-
-                                                </div>
-                                                <div class="ms-4">
-                                                    <p class="text-xs font-weight-bold mb-0">
-                                                    </p>
-                                                    <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(4))%></h6>
-                                                     <!--<p class="text-xs font-weight-bold mb-0">Trabajo: <%= String.valueOf(rs4.getString(5))%></p>-->
-                                                    <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                                        <%=rs4.getString(5)%> <%=rs4.getString(8)%>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <!--                    <td>
-                                                              <div class="text-center">
-                                                                <p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>
-                                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(4))%></h6>
-                                                              </div>
-                                                            </td>-->
-                                        <!--                    <td class="w-30" style="max-width: 300px;">
-                                                              <div class="d-flex px-2 py-1 align-items-center">
-                                                                <div>
-                                                                    <a  href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">
-                                                                        <img src="../image/folder.png" alt="Country flag" style="width: 20px; height: 20px;" >
-                                                                    
-                                                                    <img src="../assets/img/icons/Tareas/Tareas1.png" alt="Country flag">
-                                                                    </a>
-                                                                </div>
-                                                                <div class="ms-4">
-                                                                    <p class="text-xs font-weight-bold mb-0">
-                                        <%--<%= String.valueOf(rs4.getString(5))%>--%>
-                                    </p>
-                                  <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-                                     <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                        <%=rs4.getString(7)%>
-                                    </p>
-                                                    </div>
-                                                  </div>
-                                                </td>-->
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(1))%></h6>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(2))%></h6>
-                                            </div>
-                                        </td>
-
-
-                                    </tr>
-
-                                    <%}%>
-
-                                </tbody>
-                            </table>
-                            <% rs4.close();
-                        st4.close();
-                        cn4.close();
-                        }catch(Exception e){
-                          e.printStackTrace();
-                        }
-                  }%>  
-                            <!--tabla asistente-->
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="card card-carousel overflow-hidden h-100 p-0">
-                            <div id="carouselExampleCaptions" class="carousel slide h-100" data-bs-ride="carousel">
-                                <div class="carousel-inner border-radius-lg h-100">
-                                    <div class="carousel-item h-100 active" style="background-image: url('../assets/img/carousel-1.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-camera-compact text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Panel de control</h5>
-                                            <p>Ahora puedes ver el avance de tus tareas junto con tus colegas, con la nueva vista de gráficos.</p>
-                                        </div>
-                                    </div>
-                                    <div class="carousel-item h-100" style="background-image: url('../assets/img/carousel-2.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-bulb-61 text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Indicadores de avance</h5>
-                                            <p>Gestionar tus tareas y medir tu rendimiento con los indicadores.</p>
-                                        </div>
-                                    </div>
-                                    <div class="carousel-item h-100" style="background-image: url('../assets/img/carousel-3.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-trophy text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Si lo que necesitas es terminar tus tareas más rápido!</h5>
-                                            <p>No dudes en visitar nuestro tutorial.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="carousel-control-prev w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
 
                 <div class="row mt-4">
-<!--                    <div class="col-lg-7 mb-lg-0 mb-4">
-                        <div class="card z-index-2 h-100">
-                            
-                            <div class="card-header pb-0 pt-3 bg-transparent">
-                                <div class="card bg-gradient-warning shadow-lg border-radius-lg">
-                                    <div class="card-body p-3">
-                                        <div class="row">
-                                            <div class="col-8">
-                                                <div class="numbers">
-                                                    <p class="text-white text-sm mb-0 text-uppercase font-weight-bold opacity-7">
-                                                        Mes Actual
-                                                    </p>
-                                                     <p class="mb-0 text-white text-xs">
-                                            <span class="font-weight-bolder">Atención:</span> 
-                                            Suma total de solicitudes activas.      
-                                        </p>
-                                                    <h4 class="text-white font-weight-bolder mb-0">
-                                                        <%
-   
-                                                            Connection cn = null;
-                                                            PreparedStatement st = null;
-                                                            ResultSet rs = null;
-
-                                                            try {
-                                                                DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                                                cn = DriverManager.getConnection(url, user, pass);
-
-                                                                // Eliminé el ? porque no estás pasando variables externas en este query
-                                                                String totalMes = "SELECT SUM(ANTICIPO) FROM CTRL_ANTICIPOS WHERE TRUNC(FECHA_SOLICITUD, 'MM') = TRUNC(SYSDATE, 'MM') AND ESTADO = 'PENDIENTE'";
-                                                                st = cn.prepareStatement(totalMes);
-                                                                rs = st.executeQuery();
-
-                                                                if (rs.next()) {
-                                                                    totalAnticiposMes = rs.getDouble(1); // Usamos getDouble por el tipo FLOAT
-                                                                }
-                                                            } catch (SQLException e) {
-                                                                e.printStackTrace();
-                                                            } finally {
-                                                                // Bloque finally para cerrar recursos con seguridad
-                                                                if (rs != null) rs.close();
-                                                                if (st != null) st.close();
-                                                                if (cn != null) cn.close();
-                                                            }
-                                                        %>
-                                                        $ <%= totalAnticiposMes %>
-                                                    </h4>
-                                                    <span class="font-weight-bolder"> Fecha Maxima:  </span>
-                                              <h4 class="text-white font-weight-bolder mb-0">  <span class="font-weight-bolder">   <%=fecha_formateada %></span></h4>
-                                                </div>
-                                            </div>
-                                            <div class="col-4 text-end">
-                                                <div class="icon icon-shape bg-white shadow text-center border-radius-md">
-                                                    <i class="fa fa-warning text-warning text-lg opacity-10" aria-hidden="true"></i>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body p-3">
-                                              <div class="chart">
-                                                <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
-                                                <div class="card-header text-center border-0 pt-0 pt-lg-2 pb-4 pb-lg-3">
-                                <div class="d-flex justify-content-between">
-                                    <a href="#" class="btn btn-sm btn-info mb-0 d-none d-lg-block">Solicitar</a>
-                                    <a href="https://youtu.be/Zr7a9Hq8NW0" class="btn btn-sm btn-danger mb-0 d-none d-lg-block">Tutorial</a>
-                                    <a href="javascript:;" class="btn btn-sm btn-info mb-0 d-block d-lg-none"><i class="ni ni-collection"></i></a>
-                                    <a href="https://www.youtube.com/watch?v=Uxp0_eswRuA" target="blank " >
-                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Asignar Sueldo </button> 
-                                    </a>
-                                    <a href="https://www.youtube.com/watch?v=MaEv5SL19bo" target="blank " >
-                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Fecha de corte </button> 
-                                    </a>
-                                    <a href="https://www.youtube.com/watch?v=JRN9LkWUhwA" target="blank " >
-                                        <button type="button" class="btn bg-gradient-danger mb-0 fa fa-youtube"  >   Tutorial: Solicitar Anticipo </button> 
-                                    </a>
-                                    
-                                    <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-none d-lg-block">Reportar</a>
-                                    <a href="javascript:;" class="btn btn-sm btn-dark float-right mb-0 d-block d-lg-none"><i class="ni ni-email-83"></i></a>
-                                </div>
-                            </div>
-                                              </div>
-                                <div class="table-responsive overflow-auto" style="max-height: 400px;">
-
-                                    <table class="table align-items-center ">
-                                        <button type="#" class="btn btn-success"  href="">
-                                            <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp#">
-                                                <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
-                                        </button>
-                                        <thead>
-                                            <tr class="success">
-
-                                                <th class="text-center">Fecha Solicitud</th>
-                                                <th class="text-center">Ejecutivo</th>
-
-                                                <th class="text-center">Jefe Asignado</th>
-                                                <th class="text-center">Departamento</th>
-                                                <th class="text-center">Sueldo</th>  
-                                                <th class="text-center">Anticipo</th>
-                                                <th class="text-center">Atender</th>
-
-                                            </tr> 
-                                        </thead>
-                                        <tbody>
-
-
-                                            <%  
-                              try{
-
-
-                                    DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                                    Connection cn4 = DriverManager.getConnection(url, user, pass);
-
-                                    String sql4 = "SELECT u.apellidos, u.nombre, d.departamento, u.sueldo, " +
-                                                   "a.fecha_solicitud, a.anticipo, a.estado, a.id_ctrl_anticipo " +
-                                                   "FROM ctrl_anticipos a " +
-                                                   "INNER JOIN usuario u ON a.id_usuario = u.idusuario " +
-                                                   "INNER JOIN adm_departamento d ON a.id_departamento = d.id_departamento " +
-                                                   "WHERE TRUNC(a.fecha_solicitud, 'MM') = TRUNC(SYSDATE, 'MM') " +
-                                                   "ORDER BY a.fecha_solicitud DESC";
-
-                                    PreparedStatement st4 = cn4.prepareStatement(sql4);
-                                    ResultSet rs4 = st4.executeQuery();
-                                                                  while (rs4.next()) {%>
-
-
-                                            <tr>
-
-                                                <td>
-                                                    <div class="text-center">
-                                                        <p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>
-                                                        <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(5))%></h6>
-                                                    </div>
-                                                </td>
-                                                <td class="w-30" style="max-width: 300px;">
-                                                    <div class="d-flex px-2 py-1 align-items-center">
-                                                        <div>
-                                                            <a  href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">
-                                                            <img src="../image/folder.png" alt="Country flag" style="width: 20px; height: 20px;" >
-
-                                                            <img src="../assets/img/icons/Tareas/Tareas1.png" alt="Country flag">
-                                                            </a>
-                                                        </div>
-                                                        <div class="ms-4">
-                                                            <p class="text-xs font-weight-bold mb-0">
-                                                                <%--<%= String.valueOf(rs4.getString(5))%>--%>
-                                                            </p>
-                                                            <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(2))%></h6>
-                                                            <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                                                <%=rs4.getString(1)%>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div class="text-center">
-                                                        <p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>
-
-                                                        <h5 class="text-sm mb-0"><%= String.valueOf(rs4.getString(3))%></h5>
-                                                    </div>
-                                                </td>
-
-
-                                                <td>
-                                                    <div class="text-center">
-                                                        <p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>
-                                                        <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(4))%></h6>
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle text-sm">
-                                                    <div class="col text-center">
-                                                        <p class="text-xs font-weight-bold mb-0">Fecha Fin:</p>
-                                                        <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle">
-    <a href="../CTRL_Anticipo_PDF?idSolicitud=<%= rs4.getString(1) %>&apellidos_Solicitante=<%= rs4.getString(1) %>&nombres_Solicitante=<%= rs4.getString(2) %>&anticipo=<%= rs4.getString(6) %>&fecha=<%= rs4.getString(5) %>" 
-       target="_blank" 
-       class="btn btn-sm btn-success mb-0 d-none d-lg-block">
-       <i class="fas fa-file-pdf me-1"></i> Generar PDF
-    </a>
-</td>
-                                            </tr>
-
-                                            <%}%>
-
-                                        </tbody>
-                                    </table>
-                                    <% rs4.close();
-                                  st4.close();
-                                  cn4.close();
-                                  }catch(Exception e){
-                                    e.printStackTrace();
-                            } 
-                                    %>
-
-                                </div>
-                                    <a href="../CTRL_Anticipos_PDF_ALL?fecha=<%= fecha_formateada %>" 
-       target="_blank" 
-       class="btn btn-sm btn-success mb-0 d-none d-lg-block">
-       <i class="fas fa-file-pdf me-1"></i> Generar PDF
-    </a>
-                            </div>
-                        </div>
-                    </div>-->
                     <div class="col-lg-5">
                         <div class="card card-carousel overflow-hidden h-100 p-0">
                             <div id="carouselExampleCaptions" class="carousel slide h-100" data-bs-ride="carousel">

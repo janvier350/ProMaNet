@@ -331,6 +331,14 @@ try{
                             <span class="nav-link-text ms-1">Inventario</span>
                         </a>
 
+                        <%if(COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")){%>
+                        <a class="nav-link " href="../PCN_ListadoUsuario.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="ni ni-key-25 text-dark text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Panel Sistemas</span>
+                        </a>
+                        <%}%>
 
                         <%}%>
 

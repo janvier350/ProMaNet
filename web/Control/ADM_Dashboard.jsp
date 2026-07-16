@@ -1,5 +1,5 @@
-<%-- 
- Document   : PRO_Dashboard
+<%--
+ Document   : ADM_Dashboard
  Created on : 1 oct 2023, 23:56:58
  Author     : Backup
 --%>
@@ -174,7 +174,7 @@ String compania = (String) session.getAttribute("compania");
             <div class="collapse navbar-collapse  w-auto " id="sidenav-collapse-main">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" href="../Proyectos/PRO_Dashboard.jsp">
+                        <a class="nav-link " href="../Proyectos/PRO_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
                             </div>
@@ -182,61 +182,11 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link " href="#">
-                            <!--<a class="nav-link " href="../Proyectos/PRO_Lista.jsp">-->
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-calendar-grid-58 text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Lista de proyectos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
+                        <a class="nav-link active" href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-user-run text-bg-light text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Talento Humano</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../TODO_Cab_Trabajo.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-bullet-list-67 text-bg-light text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">TO - DO</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Proyectos/PRO_Contactos.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-users text-success text-sm opacity-10"></i>
-                                <!--ni ni-single-copy-04-->
-                            </div> 
-                            <span class="nav-link-text ms-1">Contactos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Agenda.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-calendar-grid-58 text-info text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Agenda</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Proyectos/Recursos.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-archive-2 text-dark text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Recursos</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../ReporteGastos/ReporteGastosIndivi.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="ni ni-books text-danger text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Reporte de Gastos</span>
                         </a>
                     </li>
 
@@ -717,194 +667,11 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                 </div>
                 <br>
-                
-
-                <%
-                if(roltodo.equals("ASISTENTE")){
-           
-                %>
-                <div class="row mt-4">
-                    <div class="col-lg-7 mb-lg-0 mb-4">
-                        <div class="card z-index-2 h-100">
-                            <div class="card-header pb-0 pt-3 bg-transparent">
-                                <h6 class="text-capitalize">Tareas </h6> <p><%=roltodo%></p>
-                                <p class="text-sm mb-0">
-                                    <i class="fa fa-arrow-up text-success"></i>
-                                    <span class="font-weight-bold"> Pendies y proximamente caducar</span>  2024
-                                </p>
-                            </div>
-
-                            <!--inicio tabla asistente-->
-
-                            <table class="table align-items-center ">
-
-                                <thead>
-                                    <tr class="success">
-                                        <!--<th class="text-center">Ver</th>-->
-                                        <th class="text-center">Cliente</th>
-                                        <!--<th class="text-center">Trabajo</th>-->
-                                        <!--<th class="text-center">Jefe Asignado</th>-->
-                                        <th class="text-center">Fecha Inicio</th>
-                                        <th class="text-center">Avance</th>  
-                                        <th class="text-center">Fecha Fin</th>
-
-
-                                    </tr> 
-                                </thead>
-                                <tbody>
-
-                                    <%  
-                 try{
-                     DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-                     Connection cn4 = DriverManager.getConnection(url, user, pass);
-                     String sql4 ="";
-                     sql4  = "SELECT to_char(B.FECHAHORAASIG, 'DD-MM-YY'),to_char(b.FECHAFIN, 'DD-MM-YY'),to_char(b.FECHALEGAL, 'DD-MM-YY') ,a.CLIENTE, b.TRABAJO, b.ESTTRAB,b.IDTODOCAB , B.descripcion "
-                          + " from cliente a,(SELECT DISTINCT B.IDTODOCABTRAB, A.IDTODOCAB, A.IDUSUARIO, A.DESCRIPCION, A.TRABAJO, "
-                          + " A.FECHAINCIO, A.FECHAFIN, A.FECHAHORAASIG, A.FECHALEGAL, A.FECHACONTRATO, A.IDCLIENTE, A.ESTADO, A.COMENTARIO, A.IDTODOAREA, A.ESTTRAB, A.IDTODOCABGRUPO "
-                          + " FROM TODOCABTRAB A,TODODETTRAB B, TODOASIGTAREA C WHERE A.IDTODOCAB = B.IDTODOCABTRAB AND B.IDTODODET = C.IDTODODETTRAB "
-                          + " AND C.IDUSUARIO = "+codigo+" ) b where a.IDCLIENTE = b.IDCLIENTE and b.ESTADO = 'A' and b.ESTTRAB = 'P'   order by 7 DESC";
-       
-                     PreparedStatement st4 = cn4.prepareStatement(sql4);
-                     ResultSet rs4 = st4.executeQuery();       
-                 while (rs4.next()) {%>
-
-
-                                    <tr>
-                                        <td class="w-10">
-                                            <div class="d-flex px-2 py-1 align-items-center">
-                                                <div>
-
-                                                    <a class="btn btn-xs btn-primary " href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-
-                                                </div>
-                                                <div class="ms-4">
-                                                    <p class="text-xs font-weight-bold mb-0">
-                                                    </p>
-                                                    <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(4))%></h6>
-                                                     <!--<p class="text-xs font-weight-bold mb-0">Trabajo: <%= String.valueOf(rs4.getString(5))%></p>-->
-                                                    <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                                        <%=rs4.getString(5)%> <%=rs4.getString(8)%>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <!--                    <td>
-                                                              <div class="text-center">
-                                                                <p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>
-                                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(4))%></h6>
-                                                              </div>
-                                                            </td>-->
-                                        <!--                    <td class="w-30" style="max-width: 300px;">
-                                                              <div class="d-flex px-2 py-1 align-items-center">
-                                                                <div>
-                                                                    <a  href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">
-                                                                        <img src="../image/folder.png" alt="Country flag" style="width: 20px; height: 20px;" >
-                                                                    
-                                                                    <img src="../assets/img/icons/Tareas/Tareas1.png" alt="Country flag">
-                                                                    </a>
-                                                                </div>
-                                                                <div class="ms-4">
-                                                                    <p class="text-xs font-weight-bold mb-0">
-                                        <%--<%= String.valueOf(rs4.getString(5))%>--%>
-                                    </p>
-                                  <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-                                     <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                        <%=rs4.getString(7)%>
-                                    </p>
-                                                    </div>
-                                                  </div>
-                                                </td>-->
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(1))%></h6>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="text-center">
-                                                <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(2))%></h6>
-                                            </div>
-                                        </td>
-
-
-                                    </tr>
-
-                                    <%}%>
-
-                                </tbody>
-                            </table>
-                            <% rs4.close();
-                        st4.close();
-                        cn4.close();
-                        }catch(Exception e){
-                          e.printStackTrace();
-                        }
-                  }%>  
-                            <!--tabla asistente-->
-                        </div>
-                    </div>
-                    <div class="col-lg-5">
-                        <div class="card card-carousel overflow-hidden h-100 p-0">
-                            <div id="carouselExampleCaptions" class="carousel slide h-100" data-bs-ride="carousel">
-                                <div class="carousel-inner border-radius-lg h-100">
-                                    <div class="carousel-item h-100 active" style="background-image: url('../assets/img/carousel-1.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-camera-compact text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Panel de control</h5>
-                                            <p>Ahora puedes ver el avance de tus tareas junto con tus colegas, con la nueva vista de gráficos.</p>
-                                        </div>
-                                    </div>
-                                    <div class="carousel-item h-100" style="background-image: url('../assets/img/carousel-2.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-bulb-61 text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Indicadores de avance</h5>
-                                            <p>Gestionar tus tareas y medir tu rendimiento con los indicadores.</p>
-                                        </div>
-                                    </div>
-                                    <div class="carousel-item h-100" style="background-image: url('../assets/img/carousel-3.jpg');
-                                         background-size: cover;">
-                                        <div class="carousel-caption d-none d-md-block bottom-0 text-start start-0 ms-5">
-                                            <div class="icon icon-shape icon-sm bg-white text-center border-radius-md mb-3">
-                                                <i class="ni ni-trophy text-dark opacity-10"></i>
-                                            </div>
-                                            <h5 class="text-white mb-1">Si lo que necesitas es terminar tus tareas más rápido!</h5>
-                                            <p>No dudes en visitar nuestro tutorial.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <button class="carousel-control-prev w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next w-5 me-3" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
 
                 <div class="row mt-4">
                     <div class="col-lg-7 mb-lg-0 mb-4">
                         <div class="card z-index-2 h-100">
-                            
+
                             <div class="card-header pb-0 pt-3 bg-transparent">
                                 <div class="card bg-gradient-warning shadow-lg border-radius-lg">
                                     <div class="card-body p-3">
