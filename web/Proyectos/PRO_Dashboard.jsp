@@ -838,6 +838,36 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                     </div>
                     <% } %>
+
+                    <% if (COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../PCN_ListadoUsuario.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Panel</p>
+                                                <h5 class="font-weight-bolder">
+                                                    SISTEMAS
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-dark text-sm font-weight-bolder">Administre usuarios</span>
+                                                    <b class="text-dark"> y permisos.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-dark shadow-success text-center rounded-circle">
+                                                <i class="ni ni-key-25 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
                     <!--                    <div class="col-xl-2 col-sm-6">
                                             <div class="card">
 
