@@ -19,6 +19,7 @@
     String cargo = (String) session.getAttribute("cargo");
     String nombre = (String) session.getAttribute("nombre");
     String apellidos = (String) session.getAttribute("apellidos");
+    String departamento = (String) session.getAttribute("departamento");
     String user = (String) session.getAttribute("userDB");
     String pass = (String) session.getAttribute("passDB");
     String ip = (String) session.getAttribute("ipDB");
@@ -33,6 +34,10 @@
              response.sendRedirect("sesionExpirada.jsp");
              return;
              }
+        if(!departamento.equals("TECNOLOGÍA")){
+             response.sendRedirect("sesionInvalida.jsp");
+             return;
+        }
         if(cargo.equals("JEFE")||cargo.equals("ADMINISTRADOR")||cargo.equals("ADMINISTRACION")){
 
         }else{

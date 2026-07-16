@@ -483,7 +483,7 @@ String compania = (String) session.getAttribute("compania");
                 <div class="row">
 
                     <% if (COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Proyectos/PRO_Contactos.jsp">
                                 <div class="card-body p-3">
@@ -511,7 +511,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Proyectos/PRO_NuevoEjecutivo.jsp">
                                 <div class="card-body p-3">
@@ -541,7 +541,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../TODO_Cab_Trabajo.jsp">
                                 <div class="card-body p-3">
@@ -571,7 +571,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
 
                             <a href="../Agenda.jsp">
@@ -602,7 +602,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Proyectos/Perfil.jsp">
                                 <div class="card-body p-3">
@@ -631,7 +631,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Soportes/SOP_ListaSolicitudes.jsp">
                                 <div class="card-body p-3">
@@ -659,7 +659,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Proyectos/Recursos.jsp">
                                 <div class="card-body p-3">
@@ -689,7 +689,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
 
                     <% if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_SOLICITAR")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Inventario/INV_Solicitar_Suministro_Detalle.jsp">
                                 <div class="card-body p-3">
@@ -718,7 +718,7 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-<!--                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+<!--                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Inventario/INV_Solicitar_Suministro_Detalle.jsp">
                                 <div class="card-body p-3">
@@ -751,7 +751,7 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>-->
-<div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+<div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
 <%if(usuario.equals("uparrales")){%>
                         <%}else if(cargo.equals("ADMINISTRADOR")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||cargo.equals("JEFE")){%>
@@ -810,7 +810,7 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                     </div>
                     <% if (COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO")) { %>
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Control/ADM_Solicitar_Anticipo.jsp">
                                 <div class="card-body p-3">
@@ -872,7 +872,7 @@ String compania = (String) session.getAttribute("compania");
                 <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
                 <br>
                 <div class="row">
-                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
+                    <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Movilizacion/MOV_Calendario.jsp">
                                 <div class="card-body p-3">
