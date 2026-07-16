@@ -38,20 +38,20 @@ String compania = (String) session.getAttribute("compania");
              
              if(departamento.equals("TECNOLOGÍA")){
                 }else{
-                    response.sendRedirect("sesionInvalida.jsp");
+                    response.sendRedirect("../sesionInvalida.jsp");
                     return;
              }
 
     if(session.getAttribute("usuario")==null){
-             response.sendRedirect("sesionExpirada.jsp");
+             response.sendRedirect("../sesionExpirada.jsp");
              return;
              }else if (session.isNew()){
-             response.sendRedirect("sesionExpirada.jsp");
+             response.sendRedirect("../sesionExpirada.jsp");
              return;
              }
              if(COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER")){
                 }else{
-                    response.sendRedirect("sesionInvalida.jsp");
+                    response.sendRedirect("../sesionInvalida.jsp");
                     return;
              }
    %>
