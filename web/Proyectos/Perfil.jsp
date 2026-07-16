@@ -184,6 +184,8 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                         </div>
                         <span class="nav-link-text ms-1">Reportes de atrasos</span>
                     </a>
+                    <%}%>
+                    <%if(!usuario.equals("uparrales") && departamento.equals("TECNOLOGÍA") && (cargo.equals("JEFE")||cargo.equals("ADMINISTRADOR")||cargo.equals("ADMINISTRACION"))){%>
                     <a class="nav-link " href="../INV_ListadoEquipo.jsp">
                         <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                             <i class="ni ni-laptop text-dark text-sm opacity-10"></i>
