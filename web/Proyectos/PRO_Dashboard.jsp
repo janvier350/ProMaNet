@@ -182,7 +182,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Movilizacion/MOV_Calendario.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-car text-info text-sm opacity-10"></i>
+                                <i class="ni ni-bus-front-12 text-info text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Movilizacion</span>
                         </a>
@@ -799,7 +799,7 @@ String compania = (String) session.getAttribute("compania");
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
-                                                <i class="fa fa-car text-lg opacity-10" aria-hidden="true"></i>
+                                                <i class="ni ni-bus-front-12 text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -891,7 +891,7 @@ String compania = (String) session.getAttribute("compania");
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
-                                                <i class="fa fa-car text-lg opacity-10" aria-hidden="true"></i>
+                                                <i class="ni ni-bus-front-12 text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
@@ -1321,7 +1321,7 @@ String compania = (String) session.getAttribute("compania");
 
                         </div>
                     </div>
-                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||departamento.equals("MARKETING")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")){%>
+                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||departamento.equals("MARKETING")||departamento.equals("TECNOLOGÍA")){%>
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header pb-0 p-3">

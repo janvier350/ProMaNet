@@ -1682,7 +1682,7 @@ String exitencia = "SELECT " +
 
                         </div>
                     </div>
-                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+                    <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||departamento.equals("MARKETING")||departamento.equals("TECNOLOGÍA")){%>
                     <div class="col-lg-5">
                         <div class="card">
                             <div class="card-header pb-0 p-3">

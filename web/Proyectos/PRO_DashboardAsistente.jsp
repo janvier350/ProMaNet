@@ -19,6 +19,7 @@ String compania = (String) session.getAttribute("compania");
     String cargo = (String) session.getAttribute("cargo");    
     String nombre = (String) session.getAttribute("nombre");
     String apellidos = (String) session.getAttribute("apellidos");
+    String departamento = (String) session.getAttribute("departamento");
     String codigo = (String) session.getAttribute("cod");
     String usuario = (String) session.getAttribute("usuario");
     String user = (String) session.getAttribute("userDB");
@@ -1316,7 +1317,7 @@ String compania = (String) session.getAttribute("compania");
                
     </div>
         </div>
-            <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+            <%if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")||departamento.equals("MARKETING")||departamento.equals("TECNOLOGÍA")){%>
             <div class="col-lg-5">
           <div class="card">
             <div class="card-header pb-0 p-3">
