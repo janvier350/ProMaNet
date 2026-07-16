@@ -482,6 +482,7 @@ String compania = (String) session.getAttribute("compania");
             <div class="container-fluid py-4">
                 <div class="row">
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a id="guardar2" onclick="document.getElementById('id01').style.display = 'block'" >
@@ -508,7 +509,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "REPORTE_GASTOS_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../ReporteGastos/ReporteGastosIndivi.jsp">
@@ -535,8 +538,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
-
+                    <% if (COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Proyectos/PRO_Contactos.jsp">
@@ -562,7 +566,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Proyectos/PRO_NuevoEjecutivo.jsp">
@@ -590,7 +596,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../TODO_Cab_Trabajo.jsp">
@@ -618,6 +626,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
+
+                    <% if (COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6">
                         <div class="card">
 
@@ -646,10 +657,12 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
                 </div>
                 <br>
                 <div class="row">
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Proyectos/Perfil.jsp">
@@ -676,7 +689,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Soportes/SOP_ListaSolicitudes.jsp">
@@ -702,7 +717,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Proyectos/Recursos.jsp">
@@ -730,7 +747,9 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_SOLICITAR")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Inventario/INV_Solicitar_Suministro_Detalle.jsp">
@@ -758,6 +777,7 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
 
 <!--                    <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
@@ -850,6 +870,7 @@ String compania = (String) session.getAttribute("compania");
                         <% }%>
                         </div>
                     </div>
+                    <% if (COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-xl-0 mb-4">
                         <div class="card">
                             <a href="../Control/ADM_Solicitar_Anticipo.jsp">
@@ -877,9 +898,10 @@ String compania = (String) session.getAttribute("compania");
                             </a>
                         </div>
                     </div>
+                    <% } %>
                     <!--                    <div class="col-xl-2 col-sm-6">
                                             <div class="card">
-                    
+
                                                 <a href="../Agenda.jsp">
                                                     <div class="card-body p-3">
                                                         <div class="row">
@@ -1033,8 +1055,8 @@ String compania = (String) session.getAttribute("compania");
                                         <thead>
                                             <tr class="success">
 
-                                                <th class="text-center">Soporte</th>
                                                 <th class="text-center">Fecha / Equipo / Prioridad</th>
+                                                <th class="text-center">Soporte</th>
                                                 <th class="text-center">Usuario</th>
                                                 <th class="text-center">Atender</th>
 
@@ -1072,17 +1094,17 @@ String compania = (String) session.getAttribute("compania");
                                                 else if ("Media".equalsIgnoreCase(prioridad4)) { badgePrioridad4 = "bg-warning text-dark"; }
                                             %>
                                             <tr<%= "Alta".equalsIgnoreCase(prioridad4) ? " class=\"table-danger\"" : "" %>>
-                                                <td style="max-width:260px;">
-                                                    <p class="text-xs font-weight-bold mb-0 text-truncate" style="max-width:240px;" title="<%=rs4.getString(5)%>">
-                                                        <%=rs4.getString(5)%>
-                                                    </p>
-                                                </td>
                                                 <td>
                                                     <div class="text-center">
                                                         <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(1))%></h6>
                                                         <p class="text-xs mb-1"><%= String.valueOf(rs4.getString(2))%> <%= String.valueOf(rs4.getString(3))%></p>
                                                         <span class="badge <%=badgePrioridad4%>"><%=prioridad4%></span>
                                                     </div>
+                                                </td>
+                                                <td style="max-width:260px;">
+                                                    <p class="text-xs font-weight-bold mb-0 text-truncate" style="max-width:240px;" title="<%=rs4.getString(5)%>">
+                                                        <%=rs4.getString(5)%>
+                                                    </p>
                                                 </td>
                                                 <td>
                                                     <div class="text-center">
