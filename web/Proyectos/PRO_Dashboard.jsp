@@ -1046,7 +1046,7 @@ String compania = (String) session.getAttribute("compania");
                                                 <canvas id="chart-line" class="chart-canvas" height="300"></canvas>
                                               </div>-->
                                 <div class="table-responsive overflow-auto" style="max-height: 400px;">
-                                    <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
+                                    <% if((departamento.equals("TECNOLOGÍA") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")) && COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                                     <table class="table align-items-center ">
                                         <button type="#" class="btn btn-success"  href="">
                                             <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp">
