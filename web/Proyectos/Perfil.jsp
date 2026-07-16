@@ -22,6 +22,7 @@
     String ip = (String) session.getAttribute("ipDB");
     String email = (String) session.getAttribute("email");
      String telefono = (String) session.getAttribute("telefono");
+     String departamento = (String) session.getAttribute("departamento");
      
     //String url = new String("jdbc:oracle:thin:@"+ip);
     String url = new String(""+ip);
@@ -414,6 +415,12 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                         <div class="form-group">
                                             <label for="example-text-input" class="form-control-label">Teléfono</label>
                                             <input class="form-control" type="text" value="<%=telefono%>" disabled="true">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="example-text-input" class="form-control-label">Departamento</label>
+                                            <input class="form-control" type="text" value="<%=departamento%>" disabled="true">
                                         </div>
                                     </div>
                                     <hr class="horizontal dark">
