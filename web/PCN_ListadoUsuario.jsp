@@ -228,6 +228,7 @@
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Departamento</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Nombres / Email</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Compania</th>
+                            <th class="text-uppercase text-xs font-weight-bolder opacity-7">Rol</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7">Rol-TD</th>
                             <th class="text-uppercase text-xs font-weight-bolder opacity-7 text-end pe-4">Acciones</th>
                         </tr>
@@ -260,6 +261,7 @@
                             <span class="text-xs text-secondary d-block text-truncate" style="max-width:260px;" title="<%=rs.getString(3)%>"><%=rs.getString(3)%></span>
                         </td>
                         <td><span class="text-sm"><%=rs.getString(5)%></span></td>
+                        <td><span class="text-sm"><%=rs.getString(7)%></span></td>
                         <td><span class="text-sm"><%=rs.getString(9)%></span></td>
                         <td class="text-end pe-4 text-nowrap">
                             <button type="button" class="btn btn-icon-sm btn-outline-info me-1" title="Editar"
@@ -294,7 +296,7 @@
                     }catch(Exception e){
                         e.printStackTrace();
                     %>
-                    <tr><td colspan="6" class="text-danger ps-4">Error: <%=e.getMessage()%></td></tr>
+                    <tr><td colspan="7" class="text-danger ps-4">Error: <%=e.getMessage()%></td></tr>
                     <%
                     }
                     %>
