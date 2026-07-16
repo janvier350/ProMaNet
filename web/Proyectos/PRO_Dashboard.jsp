@@ -121,7 +121,7 @@ String compania = (String) session.getAttribute("compania");
                     </li>
                     
                     <% 
- if(departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+ if(COMUN.PermisoHelper.tiene(session, "TALENTO_HUMANO_SUMINISTROS_ACCESO")){%>
                     <li class="nav-item">
                         <a class="nav-link " href="../Control/ADM_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -869,7 +869,7 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-                    <% if (departamento.equals("ADMINISTRACIÓN")||COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")) { %>
+                    <% if (COMUN.PermisoHelper.tiene(session, "TALENTO_HUMANO_SUMINISTROS_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Control/ADM_Dashboard.jsp">
