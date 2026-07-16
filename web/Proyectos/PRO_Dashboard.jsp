@@ -1033,16 +1033,12 @@ String compania = (String) session.getAttribute("compania");
                                         <thead>
                                             <tr class="success">
 
-                                                <th class="text-center">Fecha Solicitud</th>
                                                 <th class="text-center">Soporte</th>
-
-                                                <!--<th class="text-center">Jefe Asignado</th>-->
-                                                <th class="text-center">Equipo</th>
-                                                <th class="text-center">Prioridad</th>  
+                                                <th class="text-center">Fecha / Equipo / Prioridad</th>
                                                 <th class="text-center">Usuario</th>
                                                 <th class="text-center">Atender</th>
 
-                                            </tr> 
+                                            </tr>
                                         </thead>
                                         <tbody>
 
@@ -1069,52 +1065,27 @@ String compania = (String) session.getAttribute("compania");
                               while (rs4.next()) {%>
 
 
-                                            <tr>
-
+                                            <%
+                                                String prioridad4 = rs4.getString(6);
+                                                String badgePrioridad4 = "bg-secondary";
+                                                if ("Alta".equalsIgnoreCase(prioridad4)) { badgePrioridad4 = "bg-danger"; }
+                                                else if ("Media".equalsIgnoreCase(prioridad4)) { badgePrioridad4 = "bg-warning text-dark"; }
+                                            %>
+                                            <tr<%= "Alta".equalsIgnoreCase(prioridad4) ? " class=\"table-danger\"" : "" %>>
+                                                <td style="max-width:260px;">
+                                                    <p class="text-xs font-weight-bold mb-0 text-truncate" style="max-width:240px;" title="<%=rs4.getString(5)%>">
+                                                        <%=rs4.getString(5)%>
+                                                    </p>
+                                                </td>
                                                 <td>
                                                     <div class="text-center">
-                                                        <!--<p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>-->
                                                         <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(1))%></h6>
-                                                    </div>
-                                                </td>
-                                                <td class="w-30" style="max-width: 300px;">
-                                                    <div class="d-flex px-2 py-1 align-items-center">
-                                                        <div>
-                                                            <!--<a  href="../TODO_det_Trabajo_1.jsp?idCabTrab=<%=rs4.getString(7)%>">-->
-                                                            <!--<img src="../image/folder.png" alt="Country flag" style="width: 20px; height: 20px;" >-->
-
-                                                            <!--<img src="../assets/img/icons/Tareas/Tareas1.png" alt="Country flag">-->
-                                                            </a>
-                                                        </div>
-                                                        <div class="ms-4">
-                                                            <p class="text-xs font-weight-bold mb-0">
-                                                                <%--<%= String.valueOf(rs4.getString(5))%>--%>
-                                                            </p>
-                                                          <!--<h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(2))%></h6>-->
-                                                            <p class="text-xs font-weight-bold mb-0" style="max-width: 100%; word-break: break-word; white-space: normal;">
-                                                                <%=rs4.getString(5)%>
-                                                            </p>
-                                                        </div>
+                                                        <p class="text-xs mb-1"><%= String.valueOf(rs4.getString(2))%> <%= String.valueOf(rs4.getString(3))%></p>
+                                                        <span class="badge <%=badgePrioridad4%>"><%=prioridad4%></span>
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <div class="text-center">
-                                                        <!--<p class="text-xs font-weight-bold mb-0">Jefe Asignado:</p>-->
-                                                        <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(2))%></h6>
-                                                        <h5 class="text-sm mb-0"><%= String.valueOf(rs4.getString(3))%></h5>
-                                                    </div>
-                                                </td>
-
-
-                                                <td>
-                                                    <div class="text-center">
-                                                        <!--<p class="text-xs font-weight-bold mb-0">Fecha Inicio:</p>-->
-                                                        <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(6))%></h6>
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle text-sm">
-                                                    <div class="col text-center">
-                                                        <!--<p class="text-xs font-weight-bold mb-0">Fecha Fin:</p>-->
                                                         <h6 class="text-sm mb-0"><%= String.valueOf(rs4.getString(10))%></h6>
                                                         <h5 class="text-sm mb-0"><%= String.valueOf(rs4.getString(9))%></h5>
                                                     </div>
