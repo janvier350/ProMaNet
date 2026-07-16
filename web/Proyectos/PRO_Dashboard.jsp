@@ -807,6 +807,39 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                     </div>
                     <% } %>
+
+                    <% boolean muestraComputadoras = !usuario.equals("uparrales")
+                            && (cargo.equals("ADMINISTRADOR") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL") || cargo.equals("JEFE")); %>
+                    <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Movilizacion/MOV_Calendario.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Solicitar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    MOVILIZACION
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-info text-sm font-weight-bolder">Consulte el calendario y</span>
+                                                    <b class="text-info">solicite movilizacion</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
+                                                <i class="ni ni-bus-front-12 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
                     <!--                    <div class="col-xl-2 col-sm-6">
                                             <div class="card">
 
@@ -836,41 +869,6 @@ String compania = (String) session.getAttribute("compania");
                                             </div>
                                         </div>-->
                 </div>
-                <% boolean muestraComputadoras = !usuario.equals("uparrales")
-                        && (cargo.equals("ADMINISTRADOR") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL") || cargo.equals("JEFE")); %>
-                <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
-                <br>
-                <div class="row">
-                    <div class="col-xl-2 col-sm-6 mb-4">
-                        <div class="card">
-                            <a href="../Movilizacion/MOV_Calendario.jsp">
-                                <div class="card-body p-3">
-                                    <div class="row">
-                                        <div class="col-8">
-                                            <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Solicitar</p>
-                                                <h5 class="font-weight-bolder">
-                                                    MOVILIZACION
-                                                </h5>
-                                                <p class="mb-0">
-                                                    <span class="text-info text-sm font-weight-bolder">Consulte el calendario y</span>
-                                                    <b class="text-info">solicite movilizacion</b>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="col-4 text-end">
-                                            <div class="icon icon-shape bg-gradient-info shadow-success text-center rounded-circle">
-                                                <i class="ni ni-bus-front-12 text-lg opacity-10" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <% } %>
-
 
                 <!--para posible uso de otra tabla--> 
                 <!--        <div class="row mt-4">
