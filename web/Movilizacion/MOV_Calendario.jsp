@@ -619,9 +619,19 @@ function verificarDisponibilidadSolicitud() {
         });
 }
 
+// Fecha de hoy (local) en formato YYYY-MM-DD para bloquear fechas pasadas.
+function movHoyStr() {
+    var d = new Date();
+    var m = d.getMonth() + 1;
+    var day = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (day < 10 ? '0' + day : day);
+}
+document.getElementById('solFecha').min = movHoyStr();
+
 document.getElementById('btnSolicitar').addEventListener('click', function() {
     document.getElementById('solHoraFin').dataset.manual = '';
     document.getElementById('solDisponibilidad').innerHTML = '';
+    document.getElementById('solFecha').min = movHoyStr();
     modalSolicitar.show();
 });
 
@@ -635,8 +645,13 @@ var calendar = new FullCalendar.Calendar(calendarEl, {
         right: window.innerWidth < 576 ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,listWeek'
     },
     dateClick: function(info) {
+        if (info.dateStr < movHoyStr()) {
+            alert('No se puede registrar movilizaciones en fechas anteriores al dia de hoy.');
+            return;
+        }
         document.getElementById('solHoraFin').dataset.manual = '';
         document.getElementById('solFecha').value = info.dateStr;
+        document.getElementById('solFecha').min = movHoyStr();
         document.getElementById('solDisponibilidad').innerHTML = '';
         modalSolicitar.show();
     },

@@ -54,6 +54,20 @@ public class MOV_InsertarSolicitud extends HttpServlet {
             return;
         }
 
+        // No se permite registrar movilizaciones en fechas anteriores al dia de hoy.
+        try {
+            java.time.LocalDate fechaSolicitud = java.time.LocalDate.parse(fecha.trim());
+            if (fechaSolicitud.isBefore(java.time.LocalDate.now())) {
+                session.setAttribute("msg_error", "No se puede registrar movilizaciones en fechas anteriores al dia de hoy.");
+                response.sendRedirect(request.getContextPath() + "/Movilizacion/MOV_Calendario.jsp");
+                return;
+            }
+        } catch (java.time.format.DateTimeParseException ex) {
+            session.setAttribute("msg_error", "La fecha indicada no es valida.");
+            response.sendRedirect(request.getContextPath() + "/Movilizacion/MOV_Calendario.jsp");
+            return;
+        }
+
         if (horaFin == null || horaFin.trim().isEmpty()) {
             horaFin = Horario.sumarUnaHora(horaInicio);
         }
