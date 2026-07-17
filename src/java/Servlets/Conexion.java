@@ -16,10 +16,10 @@ import java.sql.SQLException;
 public class Conexion {
     
     public static String driver="oracle.jdbc.driver.OracleDriver";
-   public static String url="jdbc:oracle:thin:@181.198.203.205:1521:xe";
+   public static String url="jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet";
  //    public static String url="jdbc:oracle:thin:@192.168.0.70:1521:xe";
     public static String user="RRHH";
-    public static String pass="RRHH";
+    public static String pass="__CLAVE_RRHH_NUBE__";
     
     
     public static Connection getConnection(){
