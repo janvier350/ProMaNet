@@ -65,6 +65,7 @@
                 "SELECT p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, NVL(SUM(e.EXISTENCIA),0) AS STOCK, p.ID_UNIDAD " +
                 "FROM INV_PRODUCTO p " +
                 "LEFT JOIN INV_SUMINISTRO_EXISTENCIA e ON p.ID_PRODUCTO = e.ID_PRODUCTO " +
+                "WHERE NVL(p.ESTADO,'A') = 'A' " +
                 "GROUP BY p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, p.ID_UNIDAD " +
                 "ORDER BY STOCK ASC, p.DESCRIPCION");
         ResultSet rsProd = stProd.executeQuery();
