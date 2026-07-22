@@ -19,6 +19,7 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
     boolean puedeRegistrarIngreso = COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS");
+    boolean verOcultos = "1".equals(request.getParameter("ocultos"));
 
     // Stock thresholds (configurable)
     int UMBRAL_BAJO = 10;
@@ -62,11 +63,11 @@
 
         // All products with current stock (SUM in case of multiple rows per product)
         PreparedStatement stProd = cn.prepareStatement(
-                "SELECT p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, NVL(SUM(e.EXISTENCIA),0) AS STOCK, p.ID_UNIDAD " +
+                "SELECT p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, NVL(SUM(e.EXISTENCIA),0) AS STOCK, p.ID_UNIDAD, NVL(p.ESTADO,'A') AS ESTADO " +
                 "FROM INV_PRODUCTO p " +
                 "LEFT JOIN INV_SUMINISTRO_EXISTENCIA e ON p.ID_PRODUCTO = e.ID_PRODUCTO " +
-                "WHERE NVL(p.ESTADO,'A') = 'A' " +
-                "GROUP BY p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, p.ID_UNIDAD " +
+                (verOcultos ? "" : "WHERE NVL(p.ESTADO,'A') = 'A' ") +
+                "GROUP BY p.ID_PRODUCTO, p.DESCRIPCION, p.UNIDAD, p.ID_UNIDAD, NVL(p.ESTADO,'A') " +
                 "ORDER BY STOCK ASC, p.DESCRIPCION");
         ResultSet rsProd = stProd.executeQuery();
         while (rsProd.next()) {
@@ -77,6 +78,7 @@
             String unidad    = unidadVal.isEmpty() ? "—" : unidadVal;
             long   stock     = rsProd.getLong(4);
             String idUnidadProd = rsProd.getString(5) != null ? rsProd.getString(5) : "";
+            boolean ocultoProd  = "I".equals(rsProd.getString(6));
             totalUnidades += stock;
 
             String nivel, badgeCls, rowCls;
@@ -102,7 +104,9 @@
                       .append("<td class='text-center font-weight-bold'>").append(stock).append("</td>")
                       .append("<td class='text-center'><span class='"   ).append(badgeCls)
                       .append("' style='font-size:.73rem;padding:3px 8px;'>").append(nivel)
-                      .append("</span></td>")
+                      .append("</span>")
+                      .append(ocultoProd ? " <span class='badge badge-dark' style='font-size:.68rem;'>OCULTO</span>" : "")
+                      .append("</td>")
                       .append("<td class='text-center'>")
                       .append("<button type='button' class='btn btn-xs btn-outline-primary btn-editar-prod' style='font-size:.73rem;padding:2px 8px;' ")
                       .append("data-id='").append(idP).append("' ")
@@ -110,6 +114,9 @@
                       .append("data-unidad=\"").append(unidadAttr).append("\" ")
                       .append("data-idunidad=\"").append(idUnidadProd).append("\">")
                       .append("<i class='fa fa-pencil'></i> Editar</button>")
+                      .append(ocultoProd
+                          ? "<button type='button' class='btn btn-xs btn-success ml-1' style='font-size:.73rem;padding:2px 8px;' onclick=\"cambiarEstadoProd(" + idP + ",'reactivar')\"><i class='fa fa-undo'></i> Reactivar</button>"
+                          : "<button type='button' class='btn btn-xs btn-outline-secondary ml-1' style='font-size:.73rem;padding:2px 8px;' onclick=\"cambiarEstadoProd(" + idP + ",'ocultar')\"><i class='fa fa-eye-slash'></i> Ocultar</button>")
                       .append("</td></tr>\n");
 
             if (stock <= UMBRAL_BAJO) {
@@ -402,8 +409,15 @@
                     <small class="text-muted">ordenado por stock (menor primero)</small>
                     <span class="badge badge-secondary ml-2"><%=totalProductos%> productos</span>
                 </span>
-                <input type="text" id="buscarProd" class="form-control form-control-sm"
-                       placeholder="Buscar producto..." style="width:220px;">
+                <div class="d-flex align-items-center">
+                    <a href="INV_Existencias_Dashboard.jsp<%= verOcultos ? "" : "?ocultos=1" %>"
+                       class="btn btn-sm <%= verOcultos ? "btn-secondary" : "btn-outline-secondary" %> mr-2"
+                       style="white-space:nowrap;">
+                        <i class="fa fa-eye<%= verOcultos ? "-slash" : "" %> mr-1"></i><%= verOcultos ? "Ocultar ocultos" : "Ver ocultos" %>
+                    </a>
+                    <input type="text" id="buscarProd" class="form-control form-control-sm"
+                           placeholder="Buscar producto..." style="width:220px;">
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -415,7 +429,7 @@
                                 <th class="text-center">Unidad</th>
                                 <th class="text-center">Existencia</th>
                                 <th class="text-center" style="width:120px;">Estado</th>
-                                <th class="text-center" style="width:90px;">Acciones</th>
+                                <th class="text-center" style="width:160px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -613,6 +627,21 @@ document.querySelectorAll('.btn-editar-prod').forEach(function(btn){
         $('#modalEditarProducto').modal('show');
     });
 });
+
+function cambiarEstadoProd(id, accion){
+    var msg = (accion === 'ocultar')
+        ? '¿Ocultar este producto de la lista? Podrás reactivarlo luego con "Ver ocultos".'
+        : '¿Reactivar este producto para que vuelva a mostrarse?';
+    if (!confirm(msg)) return;
+    document.getElementById('feAccion').value = accion;
+    document.getElementById('feId').value = id;
+    document.getElementById('formEstadoProd').submit();
+}
 </script>
+
+<form id="formEstadoProd" method="post" action="<%=request.getContextPath()%>/INV_ActualizarProducto" style="display:none;">
+    <input type="hidden" name="accion" id="feAccion">
+    <input type="hidden" name="idProducto" id="feId">
+</form>
 </body>
 </html>

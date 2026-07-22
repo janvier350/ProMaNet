@@ -28,6 +28,38 @@ public class INV_ActualizarProducto extends HttpServlet {
         }
 
         request.setCharacterEncoding("UTF-8");
+
+        // Accion rapida: ocultar o reactivar un producto (soft-delete).
+        String accion = request.getParameter("accion");
+        if ("ocultar".equals(accion) || "reactivar".equals(accion)) {
+            String idProd      = request.getParameter("idProducto");
+            String nuevoEstado = "reactivar".equals(accion) ? "A" : "I";
+            String user2 = (String) session.getAttribute("userDB");
+            String pass2 = (String) session.getAttribute("passDB");
+            String url2  = "" + session.getAttribute("ipDB");
+            Connection cn2 = null;
+            try {
+                DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+                cn2 = DriverManager.getConnection(url2, user2, pass2);
+                PreparedStatement st2 = cn2.prepareStatement(
+                    "UPDATE INV_PRODUCTO SET ESTADO = ? WHERE ID_PRODUCTO = ?");
+                st2.setString(1, nuevoEstado);
+                st2.setInt(2, Integer.parseInt(idProd.trim()));
+                st2.executeUpdate();
+                st2.close();
+                session.setAttribute("msg_exito",
+                    "reactivar".equals(accion) ? "Producto reactivado." : "Producto ocultado.");
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                session.setAttribute("msg_error", "Error al cambiar el estado del producto: " + ex.getMessage());
+            } finally {
+                try { if (cn2 != null) cn2.close(); } catch (Exception e2) {}
+            }
+            String volver = "reactivar".equals(accion) ? "?ocultos=1" : "";
+            response.sendRedirect(request.getContextPath() + "/Inventario/INV_Existencias_Dashboard.jsp" + volver);
+            return;
+        }
+
         String idProducto        = request.getParameter("idProducto");
         String descripcion       = request.getParameter("descripcion");
         String unidadSeleccionada = request.getParameter("id_unidad");
