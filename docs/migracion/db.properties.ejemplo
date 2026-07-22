@@ -1,0 +1,19 @@
+# Configuracion de conexion a la base de datos - SOLO para la VM de la nube.
+# Copiar este archivo a:  /opt/promanet/db.properties  en la VM y poner la
+# clave real de RRHH.  Si este archivo NO existe, la app usa por defecto la
+# base LOCAL (ver Servlets/Conexion.java).
+#
+# En la VM (como opc):
+#   sudo mkdir -p /opt/promanet
+#   sudo tee /opt/promanet/db.properties >/dev/null <<'EOF'
+#   db.url=jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet
+#   db.user=RRHH
+#   db.pass=LA_CLAVE_REAL_DE_RRHH
+#   EOF
+#   sudo chown tomcat:tomcat /opt/promanet/db.properties
+#   sudo chmod 640 /opt/promanet/db.properties
+#   sudo systemctl restart tomcat
+
+db.url=jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet
+db.user=RRHH
+db.pass=PONER_CLAVE_REAL_DE_RRHH

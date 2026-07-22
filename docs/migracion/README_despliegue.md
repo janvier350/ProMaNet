@@ -3,21 +3,32 @@
 Base de datos: Autonomous Database (ATP) "PROMANET", region Chile Central (Santiago).
 App: Tomcat en una VM Compute Always Free.
 
-## Paso 5 - Cambios de conexion (YA HECHOS en el codigo)
+## Paso 5 - Conexion por configuracion externa (YA HECHO en el codigo)
 
-La conexion vive en 6 archivos Java (el resto de JSPs la leen de la sesion):
-- `src/java/Servlets/Ingreso.java`  (ipDB / userDB / passDB de la sesion)
-- `src/java/Servlets/Conexion.java`
-- `src/java/Servlets/FormulariosServlet.java`
-- `src/java/Servlets/generarReporteGastosMes.java`
-- `src/java/pdf/NewServlet.java`
-- `src/java/pdf/reporteGasto.java`
+La conexion ya NO esta quemada en el codigo. Todos los archivos leen los
+valores desde `Servlets/Conexion.java`, que funciona asi:
+- Por DEFECTO apunta a la base LOCAL de produccion
+  (`jdbc:oracle:thin:@181.198.203.205:1521:xe`, usuario/clave RRHH).
+- Si existe el archivo externo `/opt/promanet/db.properties` (o la ruta que
+  se pase con `-Dpromanet.db.config=...`), sus valores MANDAN.
 
-Valores nuevos:
-- URL: `jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet`
-- Usuario: `RRHH`
-- Clave: placeholder `__CLAVE_RRHH_NUBE__`  <-- REEMPLAZAR con la clave real de RRHH
-  (en NetBeans: Editar > Reemplazar en proyecto > buscar `__CLAVE_RRHH_NUBE__`)
+Ventaja: el mismo codigo/WAR sirve en local y en la nube sin editar nada.
+Hacer `git pull` en la maquina local NO cambia a donde apunta (sigue local).
+
+### En la VM de la nube: crear el archivo de config
+Ver `db.properties.ejemplo`. Resumen:
+```
+sudo mkdir -p /opt/promanet
+sudo tee /opt/promanet/db.properties >/dev/null <<'EOF'
+db.url=jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet
+db.user=RRHH
+db.pass=LA_CLAVE_REAL_DE_RRHH
+EOF
+sudo chown tomcat:tomcat /opt/promanet/db.properties
+sudo chmod 640 /opt/promanet/db.properties
+sudo systemctl restart tomcat
+```
+Ya NO hay que reemplazar ningun placeholder en el codigo antes de compilar.
 
 ## Paso 6 - Driver y librerias en el WAR
 

@@ -40,9 +40,9 @@ public class reporteGasto extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         HttpSession session = request.getSession(true);
 //        variables para trabajar en el servlet
-        String user = "RRHH";
-        String pass = "__CLAVE_RRHH_NUBE__";
-        String url = "jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet";
+        String user = Servlets.Conexion.user;
+        String pass = Servlets.Conexion.pass;
+        String url = Servlets.Conexion.url;
 
         String ejecutivo, email, departamento, descripcion = "";
         String id = request.getParameter("id");

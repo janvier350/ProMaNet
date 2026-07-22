@@ -50,9 +50,9 @@ public class NewServlet extends HttpServlet {
             throws ServletException, IOException {
 //        response.setContentType("application/pdf");
         response.setContentType("text/html;charset=UTF-8");
-        String user = "RRHH";
-        String pass = "__CLAVE_RRHH_NUBE__";
-        String url = "jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet";
+        String user = Servlets.Conexion.user;
+        String pass = Servlets.Conexion.pass;
+        String url = Servlets.Conexion.url;
 
         try (PrintWriter out = response.getWriter()) {
             /* TODO output your page here. You may use following sample code. */

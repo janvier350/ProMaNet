@@ -71,9 +71,9 @@ public class FormulariosServlet extends HttpServlet {
         String apellidos = "Apellidos1";
         String estado = "A";
 
-        String user = "RRHH";
-        String pass = "__CLAVE_RRHH_NUBE__";
-        String url = "jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet";
+        String user = Conexion.user;
+        String pass = Conexion.pass;
+        String url = Conexion.url;
         out.println("Lo que quieras escribir");
         try {
             /* TODO output your page here. You may use following sample code. */

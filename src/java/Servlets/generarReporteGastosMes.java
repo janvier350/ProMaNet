@@ -261,9 +261,9 @@ public class generarReporteGastosMes extends HttpServlet {
         }
     }
     
-    public static String url="jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet";
-    public static String user="RRHH";
-    public static String pass="RRHH";
+    public static String url = Conexion.url;
+    public static String user = Conexion.user;
+    public static String pass = Conexion.pass;
     double totalAlimentMovil ;
     
  

@@ -73,9 +73,9 @@ public class Ingreso extends HttpServlet {
                 session.setAttribute("departamento",departamento); //id
                 session.setAttribute("idDepartamento",idDepartamento); //id
                 session.setAttribute("sueldo",String.valueOf(sueldo)); //sueldo
-                session.setAttribute("ipDB","jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet");
-                session.setAttribute("userDB","RRHH");
-                session.setAttribute("passDB","__CLAVE_RRHH_NUBE__");
+                session.setAttribute("ipDB", Conexion.url);
+                session.setAttribute("userDB", Conexion.user);
+                session.setAttribute("passDB", Conexion.pass);
                 session.setAttribute("permisos", COMUN.PermisoHelper.cargarPermisos(Integer.parseInt(id.trim()), Integer.parseInt(idRol.trim()), departamento));
 
                     
