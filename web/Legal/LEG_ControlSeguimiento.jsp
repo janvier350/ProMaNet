@@ -190,7 +190,7 @@ String compania = (String) session.getAttribute("compania");
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
         <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
         <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
-        <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
     </head>
     <body class="g-sidenav-show   bg-gray-100">
@@ -346,18 +346,18 @@ String compania = (String) session.getAttribute("compania");
 
                 <%-- Tabla de Investigaciones Previas --%>
                 <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span><i class="fa fa-table mr-2 text-secondary"></i>Investigaciones Previas
+                    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <span class="mb-2 mb-md-0"><i class="fa fa-table mr-2 text-secondary"></i>Investigaciones Previas
                             <span class="badge ml-2" style="background:#6c757d;color:#fff;"><%=totalIP%> registros</span>
                         </span>
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center">
                             <a href="LEG_ControlSeguimiento.jsp<%= verEliminados ? "" : "?eliminados=1" %>"
-                               class="btn btn-sm <%= verEliminados ? "btn-secondary" : "btn-outline-secondary" %> mr-2"
+                               class="btn btn-sm <%= verEliminados ? "btn-secondary" : "btn-outline-secondary" %> mb-2 mb-sm-0 mr-sm-2 text-center"
                                style="white-space:nowrap;">
                                 <i class="fa fa-eye<%= verEliminados ? "-slash" : "" %> mr-1"></i><%= verEliminados ? "Ocultar eliminados" : "Ver eliminados" %>
                             </a>
                             <input type="text" id="buscarIP" class="form-control form-control-sm"
-                                   placeholder="Buscar..." style="width:220px;">
+                                   placeholder="Buscar..." style="width:100%;max-width:220px;">
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -581,6 +581,19 @@ String compania = (String) session.getAttribute("compania");
             var modalEditarIP = new bootstrap.Modal(document.getElementById('modalEditarIP'));
             var selectDelitoActivo = 'selDelito';
 
+            // Bootstrap 5 no soporta bien modales apilados (uno sobre otro):
+            // el modal de "Nuevo Delito" se abre reemplazando temporalmente
+            // al modal de origen (Nueva IP o Editar IP), y al cerrarse vuelve
+            // a mostrar ese modal de origen (los campos no se pierden, solo
+            // se oculta/muestra el mismo formulario).
+            var origenModalDelito = null;
+            document.getElementById('modalNuevoDelito').addEventListener('hidden.bs.modal', function () {
+                if (origenModalDelito) {
+                    origenModalDelito.show();
+                    origenModalDelito = null;
+                }
+            });
+
             var buscarIP = document.getElementById('buscarIP');
             if (buscarIP) {
                 buscarIP.addEventListener('input', function () {
@@ -633,8 +646,10 @@ String compania = (String) session.getAttribute("compania");
             document.querySelectorAll('.btn-nuevo-delito').forEach(function (btn) {
                 btn.addEventListener('click', function () {
                     selectDelitoActivo = this.getAttribute('data-target');
+                    origenModalDelito = (selectDelitoActivo === 'selDelito') ? modalNuevaIP : modalEditarIP;
                     document.getElementById('nuevoDelitoDesc').value = '';
                     document.getElementById('nuevoDelitoMsg').textContent = '';
+                    origenModalDelito.hide();
                     modalNuevoDelito.show();
                 });
             });
