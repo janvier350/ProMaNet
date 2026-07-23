@@ -60,13 +60,16 @@ String compania = (String) session.getAttribute("compania");
         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
         Connection cn = DriverManager.getConnection(url, user, pass);
 
-        // Catalogo de delitos activos, para el <select> del modal.
+        // Catalogo de delitos activos: arreglo JS para el combobox con
+        // busqueda (input + <datalist>) de los modales Nueva/Editar IP.
         PreparedStatement stDel = cn.prepareStatement(
                 "SELECT ID_DELITO, DESCRIPCION FROM LEGAL_DELITO WHERE ESTADO='A' ORDER BY DESCRIPCION");
         ResultSet rsDel = stDel.executeQuery();
         while (rsDel.next()) {
-            opcionesDelito.append("<option value='").append(rsDel.getInt(1)).append("'>")
-                    .append(rsDel.getString(2)).append("</option>\n");
+            String descJs = rsDel.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
+            if (opcionesDelito.length() > 0) opcionesDelito.append(",");
+            opcionesDelito.append("{\"id\":").append(rsDel.getInt(1))
+                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
         }
         rsDel.close();
         stDel.close();
@@ -156,10 +159,11 @@ String compania = (String) session.getAttribute("compania");
                     .append("<td>").append(esc(fiscalia)).append("</td>")
                     .append("<td>").append(esc(ubicacion)).append("</td>")
                     .append("<td class='text-center'>")
-                    .append("<button type='button' class='btn btn-xs btn-outline-info btn-ver-seg mb-1' ")
+                    .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
+                    .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg' style='padding:3px 8px;' ")
                     .append("data-id='").append(idIp).append("' data-seg=\"").append(segAttr).append("\">")
-                    .append("<i class='fa fa-list-ul'></i> ").append(cantSeg).append("</button><br>")
-                    .append("<button type='button' class='btn btn-xs btn-outline-primary btn-editar-ip mb-1' ")
+                    .append("<i class='fa fa-list-ul'></i> ").append(cantSeg).append("</button>")
+                    .append("<button type='button' class='btn btn-sm btn-outline-primary btn-editar-ip' style='padding:3px 8px;' ")
                     .append("data-id='").append(idIp).append("' ")
                     .append("data-procesado='").append(procesadoAttr).append("' ")
                     .append("data-victima='").append(victimaAttr).append("' ")
@@ -167,11 +171,11 @@ String compania = (String) session.getAttribute("compania");
                     .append("data-iddelito='").append(idDelitoRaw).append("' ")
                     .append("data-fiscalia='").append(fiscaliaAttr).append("' ")
                     .append("data-ubicacion='").append(ubicacionAttr).append("'>")
-                    .append("<i class='fa fa-pencil'></i></button> ")
+                    .append("<i class='fa fa-pencil'></i></button>")
                     .append(eliminado
-                        ? "<button type='button' class='btn btn-xs btn-outline-success' onclick=\"cambiarEstadoIP(" + idIp + ",'restaurar')\"><i class='fa fa-undo'></i></button>"
-                        : "<button type='button' class='btn btn-xs btn-outline-danger' onclick=\"cambiarEstadoIP(" + idIp + ",'eliminar')\"><i class='fa fa-trash'></i></button>")
-                    .append("</td></tr>\n");
+                        ? "<button type='button' class='btn btn-sm btn-outline-success' style='padding:3px 8px;' onclick=\"cambiarEstadoIP(" + idIp + ",'restaurar')\"><i class='fa fa-undo'></i></button>"
+                        : "<button type='button' class='btn btn-sm btn-outline-danger' style='padding:3px 8px;' onclick=\"cambiarEstadoIP(" + idIp + ",'eliminar')\"><i class='fa fa-trash'></i></button>")
+                    .append("</div></td></tr>\n");
         }
         rsIP.close();
         stIP.close();
@@ -424,16 +428,15 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Delito</label>
-                                <div class="d-flex mb-1">
-                                    <input type="text" class="form-control form-control-sm delito-filtro me-2" data-target="selDelito" placeholder="Buscar delito...">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-nuevo-delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
+                                <div class="d-flex">
+                                    <input type="text" class="form-control delito-input me-2" list="listaDelitosCrear"
+                                           id="delitoInputCrear" data-hidden="selDelito" placeholder="Escriba o busque un delito..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
                                         <i class="fa fa-plus"></i> Nuevo
                                     </button>
                                 </div>
-                                <select name="idDelito" id="selDelito" class="form-control">
-                                    <option value="">-- Seleccione --</option>
-<%=opcionesDelito.toString()%>
-                                </select>
+                                <datalist id="listaDelitosCrear"></datalist>
+                                <input type="hidden" name="idDelito" id="selDelito">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Fiscalia</label>
@@ -527,16 +530,15 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Delito</label>
-                                <div class="d-flex mb-1">
-                                    <input type="text" class="form-control form-control-sm delito-filtro me-2" data-target="selDelitoEdit" placeholder="Buscar delito...">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-nuevo-delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
+                                <div class="d-flex">
+                                    <input type="text" class="form-control delito-input me-2" list="listaDelitosEditar"
+                                           id="delitoInputEditar" data-hidden="selDelitoEdit" placeholder="Escriba o busque un delito..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
                                         <i class="fa fa-plus"></i> Nuevo
                                     </button>
                                 </div>
-                                <select name="idDelito" id="selDelitoEdit" class="form-control">
-                                    <option value="">-- Seleccione --</option>
-<%=opcionesDelito.toString()%>
-                                </select>
+                                <datalist id="listaDelitosEditar"></datalist>
+                                <input type="hidden" name="idDelito" id="selDelitoEdit">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Fiscalia</label>
@@ -605,43 +607,51 @@ String compania = (String) session.getAttribute("compania");
                 });
             }
 
-            // --- Delito: filtro rapido (reconstruye <option> desde una copia
-            // en memoria) y alta rapida via AJAX, reutilizables en ambos
-            // selects (Nueva IP y Editar IP). ---
-            function datosDelitoDesde(sel) {
-                return Array.prototype.slice.call(sel.options)
-                    .filter(function (o) { return o.value !== ''; })
-                    .map(function (o) { return {id: o.value, descripcion: o.textContent}; });
-            }
-            var delitosData = datosDelitoDesde(document.getElementById('selDelito'));
+            // --- Delito: combobox con busqueda (input + <datalist>, todo
+            // dentro del mismo campo) y alta rapida via AJAX, reutilizables
+            // en ambos modales (Nueva IP y Editar IP). ---
+            var delitosData = [<%=opcionesDelito.toString()%>];
 
-            function renderDelitoOptions(sel, filtro) {
-                var valorActual = sel.value;
-                var q = (filtro || '').toLowerCase();
-                sel.innerHTML = '';
-                var optDefault = document.createElement('option');
-                optDefault.value = '';
-                optDefault.textContent = '-- Seleccione --';
-                sel.appendChild(optDefault);
-                delitosData
-                    .filter(function (d) { return !q || d.descripcion.toLowerCase().indexOf(q) !== -1; })
-                    .forEach(function (d) {
-                        var opt = document.createElement('option');
-                        opt.value = d.id;
-                        opt.textContent = d.descripcion;
-                        sel.appendChild(opt);
-                    });
-                if (Array.prototype.slice.call(sel.options).some(function (o) { return o.value === valorActual; })) {
-                    sel.value = valorActual;
-                }
-            }
+            // Mapea el <input type="hidden" name="idDelito"> de cada modal
+            // con su campo visible (el combobox) y su <datalist>.
+            var delitoCampos = {
+                'selDelito': {input: 'delitoInputCrear', datalist: 'listaDelitosCrear'},
+                'selDelitoEdit': {input: 'delitoInputEditar', datalist: 'listaDelitosEditar'}
+            };
 
-            document.querySelectorAll('.delito-filtro').forEach(function (input) {
+            function poblarDatalist(datalistId) {
+                var dl = document.getElementById(datalistId);
+                dl.innerHTML = '';
+                delitosData.forEach(function (d) {
+                    var opt = document.createElement('option');
+                    opt.value = d.descripcion;
+                    dl.appendChild(opt);
+                });
+            }
+            Object.keys(delitoCampos).forEach(function (hiddenId) {
+                poblarDatalist(delitoCampos[hiddenId].datalist);
+            });
+
+            // Al escribir/elegir en el combobox, busca coincidencia exacta
+            // (como la escribe el datalist al seleccionar) y guarda su ID en
+            // el campo oculto que realmente se envia en el formulario.
+            document.querySelectorAll('.delito-input').forEach(function (input) {
                 input.addEventListener('input', function () {
-                    var sel = document.getElementById(this.getAttribute('data-target'));
-                    renderDelitoOptions(sel, this.value);
+                    var hidden = document.getElementById(this.getAttribute('data-hidden'));
+                    var val = this.value.trim().toLowerCase();
+                    var match = delitosData.filter(function (d) { return d.descripcion.toLowerCase() === val; })[0];
+                    hidden.value = match ? match.id : '';
                 });
             });
+
+            function fijarDelitoSeleccionado(hiddenId, idDelito) {
+                var campos = delitoCampos[hiddenId];
+                var hidden = document.getElementById(hiddenId);
+                var input = document.getElementById(campos.input);
+                hidden.value = idDelito || '';
+                var d = delitosData.filter(function (x) { return String(x.id) === String(idDelito); })[0];
+                input.value = d ? d.descripcion : '';
+            }
 
             document.querySelectorAll('.btn-nuevo-delito').forEach(function (btn) {
                 btn.addEventListener('click', function () {
@@ -670,12 +680,13 @@ String compania = (String) session.getAttribute("compania");
                             msgEl.textContent = data.mensaje || 'No se pudo guardar.';
                             return;
                         }
-                        if (!delitosData.some(function (d) { return d.id == data.id; })) {
-                            delitosData.push({id: String(data.id), descripcion: data.descripcion});
+                        if (!delitosData.some(function (d) { return String(d.id) === String(data.id); })) {
+                            delitosData.push({id: data.id, descripcion: data.descripcion});
                         }
-                        var sel = document.getElementById(selectDelitoActivo);
-                        renderDelitoOptions(sel, '');
-                        sel.value = data.id;
+                        Object.keys(delitoCampos).forEach(function (hiddenId) {
+                            poblarDatalist(delitoCampos[hiddenId].datalist);
+                        });
+                        fijarDelitoSeleccionado(selectDelitoActivo, data.id);
                         modalNuevoDelito.hide();
                     })
                     .catch(function () {
@@ -693,9 +704,7 @@ String compania = (String) session.getAttribute("compania");
                     document.getElementById('editFiscalia').value = this.getAttribute('data-fiscalia');
                     document.getElementById('editUbicacion').value = this.getAttribute('data-ubicacion');
 
-                    var selEdit = document.getElementById('selDelitoEdit');
-                    renderDelitoOptions(selEdit, '');
-                    selEdit.value = this.getAttribute('data-iddelito') || '';
+                    fijarDelitoSeleccionado('selDelitoEdit', this.getAttribute('data-iddelito'));
 
                     modalEditarIP.show();
                 });
