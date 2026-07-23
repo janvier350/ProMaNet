@@ -49,6 +49,12 @@ public class MOV_EventosJson extends HttpServlet {
         String estadoFiltro = request.getParameter("estado");
         if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) estadoFiltro = null;
 
+        // Confidencialidad: motivo y comentario solo los ve quien creo la
+        // solicitud o quien gestiona movilizacion (Smoran).
+        int miId = -1;
+        try { miId = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
+        boolean puedeGestionar = PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR");
+
         Connection cn = null;
         try {
             cn = Servlets.Conexion.getConnection();
@@ -84,9 +90,14 @@ public class MOV_EventosJson extends HttpServlet {
 
                         String destinoTitulo = rs.getString(16);
 
+                        int idSolicitante = rs.getInt(11);
+                        boolean verDetalle = puedeGestionar || (idSolicitante == miId);
+                        String motivoStr = rs.getString(9);
+
                         JSONObject ev = new JSONObject();
                         ev.put("id", rs.getInt(1));
-                        ev.put("title", rs.getString(10) + " - " + rs.getString(9)
+                        ev.put("title", rs.getString(10)
+                                + (verDetalle && motivoStr != null ? " - " + motivoStr : "")
                                 + (destinoTitulo != null ? " - " + destinoTitulo : ""));
                         ev.put("start", fecha + "T" + horaInicio);
                         ev.put("end", fecha + "T" + horaFin);
@@ -98,11 +109,12 @@ public class MOV_EventosJson extends HttpServlet {
                         props.put("horaInicio", horaInicio);
                         props.put("horaFin", horaFin);
                         props.put("movilizador", rs.getString(8));
-                        props.put("motivo", rs.getString(9));
+                        props.put("motivo", verDetalle && motivoStr != null ? motivoStr : "");
                         props.put("solicitante", rs.getString(10));
-                        props.put("idUsuario", rs.getInt(11));
+                        props.put("idUsuario", idSolicitante);
                         props.put("departamento", rs.getString(12) != null ? rs.getString(12) : "");
-                        props.put("comentario", rs.getString(6) != null ? rs.getString(6) : "");
+                        props.put("comentario", verDetalle && rs.getString(6) != null ? rs.getString(6) : "");
+                        props.put("verDetalle", verDetalle);
                         props.put("gestionadoPor", rs.getString(13) != null ? rs.getString(13) : "");
                         props.put("motivoRechazo", rs.getString(7) != null ? rs.getString(7) : "");
                         props.put("fechaSolicitud", rs.getString(14));
