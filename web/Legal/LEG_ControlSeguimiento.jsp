@@ -50,6 +50,8 @@ String compania = (String) session.getAttribute("compania");
     session.removeAttribute("msg_exito");
     session.removeAttribute("msg_error");
 
+    boolean verEliminados = "1".equals(request.getParameter("eliminados"));
+
     StringBuilder opcionesDelito = new StringBuilder();
     StringBuilder filasIP = new StringBuilder();
     int totalIP = 0;
@@ -108,11 +110,11 @@ String compania = (String) session.getAttribute("compania");
         PreparedStatement stIP = cn.prepareStatement(
                 "SELECT ip.ID_LEGAL_IP, ip.PROCESADO, ip.VICTIMA, ip.PROCESO, d.DESCRIPCION, " +
                 "ip.FISCALIA, ip.UBICACION, u.NOMBRE||' '||u.APELLIDOS, " +
-                "TO_CHAR(ip.FECHA_CREACION,'DD/MM/YYYY HH24:MI') " +
+                "TO_CHAR(ip.FECHA_CREACION,'DD/MM/YYYY HH24:MI'), ip.ID_DELITO, ip.ESTADO " +
                 "FROM LEGAL_IP ip " +
                 "LEFT JOIN LEGAL_DELITO d ON ip.ID_DELITO = d.ID_DELITO " +
                 "JOIN USUARIO u ON ip.ID_USUARIO_CREA = u.IDUSUARIO " +
-                "WHERE ip.ESTADO = 'A' " +
+                (verEliminados ? "" : "WHERE ip.ESTADO = 'A' ") +
                 "ORDER BY ip.FECHA_CREACION DESC");
         ResultSet rsIP = stIP.executeQuery();
         while (rsIP.next()) {
@@ -120,12 +122,14 @@ String compania = (String) session.getAttribute("compania");
             int idIp = rsIP.getInt(1);
             String procesado = rsIP.getString(2) != null ? rsIP.getString(2) : "";
             String victima = rsIP.getString(3) != null ? rsIP.getString(3) : "";
-            String proceso = rsIP.getString(4) != null ? rsIP.getString(4) : "—";
+            String proceso = rsIP.getString(4) != null ? rsIP.getString(4) : "";
             String delito = rsIP.getString(5) != null ? rsIP.getString(5) : "—";
-            String fiscalia = rsIP.getString(6) != null ? rsIP.getString(6) : "—";
-            String ubicacion = rsIP.getString(7) != null ? rsIP.getString(7) : "—";
+            String fiscalia = rsIP.getString(6) != null ? rsIP.getString(6) : "";
+            String ubicacion = rsIP.getString(7) != null ? rsIP.getString(7) : "";
             String creador = rsIP.getString(8);
             String fechaCrea = rsIP.getString(9);
+            String idDelitoRaw = rsIP.getString(10) != null ? rsIP.getString(10) : "";
+            boolean eliminado = "I".equals(rsIP.getString(11));
 
             StringBuilder segSb = mapaSeg.get(idIp);
             String segJson = "[" + (segSb != null ? segSb.toString() : "") + "]";
@@ -135,19 +139,38 @@ String compania = (String) session.getAttribute("compania");
 
             String buscaIdx = (procesado + " " + victima + " " + delito).toLowerCase().replace("'", "");
 
+            String procesadoAttr = esc(procesado).replace("'", "&#39;");
+            String victimaAttr = esc(victima).replace("'", "&#39;");
+            String procesoAttr = esc(proceso).replace("'", "&#39;");
+            String fiscaliaAttr = esc(fiscalia).replace("'", "&#39;");
+            String ubicacionAttr = esc(ubicacion).replace("'", "&#39;");
+
             filasIP.append("<tr data-desc='").append(buscaIdx).append("'>")
                     .append("<td>").append(esc(procesado))
+                    .append(eliminado ? " <span class='badge' style='background:#dc3545;color:#fff;'>ELIMINADO</span>" : "")
                     .append("<br><small class='text-muted'>Registrado por ").append(esc(creador))
                     .append(" &middot; ").append(fechaCrea).append("</small></td>")
                     .append("<td>").append(esc(victima)).append("</td>")
                     .append("<td>").append(esc(proceso)).append("</td>")
-                    .append("<td><span class='badge badge-secondary'>").append(esc(delito)).append("</span></td>")
+                    .append("<td><span class='badge' style='background:#17a2b8;color:#fff;'>").append(esc(delito)).append("</span></td>")
                     .append("<td>").append(esc(fiscalia)).append("</td>")
                     .append("<td>").append(esc(ubicacion)).append("</td>")
                     .append("<td class='text-center'>")
-                    .append("<button type='button' class='btn btn-xs btn-outline-info btn-ver-seg' ")
+                    .append("<button type='button' class='btn btn-xs btn-outline-info btn-ver-seg mb-1' ")
                     .append("data-id='").append(idIp).append("' data-seg=\"").append(segAttr).append("\">")
-                    .append("<i class='fa fa-list-ul'></i> ").append(cantSeg).append("</button>")
+                    .append("<i class='fa fa-list-ul'></i> ").append(cantSeg).append("</button><br>")
+                    .append("<button type='button' class='btn btn-xs btn-outline-primary btn-editar-ip mb-1' ")
+                    .append("data-id='").append(idIp).append("' ")
+                    .append("data-procesado='").append(procesadoAttr).append("' ")
+                    .append("data-victima='").append(victimaAttr).append("' ")
+                    .append("data-proceso='").append(procesoAttr).append("' ")
+                    .append("data-iddelito='").append(idDelitoRaw).append("' ")
+                    .append("data-fiscalia='").append(fiscaliaAttr).append("' ")
+                    .append("data-ubicacion='").append(ubicacionAttr).append("'>")
+                    .append("<i class='fa fa-pencil'></i></button> ")
+                    .append(eliminado
+                        ? "<button type='button' class='btn btn-xs btn-outline-success' onclick=\"cambiarEstadoIP(" + idIp + ",'restaurar')\"><i class='fa fa-undo'></i></button>"
+                        : "<button type='button' class='btn btn-xs btn-outline-danger' onclick=\"cambiarEstadoIP(" + idIp + ",'eliminar')\"><i class='fa fa-trash'></i></button>")
                     .append("</td></tr>\n");
         }
         rsIP.close();
@@ -325,10 +348,17 @@ String compania = (String) session.getAttribute("compania");
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span><i class="fa fa-table mr-2 text-secondary"></i>Investigaciones Previas
-                            <span class="badge badge-secondary ml-2"><%=totalIP%> registros</span>
+                            <span class="badge ml-2" style="background:#6c757d;color:#fff;"><%=totalIP%> registros</span>
                         </span>
-                        <input type="text" id="buscarIP" class="form-control form-control-sm"
-                               placeholder="Buscar..." style="width:220px;">
+                        <div class="d-flex align-items-center">
+                            <a href="LEG_ControlSeguimiento.jsp<%= verEliminados ? "" : "?eliminados=1" %>"
+                               class="btn btn-sm <%= verEliminados ? "btn-secondary" : "btn-outline-secondary" %> mr-2"
+                               style="white-space:nowrap;">
+                                <i class="fa fa-eye<%= verEliminados ? "-slash" : "" %> mr-1"></i><%= verEliminados ? "Ocultar eliminados" : "Ver eliminados" %>
+                            </a>
+                            <input type="text" id="buscarIP" class="form-control form-control-sm"
+                                   placeholder="Buscar..." style="width:220px;">
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -375,9 +405,9 @@ String compania = (String) session.getAttribute("compania");
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <form action="../LEG_InsertarIP" method="post">
-                        <div class="modal-header" style="background:#17a2b8;color:#fff;">
-                            <h5 class="modal-title"><i class="fa fa-search mr-2"></i>Investigacion Previa</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="modal-header" style="background:#17a2b8;">
+                            <h5 class="modal-title" style="color:#fff;"><i class="fa fa-search mr-2"></i>Investigacion Previa</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                         </div>
                         <div class="modal-body">
                             <div class="form-group mb-2">
@@ -394,15 +424,16 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Delito</label>
-                                <div class="input-group">
-                                    <select name="idDelito" id="selDelito" class="form-control">
-                                        <option value="">-- Seleccione --</option>
-<%=opcionesDelito.toString()%>
-                                    </select>
-                                    <button type="button" class="btn btn-outline-secondary" id="btnNuevoDelito" title="Nuevo delito">
-                                        <i class="fa fa-plus"></i>
+                                <div class="d-flex mb-1">
+                                    <input type="text" class="form-control form-control-sm delito-filtro me-2" data-target="selDelito" placeholder="Buscar delito...">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-nuevo-delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
                                     </button>
                                 </div>
+                                <select name="idDelito" id="selDelito" class="form-control">
+                                    <option value="">-- Seleccione --</option>
+<%=opcionesDelito.toString()%>
+                                </select>
                             </div>
                             <div class="form-group mb-2">
                                 <label>Fiscalia</label>
@@ -426,9 +457,9 @@ String compania = (String) session.getAttribute("compania");
         <div class="modal fade" id="modalNuevoDelito" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background:#6c757d;color:#fff;">
-                        <h5 class="modal-title"><i class="fa fa-gavel mr-2"></i>Nuevo Delito</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header" style="background:#6c757d;">
+                        <h5 class="modal-title" style="color:#fff;"><i class="fa fa-gavel mr-2"></i>Nuevo Delito</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group mb-0">
@@ -449,9 +480,9 @@ String compania = (String) session.getAttribute("compania");
         <div class="modal fade" id="modalSeguimiento" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <div class="modal-header" style="background:#3d5a99;color:#fff;">
-                        <h5 class="modal-title"><i class="fa fa-list-ul mr-2"></i>Seguimiento IP</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header" style="background:#3d5a99;">
+                        <h5 class="modal-title" style="color:#fff;"><i class="fa fa-list-ul mr-2"></i>Seguimiento IP</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                     </div>
                     <div class="modal-body">
                         <div id="listaSeguimientos" style="max-height:260px;overflow-y:auto;" class="mb-3"></div>
@@ -471,6 +502,65 @@ String compania = (String) session.getAttribute("compania");
             </div>
         </div>
 
+        <%-- Modal: Editar Investigacion Previa --%>
+        <div class="modal fade" id="modalEditarIP" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form action="../LEG_ActualizarIP" method="post">
+                        <input type="hidden" name="idLegalIp" id="editIdLegalIp">
+                        <div class="modal-header" style="background:#3d5a99;">
+                            <h5 class="modal-title" style="color:#fff;"><i class="fa fa-pencil mr-2"></i>Editar Investigacion Previa</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-2">
+                                <label>Procesado</label>
+                                <input type="text" name="procesado" id="editProcesado" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Victima</label>
+                                <input type="text" name="victima" id="editVictima" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Proceso</label>
+                                <input type="text" name="proceso" id="editProceso" class="form-control" maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Delito</label>
+                                <div class="d-flex mb-1">
+                                    <input type="text" class="form-control form-control-sm delito-filtro me-2" data-target="selDelitoEdit" placeholder="Buscar delito...">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm btn-nuevo-delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
+                                    </button>
+                                </div>
+                                <select name="idDelito" id="selDelitoEdit" class="form-control">
+                                    <option value="">-- Seleccione --</option>
+<%=opcionesDelito.toString()%>
+                                </select>
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Fiscalia</label>
+                                <input type="text" name="fiscalia" id="editFiscalia" class="form-control" maxlength="300">
+                            </div>
+                            <div class="form-group mb-0">
+                                <label>Ubicacion</label>
+                                <input type="text" name="ubicacion" id="editUbicacion" class="form-control" maxlength="150">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <form id="formEstadoIP" method="post" action="../LEG_ActualizarIP" style="display:none;">
+            <input type="hidden" name="accion" id="ipAccion">
+            <input type="hidden" name="idLegalIp" id="ipAccionId">
+        </form>
+
         <script src="../assets/js/core/popper.min.js"></script>
         <script src="../assets/js/core/bootstrap.min.js"></script>
         <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
@@ -488,6 +578,8 @@ String compania = (String) session.getAttribute("compania");
             var modalNuevaIP = new bootstrap.Modal(document.getElementById('modalNuevaIP'));
             var modalNuevoDelito = new bootstrap.Modal(document.getElementById('modalNuevoDelito'));
             var modalSeguimiento = new bootstrap.Modal(document.getElementById('modalSeguimiento'));
+            var modalEditarIP = new bootstrap.Modal(document.getElementById('modalEditarIP'));
+            var selectDelitoActivo = 'selDelito';
 
             var buscarIP = document.getElementById('buscarIP');
             if (buscarIP) {
@@ -500,10 +592,51 @@ String compania = (String) session.getAttribute("compania");
                 });
             }
 
-            document.getElementById('btnNuevoDelito').addEventListener('click', function () {
-                document.getElementById('nuevoDelitoDesc').value = '';
-                document.getElementById('nuevoDelitoMsg').textContent = '';
-                modalNuevoDelito.show();
+            // --- Delito: filtro rapido (reconstruye <option> desde una copia
+            // en memoria) y alta rapida via AJAX, reutilizables en ambos
+            // selects (Nueva IP y Editar IP). ---
+            function datosDelitoDesde(sel) {
+                return Array.prototype.slice.call(sel.options)
+                    .filter(function (o) { return o.value !== ''; })
+                    .map(function (o) { return {id: o.value, descripcion: o.textContent}; });
+            }
+            var delitosData = datosDelitoDesde(document.getElementById('selDelito'));
+
+            function renderDelitoOptions(sel, filtro) {
+                var valorActual = sel.value;
+                var q = (filtro || '').toLowerCase();
+                sel.innerHTML = '';
+                var optDefault = document.createElement('option');
+                optDefault.value = '';
+                optDefault.textContent = '-- Seleccione --';
+                sel.appendChild(optDefault);
+                delitosData
+                    .filter(function (d) { return !q || d.descripcion.toLowerCase().indexOf(q) !== -1; })
+                    .forEach(function (d) {
+                        var opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.descripcion;
+                        sel.appendChild(opt);
+                    });
+                if (Array.prototype.slice.call(sel.options).some(function (o) { return o.value === valorActual; })) {
+                    sel.value = valorActual;
+                }
+            }
+
+            document.querySelectorAll('.delito-filtro').forEach(function (input) {
+                input.addEventListener('input', function () {
+                    var sel = document.getElementById(this.getAttribute('data-target'));
+                    renderDelitoOptions(sel, this.value);
+                });
+            });
+
+            document.querySelectorAll('.btn-nuevo-delito').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    selectDelitoActivo = this.getAttribute('data-target');
+                    document.getElementById('nuevoDelitoDesc').value = '';
+                    document.getElementById('nuevoDelitoMsg').textContent = '';
+                    modalNuevoDelito.show();
+                });
             });
 
             document.getElementById('btnGuardarDelito').addEventListener('click', function () {
@@ -522,28 +655,47 @@ String compania = (String) session.getAttribute("compania");
                             msgEl.textContent = data.mensaje || 'No se pudo guardar.';
                             return;
                         }
-                        var sel = document.getElementById('selDelito');
-                        var yaExiste = false;
-                        for (var i = 0; i < sel.options.length; i++) {
-                            if (sel.options[i].value == data.id) {
-                                yaExiste = true;
-                                sel.selectedIndex = i;
-                                break;
-                            }
+                        if (!delitosData.some(function (d) { return d.id == data.id; })) {
+                            delitosData.push({id: String(data.id), descripcion: data.descripcion});
                         }
-                        if (!yaExiste) {
-                            var opt = document.createElement('option');
-                            opt.value = data.id;
-                            opt.textContent = data.descripcion;
-                            sel.appendChild(opt);
-                            sel.value = data.id;
-                        }
+                        var sel = document.getElementById(selectDelitoActivo);
+                        renderDelitoOptions(sel, '');
+                        sel.value = data.id;
                         modalNuevoDelito.hide();
                     })
                     .catch(function () {
                         msgEl.textContent = 'Error de conexion.';
                     });
             });
+
+            // --- Editar Investigacion Previa ---
+            document.querySelectorAll('.btn-editar-ip').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.getElementById('editIdLegalIp').value = this.getAttribute('data-id');
+                    document.getElementById('editProcesado').value = this.getAttribute('data-procesado');
+                    document.getElementById('editVictima').value = this.getAttribute('data-victima');
+                    document.getElementById('editProceso').value = this.getAttribute('data-proceso');
+                    document.getElementById('editFiscalia').value = this.getAttribute('data-fiscalia');
+                    document.getElementById('editUbicacion').value = this.getAttribute('data-ubicacion');
+
+                    var selEdit = document.getElementById('selDelitoEdit');
+                    renderDelitoOptions(selEdit, '');
+                    selEdit.value = this.getAttribute('data-iddelito') || '';
+
+                    modalEditarIP.show();
+                });
+            });
+
+            // --- Eliminar / Restaurar (soft-delete) ---
+            window.cambiarEstadoIP = function (id, accion) {
+                var msg = (accion === 'eliminar')
+                    ? '¿Eliminar esta Investigacion Previa? Podras restaurarla luego con "Ver eliminados".'
+                    : '¿Restaurar esta Investigacion Previa para que vuelva a la lista?';
+                if (!confirm(msg)) return;
+                document.getElementById('ipAccion').value = accion;
+                document.getElementById('ipAccionId').value = id;
+                document.getElementById('formEstadoIP').submit();
+            };
 
             document.querySelectorAll('.btn-ver-seg').forEach(function (btn) {
                 btn.addEventListener('click', function () {
