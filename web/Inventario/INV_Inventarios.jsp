@@ -359,7 +359,7 @@ String compania = (String) session.getAttribute("compania");
                                     </li>
                                 </ul>
                             </li>
-                            <li class="nav-item d-flex align-items-center">
+                            <li class="nav-item ps-3 d-flex align-items-center">
                                 <a href="../cerrar.jsp" class="nav-link text-white font-weight-bold px-0">
                                     <i class="fa fa-power-off me-sm-1"></i>
                                     <span class="d-sm-inline d-none"> 

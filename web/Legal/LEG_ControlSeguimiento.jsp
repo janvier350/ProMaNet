@@ -65,30 +65,26 @@ String compania = (String) session.getAttribute("compania");
         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
         Connection cn = DriverManager.getConnection(url, user, pass);
 
-        // Catalogo de delitos activos: arreglo JS para el combobox con
-        // busqueda (input + <datalist>) de los modales Nueva/Editar IP.
+        // Catalogo de delitos activos: <option> para los selects Select2
+        // (con busqueda) de los modales Nueva/Editar IP.
         PreparedStatement stDel = cn.prepareStatement(
                 "SELECT ID_DELITO, DESCRIPCION FROM LEGAL_DELITO WHERE ESTADO='A' ORDER BY DESCRIPCION");
         ResultSet rsDel = stDel.executeQuery();
         while (rsDel.next()) {
-            String descJs = rsDel.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
-            if (opcionesDelito.length() > 0) opcionesDelito.append(",");
-            opcionesDelito.append("{\"id\":").append(rsDel.getInt(1))
-                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
+            opcionesDelito.append("<option value=\"").append(rsDel.getInt(1)).append("\">")
+                    .append(esc(rsDel.getString(2))).append("</option>");
         }
         rsDel.close();
         stDel.close();
 
-        // Catalogo de materias activas: mismo formato JS que Delito, para
-        // el combobox de los modales Nuevo/Editar EXPEL.
+        // Catalogo de materias activas: mismo formato que Delito, para los
+        // selects de los modales Nuevo/Editar EXPEL.
         PreparedStatement stMat = cn.prepareStatement(
                 "SELECT ID_MATERIA, DESCRIPCION FROM LEGAL_MATERIA WHERE ESTADO='A' ORDER BY DESCRIPCION");
         ResultSet rsMat = stMat.executeQuery();
         while (rsMat.next()) {
-            String descJs = rsMat.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
-            if (opcionesMateria.length() > 0) opcionesMateria.append(",");
-            opcionesMateria.append("{\"id\":").append(rsMat.getInt(1))
-                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
+            opcionesMateria.append("<option value=\"").append(rsMat.getInt(1)).append("\">")
+                    .append(esc(rsMat.getString(2))).append("</option>");
         }
         rsMat.close();
         stMat.close();
@@ -98,10 +94,8 @@ String compania = (String) session.getAttribute("compania");
                 "SELECT ID_TIPO_ACCION, DESCRIPCION FROM LEGAL_TIPO_ACCION WHERE ESTADO='A' ORDER BY DESCRIPCION");
         ResultSet rsTipo = stTipo.executeQuery();
         while (rsTipo.next()) {
-            String descJs = rsTipo.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
-            if (opcionesTipoAccion.length() > 0) opcionesTipoAccion.append(",");
-            opcionesTipoAccion.append("{\"id\":").append(rsTipo.getInt(1))
-                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
+            opcionesTipoAccion.append("<option value=\"").append(rsTipo.getInt(1)).append("\">")
+                    .append(esc(rsTipo.getString(2))).append("</option>");
         }
         rsTipo.close();
         stTipo.close();
@@ -333,6 +327,10 @@ String compania = (String) session.getAttribute("compania");
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
         <link rel="stylesheet" href="../assets/css/custom-sidenav-toggle.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     </head>
     <body class="g-sidenav-show   bg-gray-100">
         <div class="min-height-300 bg-primary position-absolute w-100"></div>
@@ -431,7 +429,7 @@ String compania = (String) session.getAttribute("compania");
                                     </div>
                                 </a>
                             </li>
-                            <li class="nav-item d-flex align-items-center">
+                            <li class="nav-item ps-3 d-flex align-items-center">
                                 <a href="../cerrar.jsp" class="nav-link text-white font-weight-bold px-0">
                                     <i class="fa fa-power-off me-sm-1"></i>
                                 </a>
@@ -629,15 +627,15 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Delito</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaDelitosCrear"
-                                           id="delitoInputCrear" data-hidden="selDelito" placeholder="Escriba o busque un delito..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idDelito" id="selDelito" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesDelito.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selDelito" title="Nuevo delito"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaDelitosCrear"></datalist>
-                                <input type="hidden" name="idDelito" id="selDelito">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Fiscalia</label>
@@ -731,15 +729,15 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Delito</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaDelitosEditar"
-                                           id="delitoInputEditar" data-hidden="selDelitoEdit" placeholder="Escriba o busque un delito..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idDelito" id="selDelitoEdit" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesDelito.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selDelitoEdit" title="Nuevo delito"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaDelitosEditar"></datalist>
-                                <input type="hidden" name="idDelito" id="selDelitoEdit">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Fiscalia</label>
@@ -788,27 +786,27 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Materia</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaMateriasCrear"
-                                           id="materiaInputCrear" data-hidden="selMateria" placeholder="Escriba o busque una materia..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="materia" data-target="selMateria" title="Nueva materia" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idMateria" id="selMateria" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesMateria.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selMateria" title="Nueva materia"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaMateriasCrear"></datalist>
-                                <input type="hidden" name="idMateria" id="selMateria">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Tipo de Accion</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaTiposAccionCrear"
-                                           id="tipoAccionInputCrear" data-hidden="selTipoAccion" placeholder="Escriba o busque un tipo de accion..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="tipoAccion" data-target="selTipoAccion" title="Nuevo tipo de accion" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idTipoAccion" id="selTipoAccion" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesTipoAccion.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selTipoAccion" title="Nuevo tipo de accion"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaTiposAccionCrear"></datalist>
-                                <input type="hidden" name="idTipoAccion" id="selTipoAccion">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Asunto</label>
@@ -853,27 +851,27 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <div class="form-group mb-2">
                                 <label>Materia</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaMateriasEditar"
-                                           id="materiaInputEditar" data-hidden="selMateriaEdit" placeholder="Escriba o busque una materia..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="materia" data-target="selMateriaEdit" title="Nueva materia" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idMateria" id="selMateriaEdit" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesMateria.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selMateriaEdit" title="Nueva materia"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaMateriasEditar"></datalist>
-                                <input type="hidden" name="idMateria" id="selMateriaEdit">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Tipo de Accion</label>
-                                <div class="d-flex">
-                                    <input type="text" class="form-control catalogo-input me-2" list="listaTiposAccionEditar"
-                                           id="tipoAccionInputEditar" data-hidden="selTipoAccionEdit" placeholder="Escriba o busque un tipo de accion..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="tipoAccion" data-target="selTipoAccionEdit" title="Nuevo tipo de accion" style="white-space:nowrap;">
-                                        <i class="fa fa-plus"></i> Nuevo
-                                    </button>
+                                <div class="d-flex align-items-start" style="gap:6px;">
+                                    <div class="flex-grow-1">
+                                        <select name="idTipoAccion" id="selTipoAccionEdit" class="form-control select2-modal">
+                                            <option value=""></option>
+<%=opcionesTipoAccion.toString()%>
+                                        </select>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-secondary flex-shrink-0 btn-nuevo-catalogo" data-target="selTipoAccionEdit" title="Nuevo tipo de accion"><i class="fa fa-plus"></i></button>
                                 </div>
-                                <datalist id="listaTiposAccionEditar"></datalist>
-                                <input type="hidden" name="idTipoAccion" id="selTipoAccionEdit">
                             </div>
                             <div class="form-group mb-2">
                                 <label>Asunto</label>
@@ -988,83 +986,52 @@ String compania = (String) session.getAttribute("compania");
                 });
             }
 
-            // --- Catalogos (Delito, Materia, Tipo de Accion): combobox con
-            // busqueda (input + <datalist>, todo dentro del mismo campo) y
-            // alta rapida via AJAX, con la misma logica para los tres,
+            // --- Catalogos (Delito, Materia, Tipo de Accion): select con
+            // busqueda rapida (Select2, igual que en Solicitar Movilizacion)
+            // y alta rapida via AJAX, con la misma logica para los tres,
             // reutilizables en los modales de Nueva/Editar IP y EXPEL. ---
-            var delitosData = [<%=opcionesDelito.toString()%>];
-            var materiasData = [<%=opcionesMateria.toString()%>];
-            var tiposAccionData = [<%=opcionesTipoAccion.toString()%>];
+            document.querySelectorAll('.modal').forEach(function (modalEl) {
+                var $modal = $(modalEl);
+                var $selects = $modal.find('.select2-modal');
+                if ($selects.length) {
+                    $selects.select2({theme: 'bootstrap-5', width: '100%', dropdownParent: $modal, allowClear: true, placeholder: ''});
+                }
+            });
 
             var catalogosConfig = {
                 'delito': {
                     endpoint: 'LEG_InsertarDelito',
                     titulo: '<i class="fa fa-gavel mr-2"></i>Nuevo Delito',
                     label: 'Nombre del delito',
-                    data: delitosData
+                    selects: ['selDelito', 'selDelitoEdit']
                 },
                 'materia': {
                     endpoint: 'LEG_InsertarMateria',
                     titulo: '<i class="fa fa-gavel mr-2"></i>Nueva Materia',
                     label: 'Nombre de la materia',
-                    data: materiasData
+                    selects: ['selMateria', 'selMateriaEdit']
                 },
                 'tipoAccion': {
                     endpoint: 'LEG_InsertarTipoAccion',
                     titulo: '<i class="fa fa-gavel mr-2"></i>Nuevo Tipo de Accion',
                     label: 'Nombre del tipo de accion',
-                    data: tiposAccionData
+                    selects: ['selTipoAccion', 'selTipoAccionEdit']
                 }
             };
 
-            // Mapea el <input type="hidden"> de cada modal con su campo
-            // visible (el combobox), su <datalist> y el modal al que
-            // pertenece.
+            // Mapea el id de cada <select> con su catalogo y el modal al
+            // que pertenece.
             var camposCatalogo = {
-                'selDelito': {input: 'delitoInputCrear', datalist: 'listaDelitosCrear', catalogo: 'delito', modal: 'modalNuevaIP'},
-                'selDelitoEdit': {input: 'delitoInputEditar', datalist: 'listaDelitosEditar', catalogo: 'delito', modal: 'modalEditarIP'},
-                'selMateria': {input: 'materiaInputCrear', datalist: 'listaMateriasCrear', catalogo: 'materia', modal: 'modalNuevoExpel'},
-                'selMateriaEdit': {input: 'materiaInputEditar', datalist: 'listaMateriasEditar', catalogo: 'materia', modal: 'modalEditarExpel'},
-                'selTipoAccion': {input: 'tipoAccionInputCrear', datalist: 'listaTiposAccionCrear', catalogo: 'tipoAccion', modal: 'modalNuevoExpel'},
-                'selTipoAccionEdit': {input: 'tipoAccionInputEditar', datalist: 'listaTiposAccionEditar', catalogo: 'tipoAccion', modal: 'modalEditarExpel'}
+                'selDelito': {catalogo: 'delito', modal: 'modalNuevaIP'},
+                'selDelitoEdit': {catalogo: 'delito', modal: 'modalEditarIP'},
+                'selMateria': {catalogo: 'materia', modal: 'modalNuevoExpel'},
+                'selMateriaEdit': {catalogo: 'materia', modal: 'modalEditarExpel'},
+                'selTipoAccion': {catalogo: 'tipoAccion', modal: 'modalNuevoExpel'},
+                'selTipoAccionEdit': {catalogo: 'tipoAccion', modal: 'modalEditarExpel'}
             };
 
-            function poblarDatalist(datalistId, data) {
-                var dl = document.getElementById(datalistId);
-                dl.innerHTML = '';
-                data.forEach(function (d) {
-                    var opt = document.createElement('option');
-                    opt.value = d.descripcion;
-                    dl.appendChild(opt);
-                });
-            }
-            Object.keys(camposCatalogo).forEach(function (hiddenId) {
-                var c = camposCatalogo[hiddenId];
-                poblarDatalist(c.datalist, catalogosConfig[c.catalogo].data);
-            });
-
-            // Al escribir/elegir en el combobox, busca coincidencia exacta
-            // (como la escribe el datalist al seleccionar) y guarda su ID en
-            // el campo oculto que realmente se envia en el formulario.
-            document.querySelectorAll('.catalogo-input').forEach(function (input) {
-                input.addEventListener('input', function () {
-                    var hiddenId = this.getAttribute('data-hidden');
-                    var hidden = document.getElementById(hiddenId);
-                    var data = catalogosConfig[camposCatalogo[hiddenId].catalogo].data;
-                    var val = this.value.trim().toLowerCase();
-                    var match = data.filter(function (d) { return d.descripcion.toLowerCase() === val; })[0];
-                    hidden.value = match ? match.id : '';
-                });
-            });
-
-            function fijarCatalogoSeleccionado(hiddenId, idValor) {
-                var campos = camposCatalogo[hiddenId];
-                var hidden = document.getElementById(hiddenId);
-                var input = document.getElementById(campos.input);
-                hidden.value = idValor || '';
-                var data = catalogosConfig[campos.catalogo].data;
-                var d = data.filter(function (x) { return String(x.id) === String(idValor); })[0];
-                input.value = d ? d.descripcion : '';
+            function fijarCatalogoSeleccionado(selectId, idValor) {
+                $('#' + selectId).val(idValor || '').trigger('change');
             }
 
             var catalogoActivo = null;
@@ -1101,12 +1068,13 @@ String compania = (String) session.getAttribute("compania");
                             msgEl.textContent = data.mensaje || 'No se pudo guardar.';
                             return;
                         }
-                        if (!cfg.data.some(function (d) { return String(d.id) === String(data.id); })) {
-                            cfg.data.push({id: data.id, descripcion: data.descripcion});
-                        }
-                        Object.keys(camposCatalogo).forEach(function (hiddenId) {
-                            var c = camposCatalogo[hiddenId];
-                            if (c.catalogo === campos.catalogo) poblarDatalist(c.datalist, cfg.data);
+                        // agrega la nueva opcion a los selects de este catalogo
+                        // (Crear y Editar) que aun no la tengan.
+                        cfg.selects.forEach(function (selId) {
+                            var $sel = $('#' + selId);
+                            if ($sel.find('option[value="' + data.id + '"]').length === 0) {
+                                $sel.append(new Option(data.descripcion, data.id, false, false));
+                            }
                         });
                         fijarCatalogoSeleccionado(catalogoActivo, data.id);
                         modalNuevoCatalogo.hide();
