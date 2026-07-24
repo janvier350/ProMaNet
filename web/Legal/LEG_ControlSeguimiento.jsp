@@ -51,10 +51,15 @@ String compania = (String) session.getAttribute("compania");
     session.removeAttribute("msg_error");
 
     boolean verEliminados = "1".equals(request.getParameter("eliminados"));
+    boolean verEliminadosExpel = "1".equals(request.getParameter("eliminadosExpel"));
 
     StringBuilder opcionesDelito = new StringBuilder();
+    StringBuilder opcionesMateria = new StringBuilder();
+    StringBuilder opcionesTipoAccion = new StringBuilder();
     StringBuilder filasIP = new StringBuilder();
+    StringBuilder filasExpel = new StringBuilder();
     int totalIP = 0;
+    int totalExpel = 0;
 
     try {
         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
@@ -73,6 +78,33 @@ String compania = (String) session.getAttribute("compania");
         }
         rsDel.close();
         stDel.close();
+
+        // Catalogo de materias activas: mismo formato JS que Delito, para
+        // el combobox de los modales Nuevo/Editar EXPEL.
+        PreparedStatement stMat = cn.prepareStatement(
+                "SELECT ID_MATERIA, DESCRIPCION FROM LEGAL_MATERIA WHERE ESTADO='A' ORDER BY DESCRIPCION");
+        ResultSet rsMat = stMat.executeQuery();
+        while (rsMat.next()) {
+            String descJs = rsMat.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
+            if (opcionesMateria.length() > 0) opcionesMateria.append(",");
+            opcionesMateria.append("{\"id\":").append(rsMat.getInt(1))
+                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
+        }
+        rsMat.close();
+        stMat.close();
+
+        // Catalogo de tipos de accion activos.
+        PreparedStatement stTipo = cn.prepareStatement(
+                "SELECT ID_TIPO_ACCION, DESCRIPCION FROM LEGAL_TIPO_ACCION WHERE ESTADO='A' ORDER BY DESCRIPCION");
+        ResultSet rsTipo = stTipo.executeQuery();
+        while (rsTipo.next()) {
+            String descJs = rsTipo.getString(2).replace("\\", "\\\\").replace("\"", "\\\"");
+            if (opcionesTipoAccion.length() > 0) opcionesTipoAccion.append(",");
+            opcionesTipoAccion.append("{\"id\":").append(rsTipo.getInt(1))
+                    .append(",\"descripcion\":\"").append(descJs).append("\"}");
+        }
+        rsTipo.close();
+        stTipo.close();
 
         // Seguimientos, agrupados en memoria por ID_LEGAL_IP para embeber
         // en cada fila (evita una consulta por fila).
@@ -129,8 +161,6 @@ String compania = (String) session.getAttribute("compania");
             String delito = rsIP.getString(5) != null ? rsIP.getString(5) : "—";
             String fiscalia = rsIP.getString(6) != null ? rsIP.getString(6) : "";
             String ubicacion = rsIP.getString(7) != null ? rsIP.getString(7) : "";
-            String creador = rsIP.getString(8);
-            String fechaCrea = rsIP.getString(9);
             String idDelitoRaw = rsIP.getString(10) != null ? rsIP.getString(10) : "";
             boolean eliminado = "I".equals(rsIP.getString(11));
 
@@ -151,8 +181,7 @@ String compania = (String) session.getAttribute("compania");
             filasIP.append("<tr data-desc='").append(buscaIdx).append("'>")
                     .append("<td>").append(esc(procesado))
                     .append(eliminado ? " <span class='badge' style='background:#dc3545;color:#fff;'>ELIMINADO</span>" : "")
-                    .append("<br><small class='text-muted'>Registrado por ").append(esc(creador))
-                    .append(" &middot; ").append(fechaCrea).append("</small></td>")
+                    .append("</td>")
                     .append("<td>").append(esc(victima)).append("</td>")
                     .append("<td>").append(esc(proceso)).append("</td>")
                     .append("<td><span class='badge' style='background:#17a2b8;color:#fff;'>").append(esc(delito)).append("</span></td>")
@@ -179,6 +208,113 @@ String compania = (String) session.getAttribute("compania");
         }
         rsIP.close();
         stIP.close();
+
+        // Seguimientos de EXPEL, agrupados en memoria por ID_LEGAL_EXPEL.
+        Map<Integer, StringBuilder> mapaSegExpel = new HashMap<Integer, StringBuilder>();
+        Map<Integer, Integer> conteoSegExpel = new HashMap<Integer, Integer>();
+        PreparedStatement stSegExpel = cn.prepareStatement(
+                "SELECT s.ID_LEGAL_EXPEL, s.DESCRIPCION, TO_CHAR(s.FECHA_CREACION,'DD/MM/YYYY HH24:MI'), " +
+                "u.NOMBRE||' '||u.APELLIDOS " +
+                "FROM LEGAL_EXPEL_SEGUIMIENTO s JOIN USUARIO u ON s.ID_USUARIO_CREA = u.IDUSUARIO " +
+                "ORDER BY s.ID_LEGAL_EXPEL, s.FECHA_CREACION");
+        ResultSet rsSegExpel = stSegExpel.executeQuery();
+        while (rsSegExpel.next()) {
+            int idExpel = rsSegExpel.getInt(1);
+            String descSeg = rsSegExpel.getString(2) != null ? rsSegExpel.getString(2) : "";
+            String fechaSeg = rsSegExpel.getString(3);
+            String userSeg = rsSegExpel.getString(4) != null ? rsSegExpel.getString(4) : "";
+
+            String descEsc = descSeg.replace("\\", "\\\\").replace("\"", "\\\"")
+                    .replace("\n", " ").replace("\r", "");
+            String userEsc = userSeg.replace("\\", "\\\\").replace("\"", "\\\"");
+
+            StringBuilder sb = mapaSegExpel.get(idExpel);
+            if (sb == null) {
+                sb = new StringBuilder();
+                mapaSegExpel.put(idExpel, sb);
+            }
+            if (sb.length() > 0) sb.append(",");
+            sb.append("{\"descripcion\":\"").append(descEsc).append("\",\"fecha\":\"")
+              .append(fechaSeg).append("\",\"usuario\":\"").append(userEsc).append("\"}");
+
+            Integer c = conteoSegExpel.get(idExpel);
+            conteoSegExpel.put(idExpel, c == null ? 1 : c + 1);
+        }
+        rsSegExpel.close();
+        stSegExpel.close();
+
+        // Listado principal de EXPEL.
+        PreparedStatement stExpel = cn.prepareStatement(
+                "SELECT ex.ID_LEGAL_EXPEL, ex.ACTOR, ex.DEMANDADO, ex.JUICIO, m.DESCRIPCION, " +
+                "ta.DESCRIPCION, ex.ASUNTO, ex.LUGAR, ex.ID_MATERIA, ex.ID_TIPO_ACCION, ex.ESTADO " +
+                "FROM LEGAL_EXPEL ex " +
+                "LEFT JOIN LEGAL_MATERIA m ON ex.ID_MATERIA = m.ID_MATERIA " +
+                "LEFT JOIN LEGAL_TIPO_ACCION ta ON ex.ID_TIPO_ACCION = ta.ID_TIPO_ACCION " +
+                (verEliminadosExpel ? "" : "WHERE ex.ESTADO = 'A' ") +
+                "ORDER BY ex.FECHA_CREACION DESC");
+        ResultSet rsExpel = stExpel.executeQuery();
+        while (rsExpel.next()) {
+            totalExpel++;
+            int idExpel = rsExpel.getInt(1);
+            String actor = rsExpel.getString(2) != null ? rsExpel.getString(2) : "";
+            String demandado = rsExpel.getString(3) != null ? rsExpel.getString(3) : "";
+            String juicio = rsExpel.getString(4) != null ? rsExpel.getString(4) : "";
+            String materia = rsExpel.getString(5) != null ? rsExpel.getString(5) : "—";
+            String tipoAccion = rsExpel.getString(6) != null ? rsExpel.getString(6) : "—";
+            String asunto = rsExpel.getString(7) != null ? rsExpel.getString(7) : "";
+            String lugar = rsExpel.getString(8) != null ? rsExpel.getString(8) : "";
+            String idMateriaRaw = rsExpel.getString(9) != null ? rsExpel.getString(9) : "";
+            String idTipoAccionRaw = rsExpel.getString(10) != null ? rsExpel.getString(10) : "";
+            boolean eliminadoExpel = "I".equals(rsExpel.getString(11));
+
+            StringBuilder segSbExpel = mapaSegExpel.get(idExpel);
+            String segJsonExpel = "[" + (segSbExpel != null ? segSbExpel.toString() : "") + "]";
+            String segAttrExpel = segJsonExpel.replace("\"", "&quot;");
+            Integer cantSegExpelObj = conteoSegExpel.get(idExpel);
+            int cantSegExpel = cantSegExpelObj != null ? cantSegExpelObj : 0;
+
+            String buscaIdxExpel = (actor + " " + demandado + " " + juicio + " " + materia)
+                    .toLowerCase().replace("'", "");
+
+            String actorAttr = esc(actor).replace("'", "&#39;");
+            String demandadoAttr = esc(demandado).replace("'", "&#39;");
+            String juicioAttr = esc(juicio).replace("'", "&#39;");
+            String asuntoAttr = esc(asunto).replace("'", "&#39;");
+            String lugarAttr = esc(lugar).replace("'", "&#39;");
+
+            filasExpel.append("<tr data-desc='").append(buscaIdxExpel).append("'>")
+                    .append("<td>").append(esc(actor))
+                    .append(eliminadoExpel ? " <span class='badge' style='background:#dc3545;color:#fff;'>ELIMINADO</span>" : "")
+                    .append("</td>")
+                    .append("<td>").append(esc(demandado)).append("</td>")
+                    .append("<td>").append(esc(juicio)).append("</td>")
+                    .append("<td><span class='badge' style='background:#17a2b8;color:#fff;'>").append(esc(materia)).append("</span></td>")
+                    .append("<td>").append(esc(tipoAccion)).append("</td>")
+                    .append("<td>").append(esc(asunto)).append("</td>")
+                    .append("<td>").append(esc(lugar)).append("</td>")
+                    .append("<td class='text-center'>")
+                    .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
+                    .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg-expel' style='padding:3px 8px;' ")
+                    .append("data-id='").append(idExpel).append("' data-seg=\"").append(segAttrExpel).append("\">")
+                    .append("<i class='fa fa-list-ul'></i> ").append(cantSegExpel).append("</button>")
+                    .append("<button type='button' class='btn btn-sm btn-outline-primary btn-editar-expel' style='padding:3px 8px;' ")
+                    .append("data-id='").append(idExpel).append("' ")
+                    .append("data-actor='").append(actorAttr).append("' ")
+                    .append("data-demandado='").append(demandadoAttr).append("' ")
+                    .append("data-juicio='").append(juicioAttr).append("' ")
+                    .append("data-idmateria='").append(idMateriaRaw).append("' ")
+                    .append("data-idtipoaccion='").append(idTipoAccionRaw).append("' ")
+                    .append("data-asunto='").append(asuntoAttr).append("' ")
+                    .append("data-lugar='").append(lugarAttr).append("'>")
+                    .append("<i class='fa fa-pencil'></i></button>")
+                    .append(eliminadoExpel
+                        ? "<button type='button' class='btn btn-sm btn-outline-success' style='padding:3px 8px;' onclick=\"cambiarEstadoExpel(" + idExpel + ",'restaurar')\"><i class='fa fa-undo'></i></button>"
+                        : "<button type='button' class='btn btn-sm btn-outline-danger' style='padding:3px 8px;' onclick=\"cambiarEstadoExpel(" + idExpel + ",'eliminar')\"><i class='fa fa-trash'></i></button>")
+                    .append("</div></td></tr>\n");
+        }
+        rsExpel.close();
+        stExpel.close();
+
         cn.close();
     } catch (Exception e) {
         e.printStackTrace();
@@ -196,6 +332,7 @@ String compania = (String) session.getAttribute("compania");
         <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+        <link rel="stylesheet" href="../assets/css/custom-sidenav-toggle.css">
     </head>
     <body class="g-sidenav-show   bg-gray-100">
         <div class="min-height-300 bg-primary position-absolute w-100"></div>
@@ -285,7 +422,7 @@ String compania = (String) session.getAttribute("compania");
                                     <span class="d-sm-inline d-none"><b> <%=nombre%> <%=apellidos%> </b></span>
                                 </a>
                             </li>
-                            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+                            <li class="nav-item ps-3 d-flex align-items-center">
                                 <a href="javascript:;" class="nav-link text-white p-0" id="iconNavbarSidenav">
                                     <div class="sidenav-toggler-inner">
                                         <i class="sidenav-toggler-line bg-white"></i>
@@ -346,6 +483,31 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                         </div>
                     </div>
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card" style="cursor:pointer;" onclick="modalNuevoExpel.show()">
+                            <div class="card-body p-3">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="numbers">
+                                            <p class="text-sm mb-0 text-uppercase font-weight-bold">Registrar</p>
+                                            <h5 class="font-weight-bolder">
+                                                EXPEL
+                                            </h5>
+                                            <p class="mb-0">
+                                                <span class="text-warning text-sm font-weight-bolder">Nuevo</span>
+                                                <b class="text-warning"> registro de EXPEL.</b>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                                            <i class="ni ni-badge text-lg opacity-10" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <%-- Tabla de Investigaciones Previas --%>
@@ -380,6 +542,45 @@ String compania = (String) session.getAttribute("compania");
                                 </thead>
                                 <tbody>
 <%=filasIP.length() > 0 ? filasIP.toString() : "<tr><td colspan='7' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay investigaciones previas registradas.</td></tr>"%>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <%-- Tabla de EXPEL --%>
+                <div class="card">
+                    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <span class="mb-2 mb-md-0"><i class="fa fa-table mr-2 text-secondary"></i>EXPEL
+                            <span class="badge ml-2" style="background:#6c757d;color:#fff;"><%=totalExpel%> registros</span>
+                        </span>
+                        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center">
+                            <a href="LEG_ControlSeguimiento.jsp<%= verEliminadosExpel ? "" : "?eliminadosExpel=1" %>"
+                               class="btn btn-sm <%= verEliminadosExpel ? "btn-secondary" : "btn-outline-secondary" %> mb-2 mb-sm-0 mr-sm-2 text-center"
+                               style="white-space:nowrap;">
+                                <i class="fa fa-eye<%= verEliminadosExpel ? "-slash" : "" %> mr-1"></i><%= verEliminadosExpel ? "Ocultar eliminados" : "Ver eliminados" %>
+                            </a>
+                            <input type="text" id="buscarExpel" class="form-control form-control-sm"
+                                   placeholder="Buscar..." style="width:100%;max-width:220px;">
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="tablaExpel">
+                                <thead>
+                                    <tr>
+                                        <th>Actor</th>
+                                        <th>Demandado</th>
+                                        <th>Juicio</th>
+                                        <th>Materia</th>
+                                        <th>Tipo de Accion</th>
+                                        <th>Asunto</th>
+                                        <th>Lugar</th>
+                                        <th class="text-center" style="width:110px;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+<%=filasExpel.length() > 0 ? filasExpel.toString() : "<tr><td colspan='8' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay registros de EXPEL.</td></tr>"%>
                                 </tbody>
                             </table>
                         </div>
@@ -429,9 +630,9 @@ String compania = (String) session.getAttribute("compania");
                             <div class="form-group mb-2">
                                 <label>Delito</label>
                                 <div class="d-flex">
-                                    <input type="text" class="form-control delito-input me-2" list="listaDelitosCrear"
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaDelitosCrear"
                                            id="delitoInputCrear" data-hidden="selDelito" placeholder="Escriba o busque un delito..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="delito" data-target="selDelito" title="Nuevo delito" style="white-space:nowrap;">
                                         <i class="fa fa-plus"></i> Nuevo
                                     </button>
                                 </div>
@@ -456,24 +657,24 @@ String compania = (String) session.getAttribute("compania");
             </div>
         </div>
 
-        <%-- Modal: Nuevo Delito (quick-add, AJAX) --%>
-        <div class="modal fade" id="modalNuevoDelito" tabindex="-1" role="dialog" aria-hidden="true">
+        <%-- Modal: Nuevo valor de catalogo (Delito / Materia / Tipo de Accion), quick-add via AJAX --%>
+        <div class="modal fade" id="modalNuevoCatalogo" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header" style="background:#6c757d;">
-                        <h5 class="modal-title" style="color:#fff;"><i class="fa fa-gavel mr-2"></i>Nuevo Delito</h5>
+                        <h5 class="modal-title" style="color:#fff;" id="modalNuevoCatalogoTitulo"><i class="fa fa-gavel mr-2"></i>Nuevo Delito</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                     </div>
                     <div class="modal-body">
                         <div class="form-group mb-0">
-                            <label>Nombre del delito</label>
-                            <input type="text" id="nuevoDelitoDesc" class="form-control" maxlength="200">
-                            <small id="nuevoDelitoMsg" class="text-danger"></small>
+                            <label id="modalNuevoCatalogoLabel">Nombre del delito</label>
+                            <input type="text" id="nuevoCatalogoDesc" class="form-control" maxlength="200">
+                            <small id="nuevoCatalogoMsg" class="text-danger"></small>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-dark btn-sm" id="btnGuardarDelito"><i class="fa fa-save mr-1"></i>Guardar</button>
+                        <button type="button" class="btn btn-dark btn-sm" id="btnGuardarCatalogo"><i class="fa fa-save mr-1"></i>Guardar</button>
                     </div>
                 </div>
             </div>
@@ -531,9 +732,9 @@ String compania = (String) session.getAttribute("compania");
                             <div class="form-group mb-2">
                                 <label>Delito</label>
                                 <div class="d-flex">
-                                    <input type="text" class="form-control delito-input me-2" list="listaDelitosEditar"
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaDelitosEditar"
                                            id="delitoInputEditar" data-hidden="selDelitoEdit" placeholder="Escriba o busque un delito..." autocomplete="off">
-                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="delito" data-target="selDelitoEdit" title="Nuevo delito" style="white-space:nowrap;">
                                         <i class="fa fa-plus"></i> Nuevo
                                     </button>
                                 </div>
@@ -563,11 +764,172 @@ String compania = (String) session.getAttribute("compania");
             <input type="hidden" name="idLegalIp" id="ipAccionId">
         </form>
 
+        <%-- Modal: Nuevo EXPEL --%>
+        <div class="modal fade" id="modalNuevoExpel" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form action="../LEG_InsertarExpel" method="post">
+                        <div class="modal-header" style="background:#e6a03d;">
+                            <h5 class="modal-title" style="color:#fff;"><i class="fa fa-balance-scale mr-2"></i>EXPEL</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-2">
+                                <label>Actor</label>
+                                <input type="text" name="actor" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Demandado</label>
+                                <input type="text" name="demandado" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Juicio</label>
+                                <input type="text" name="juicio" class="form-control" maxlength="100" placeholder="No. de juicio">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Materia</label>
+                                <div class="d-flex">
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaMateriasCrear"
+                                           id="materiaInputCrear" data-hidden="selMateria" placeholder="Escriba o busque una materia..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="materia" data-target="selMateria" title="Nueva materia" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
+                                    </button>
+                                </div>
+                                <datalist id="listaMateriasCrear"></datalist>
+                                <input type="hidden" name="idMateria" id="selMateria">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Tipo de Accion</label>
+                                <div class="d-flex">
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaTiposAccionCrear"
+                                           id="tipoAccionInputCrear" data-hidden="selTipoAccion" placeholder="Escriba o busque un tipo de accion..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="tipoAccion" data-target="selTipoAccion" title="Nuevo tipo de accion" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
+                                    </button>
+                                </div>
+                                <datalist id="listaTiposAccionCrear"></datalist>
+                                <input type="hidden" name="idTipoAccion" id="selTipoAccion">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Asunto</label>
+                                <textarea name="asunto" class="form-control" rows="2" maxlength="1000"></textarea>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label>Lugar</label>
+                                <input type="text" name="lugar" class="form-control" maxlength="300">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-warning btn-sm text-white"><i class="fa fa-save mr-1"></i>Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <%-- Modal: Editar EXPEL --%>
+        <div class="modal fade" id="modalEditarExpel" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form action="../LEG_ActualizarExpel" method="post">
+                        <input type="hidden" name="idLegalExpel" id="editIdLegalExpel">
+                        <div class="modal-header" style="background:#3d5a99;">
+                            <h5 class="modal-title" style="color:#fff;"><i class="fa fa-pencil mr-2"></i>Editar EXPEL</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group mb-2">
+                                <label>Actor</label>
+                                <input type="text" name="actor" id="editActor" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Demandado</label>
+                                <input type="text" name="demandado" id="editDemandado" class="form-control" required maxlength="500">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Juicio</label>
+                                <input type="text" name="juicio" id="editJuicio" class="form-control" maxlength="100">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Materia</label>
+                                <div class="d-flex">
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaMateriasEditar"
+                                           id="materiaInputEditar" data-hidden="selMateriaEdit" placeholder="Escriba o busque una materia..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="materia" data-target="selMateriaEdit" title="Nueva materia" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
+                                    </button>
+                                </div>
+                                <datalist id="listaMateriasEditar"></datalist>
+                                <input type="hidden" name="idMateria" id="selMateriaEdit">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Tipo de Accion</label>
+                                <div class="d-flex">
+                                    <input type="text" class="form-control catalogo-input me-2" list="listaTiposAccionEditar"
+                                           id="tipoAccionInputEditar" data-hidden="selTipoAccionEdit" placeholder="Escriba o busque un tipo de accion..." autocomplete="off">
+                                    <button type="button" class="btn btn-outline-secondary btn-nuevo-catalogo" data-catalogo="tipoAccion" data-target="selTipoAccionEdit" title="Nuevo tipo de accion" style="white-space:nowrap;">
+                                        <i class="fa fa-plus"></i> Nuevo
+                                    </button>
+                                </div>
+                                <datalist id="listaTiposAccionEditar"></datalist>
+                                <input type="hidden" name="idTipoAccion" id="selTipoAccionEdit">
+                            </div>
+                            <div class="form-group mb-2">
+                                <label>Asunto</label>
+                                <textarea name="asunto" id="editAsunto" class="form-control" rows="2" maxlength="1000"></textarea>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label>Lugar</label>
+                                <input type="text" name="lugar" id="editLugar" class="form-control" maxlength="300">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <%-- Modal: Seguimiento EXPEL --%>
+        <div class="modal fade" id="modalSeguimientoExpel" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#3d5a99;">
+                        <h5 class="modal-title" style="color:#fff;"><i class="fa fa-list-ul mr-2"></i>Seguimiento EXPEL</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="listaSeguimientosExpel" style="max-height:260px;overflow-y:auto;" class="mb-3"></div>
+                        <form action="../LEG_InsertarSeguimientoExpel" method="post">
+                            <input type="hidden" name="idLegalExpel" id="segIdLegalExpel">
+                            <div class="form-group mb-2">
+                                <label>Nuevo seguimiento</label>
+                                <textarea name="descripcion" class="form-control" rows="3" required maxlength="1000"></textarea>
+                            </div>
+                            <div class="modal-footer px-0 pb-0">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus mr-1"></i>Agregar seguimiento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="formEstadoExpel" method="post" action="../LEG_ActualizarExpel" style="display:none;">
+            <input type="hidden" name="accion" id="expelAccion">
+            <input type="hidden" name="idLegalExpel" id="expelAccionId">
+        </form>
+
         <script src="../assets/js/core/popper.min.js"></script>
         <script src="../assets/js/core/bootstrap.min.js"></script>
         <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
         <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
         <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+        <script src="../assets/js/custom-sidenav-toggle.js"></script>
         <script>
             var ctx = '<%=request.getContextPath()%>';
 
@@ -578,21 +940,29 @@ String compania = (String) session.getAttribute("compania");
             }
 
             var modalNuevaIP = new bootstrap.Modal(document.getElementById('modalNuevaIP'));
-            var modalNuevoDelito = new bootstrap.Modal(document.getElementById('modalNuevoDelito'));
+            var modalNuevoCatalogo = new bootstrap.Modal(document.getElementById('modalNuevoCatalogo'));
             var modalSeguimiento = new bootstrap.Modal(document.getElementById('modalSeguimiento'));
             var modalEditarIP = new bootstrap.Modal(document.getElementById('modalEditarIP'));
-            var selectDelitoActivo = 'selDelito';
+            var modalNuevoExpel = new bootstrap.Modal(document.getElementById('modalNuevoExpel'));
+            var modalEditarExpel = new bootstrap.Modal(document.getElementById('modalEditarExpel'));
+            var modalSeguimientoExpel = new bootstrap.Modal(document.getElementById('modalSeguimientoExpel'));
+            var modales = {
+                modalNuevaIP: modalNuevaIP,
+                modalEditarIP: modalEditarIP,
+                modalNuevoExpel: modalNuevoExpel,
+                modalEditarExpel: modalEditarExpel
+            };
 
             // Bootstrap 5 no soporta bien modales apilados (uno sobre otro):
-            // el modal de "Nuevo Delito" se abre reemplazando temporalmente
-            // al modal de origen (Nueva IP o Editar IP), y al cerrarse vuelve
-            // a mostrar ese modal de origen (los campos no se pierden, solo
-            // se oculta/muestra el mismo formulario).
-            var origenModalDelito = null;
-            document.getElementById('modalNuevoDelito').addEventListener('hidden.bs.modal', function () {
-                if (origenModalDelito) {
-                    origenModalDelito.show();
-                    origenModalDelito = null;
+            // el modal de alta rapida de catalogo se abre reemplazando
+            // temporalmente al modal de origen (Nueva/Editar IP o EXPEL), y
+            // al cerrarse vuelve a mostrar ese modal de origen (los campos
+            // no se pierden, solo se oculta/muestra el mismo formulario).
+            var origenModalCatalogo = null;
+            document.getElementById('modalNuevoCatalogo').addEventListener('hidden.bs.modal', function () {
+                if (origenModalCatalogo) {
+                    origenModalCatalogo.show();
+                    origenModalCatalogo = null;
                 }
             });
 
@@ -607,87 +977,139 @@ String compania = (String) session.getAttribute("compania");
                 });
             }
 
-            // --- Delito: combobox con busqueda (input + <datalist>, todo
-            // dentro del mismo campo) y alta rapida via AJAX, reutilizables
-            // en ambos modales (Nueva IP y Editar IP). ---
-            var delitosData = [<%=opcionesDelito.toString()%>];
+            var buscarExpel = document.getElementById('buscarExpel');
+            if (buscarExpel) {
+                buscarExpel.addEventListener('input', function () {
+                    var q = this.value.toLowerCase().trim();
+                    document.querySelectorAll('#tablaExpel tbody tr').forEach(function (tr) {
+                        var d = tr.getAttribute('data-desc') || '';
+                        tr.style.display = (!q || d.indexOf(q) !== -1) ? '' : 'none';
+                    });
+                });
+            }
 
-            // Mapea el <input type="hidden" name="idDelito"> de cada modal
-            // con su campo visible (el combobox) y su <datalist>.
-            var delitoCampos = {
-                'selDelito': {input: 'delitoInputCrear', datalist: 'listaDelitosCrear'},
-                'selDelitoEdit': {input: 'delitoInputEditar', datalist: 'listaDelitosEditar'}
+            // --- Catalogos (Delito, Materia, Tipo de Accion): combobox con
+            // busqueda (input + <datalist>, todo dentro del mismo campo) y
+            // alta rapida via AJAX, con la misma logica para los tres,
+            // reutilizables en los modales de Nueva/Editar IP y EXPEL. ---
+            var delitosData = [<%=opcionesDelito.toString()%>];
+            var materiasData = [<%=opcionesMateria.toString()%>];
+            var tiposAccionData = [<%=opcionesTipoAccion.toString()%>];
+
+            var catalogosConfig = {
+                'delito': {
+                    endpoint: 'LEG_InsertarDelito',
+                    titulo: '<i class="fa fa-gavel mr-2"></i>Nuevo Delito',
+                    label: 'Nombre del delito',
+                    data: delitosData
+                },
+                'materia': {
+                    endpoint: 'LEG_InsertarMateria',
+                    titulo: '<i class="fa fa-gavel mr-2"></i>Nueva Materia',
+                    label: 'Nombre de la materia',
+                    data: materiasData
+                },
+                'tipoAccion': {
+                    endpoint: 'LEG_InsertarTipoAccion',
+                    titulo: '<i class="fa fa-gavel mr-2"></i>Nuevo Tipo de Accion',
+                    label: 'Nombre del tipo de accion',
+                    data: tiposAccionData
+                }
             };
 
-            function poblarDatalist(datalistId) {
+            // Mapea el <input type="hidden"> de cada modal con su campo
+            // visible (el combobox), su <datalist> y el modal al que
+            // pertenece.
+            var camposCatalogo = {
+                'selDelito': {input: 'delitoInputCrear', datalist: 'listaDelitosCrear', catalogo: 'delito', modal: 'modalNuevaIP'},
+                'selDelitoEdit': {input: 'delitoInputEditar', datalist: 'listaDelitosEditar', catalogo: 'delito', modal: 'modalEditarIP'},
+                'selMateria': {input: 'materiaInputCrear', datalist: 'listaMateriasCrear', catalogo: 'materia', modal: 'modalNuevoExpel'},
+                'selMateriaEdit': {input: 'materiaInputEditar', datalist: 'listaMateriasEditar', catalogo: 'materia', modal: 'modalEditarExpel'},
+                'selTipoAccion': {input: 'tipoAccionInputCrear', datalist: 'listaTiposAccionCrear', catalogo: 'tipoAccion', modal: 'modalNuevoExpel'},
+                'selTipoAccionEdit': {input: 'tipoAccionInputEditar', datalist: 'listaTiposAccionEditar', catalogo: 'tipoAccion', modal: 'modalEditarExpel'}
+            };
+
+            function poblarDatalist(datalistId, data) {
                 var dl = document.getElementById(datalistId);
                 dl.innerHTML = '';
-                delitosData.forEach(function (d) {
+                data.forEach(function (d) {
                     var opt = document.createElement('option');
                     opt.value = d.descripcion;
                     dl.appendChild(opt);
                 });
             }
-            Object.keys(delitoCampos).forEach(function (hiddenId) {
-                poblarDatalist(delitoCampos[hiddenId].datalist);
+            Object.keys(camposCatalogo).forEach(function (hiddenId) {
+                var c = camposCatalogo[hiddenId];
+                poblarDatalist(c.datalist, catalogosConfig[c.catalogo].data);
             });
 
             // Al escribir/elegir en el combobox, busca coincidencia exacta
             // (como la escribe el datalist al seleccionar) y guarda su ID en
             // el campo oculto que realmente se envia en el formulario.
-            document.querySelectorAll('.delito-input').forEach(function (input) {
+            document.querySelectorAll('.catalogo-input').forEach(function (input) {
                 input.addEventListener('input', function () {
-                    var hidden = document.getElementById(this.getAttribute('data-hidden'));
+                    var hiddenId = this.getAttribute('data-hidden');
+                    var hidden = document.getElementById(hiddenId);
+                    var data = catalogosConfig[camposCatalogo[hiddenId].catalogo].data;
                     var val = this.value.trim().toLowerCase();
-                    var match = delitosData.filter(function (d) { return d.descripcion.toLowerCase() === val; })[0];
+                    var match = data.filter(function (d) { return d.descripcion.toLowerCase() === val; })[0];
                     hidden.value = match ? match.id : '';
                 });
             });
 
-            function fijarDelitoSeleccionado(hiddenId, idDelito) {
-                var campos = delitoCampos[hiddenId];
+            function fijarCatalogoSeleccionado(hiddenId, idValor) {
+                var campos = camposCatalogo[hiddenId];
                 var hidden = document.getElementById(hiddenId);
                 var input = document.getElementById(campos.input);
-                hidden.value = idDelito || '';
-                var d = delitosData.filter(function (x) { return String(x.id) === String(idDelito); })[0];
+                hidden.value = idValor || '';
+                var data = catalogosConfig[campos.catalogo].data;
+                var d = data.filter(function (x) { return String(x.id) === String(idValor); })[0];
                 input.value = d ? d.descripcion : '';
             }
 
-            document.querySelectorAll('.btn-nuevo-delito').forEach(function (btn) {
+            var catalogoActivo = null;
+            document.querySelectorAll('.btn-nuevo-catalogo').forEach(function (btn) {
                 btn.addEventListener('click', function () {
-                    selectDelitoActivo = this.getAttribute('data-target');
-                    origenModalDelito = (selectDelitoActivo === 'selDelito') ? modalNuevaIP : modalEditarIP;
-                    document.getElementById('nuevoDelitoDesc').value = '';
-                    document.getElementById('nuevoDelitoMsg').textContent = '';
-                    origenModalDelito.hide();
-                    modalNuevoDelito.show();
+                    catalogoActivo = this.getAttribute('data-target');
+                    var campos = camposCatalogo[catalogoActivo];
+                    var cfg = catalogosConfig[campos.catalogo];
+                    origenModalCatalogo = modales[campos.modal];
+                    document.getElementById('modalNuevoCatalogoTitulo').innerHTML = cfg.titulo;
+                    document.getElementById('modalNuevoCatalogoLabel').textContent = cfg.label;
+                    document.getElementById('nuevoCatalogoDesc').value = '';
+                    document.getElementById('nuevoCatalogoMsg').textContent = '';
+                    origenModalCatalogo.hide();
+                    modalNuevoCatalogo.show();
                 });
             });
 
-            document.getElementById('btnGuardarDelito').addEventListener('click', function () {
-                var desc = document.getElementById('nuevoDelitoDesc').value.trim();
-                var msgEl = document.getElementById('nuevoDelitoMsg');
+            document.getElementById('btnGuardarCatalogo').addEventListener('click', function () {
+                var campos = camposCatalogo[catalogoActivo];
+                var cfg = catalogosConfig[campos.catalogo];
+                var desc = document.getElementById('nuevoCatalogoDesc').value.trim();
+                var msgEl = document.getElementById('nuevoCatalogoMsg');
                 if (!desc) {
-                    msgEl.textContent = 'Escriba el nombre del delito.';
+                    msgEl.textContent = 'Escriba el nombre.';
                     return;
                 }
                 var fd = new FormData();
                 fd.append('descripcion', desc);
-                fetch(ctx + '/LEG_InsertarDelito', {method: 'POST', body: fd})
+                fetch(ctx + '/' + cfg.endpoint, {method: 'POST', body: fd})
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
                         if (!data.ok) {
                             msgEl.textContent = data.mensaje || 'No se pudo guardar.';
                             return;
                         }
-                        if (!delitosData.some(function (d) { return String(d.id) === String(data.id); })) {
-                            delitosData.push({id: data.id, descripcion: data.descripcion});
+                        if (!cfg.data.some(function (d) { return String(d.id) === String(data.id); })) {
+                            cfg.data.push({id: data.id, descripcion: data.descripcion});
                         }
-                        Object.keys(delitoCampos).forEach(function (hiddenId) {
-                            poblarDatalist(delitoCampos[hiddenId].datalist);
+                        Object.keys(camposCatalogo).forEach(function (hiddenId) {
+                            var c = camposCatalogo[hiddenId];
+                            if (c.catalogo === campos.catalogo) poblarDatalist(c.datalist, cfg.data);
                         });
-                        fijarDelitoSeleccionado(selectDelitoActivo, data.id);
-                        modalNuevoDelito.hide();
+                        fijarCatalogoSeleccionado(catalogoActivo, data.id);
+                        modalNuevoCatalogo.hide();
                     })
                     .catch(function () {
                         msgEl.textContent = 'Error de conexion.';
@@ -704,9 +1126,26 @@ String compania = (String) session.getAttribute("compania");
                     document.getElementById('editFiscalia').value = this.getAttribute('data-fiscalia');
                     document.getElementById('editUbicacion').value = this.getAttribute('data-ubicacion');
 
-                    fijarDelitoSeleccionado('selDelitoEdit', this.getAttribute('data-iddelito'));
+                    fijarCatalogoSeleccionado('selDelitoEdit', this.getAttribute('data-iddelito'));
 
                     modalEditarIP.show();
+                });
+            });
+
+            // --- Editar EXPEL ---
+            document.querySelectorAll('.btn-editar-expel').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    document.getElementById('editIdLegalExpel').value = this.getAttribute('data-id');
+                    document.getElementById('editActor').value = this.getAttribute('data-actor');
+                    document.getElementById('editDemandado').value = this.getAttribute('data-demandado');
+                    document.getElementById('editJuicio').value = this.getAttribute('data-juicio');
+                    document.getElementById('editAsunto').value = this.getAttribute('data-asunto');
+                    document.getElementById('editLugar').value = this.getAttribute('data-lugar');
+
+                    fijarCatalogoSeleccionado('selMateriaEdit', this.getAttribute('data-idmateria'));
+                    fijarCatalogoSeleccionado('selTipoAccionEdit', this.getAttribute('data-idtipoaccion'));
+
+                    modalEditarExpel.show();
                 });
             });
 
@@ -719,6 +1158,16 @@ String compania = (String) session.getAttribute("compania");
                 document.getElementById('ipAccion').value = accion;
                 document.getElementById('ipAccionId').value = id;
                 document.getElementById('formEstadoIP').submit();
+            };
+
+            window.cambiarEstadoExpel = function (id, accion) {
+                var msg = (accion === 'eliminar')
+                    ? '¿Eliminar este registro de EXPEL? Podras restaurarlo luego con "Ver eliminados".'
+                    : '¿Restaurar este registro de EXPEL para que vuelva a la lista?';
+                if (!confirm(msg)) return;
+                document.getElementById('expelAccion').value = accion;
+                document.getElementById('expelAccionId').value = id;
+                document.getElementById('formEstadoExpel').submit();
             };
 
             document.querySelectorAll('.btn-ver-seg').forEach(function (btn) {
@@ -745,6 +1194,33 @@ String compania = (String) session.getAttribute("compania");
                         cont.innerHTML = html;
                     }
                     modalSeguimiento.show();
+                });
+            });
+
+            document.querySelectorAll('.btn-ver-seg-expel').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var idExpel = this.getAttribute('data-id');
+                    var seguimientos = [];
+                    try {
+                        seguimientos = JSON.parse(this.getAttribute('data-seg'));
+                    } catch (e) {
+                        seguimientos = [];
+                    }
+                    document.getElementById('segIdLegalExpel').value = idExpel;
+                    var cont = document.getElementById('listaSeguimientosExpel');
+                    if (seguimientos.length === 0) {
+                        cont.innerHTML = '<p class="text-muted text-center py-3 mb-0"><i class="fa fa-inbox mr-1"></i>Sin seguimientos registrados.</p>';
+                    } else {
+                        var html = '';
+                        seguimientos.forEach(function (s) {
+                            html += '<div class="border-bottom pb-2 mb-2">'
+                                    + '<div class="small text-muted">' + escapeHtml(s.fecha) + ' &middot; ' + escapeHtml(s.usuario) + '</div>'
+                                    + '<div>' + escapeHtml(s.descripcion) + '</div>'
+                                    + '</div>';
+                        });
+                        cont.innerHTML = html;
+                    }
+                    modalSeguimientoExpel.show();
                 });
             });
         </script>

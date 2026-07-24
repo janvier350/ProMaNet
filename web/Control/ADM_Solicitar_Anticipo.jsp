@@ -130,6 +130,7 @@ System.out.println("Estado del corte: " + validacionFecha);
         <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
         <!-- CSS Files -->
         <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+        <link rel="stylesheet" href="../assets/css/custom-sidenav-toggle.css">
 
 
     </head>
@@ -323,7 +324,7 @@ System.out.println("Estado del corte: " + validacionFecha);
                                     <span class="d-sm-inline d-none"><%=nombre%> <%=apellidos%> </span>
                                 </a>
                             </li>
-                            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+                            <li class="nav-item ps-3 d-flex align-items-center">
                                 <a href="javascript:;" class="nav-link text-white p-0" id="iconNavbarSidenav">
                                     <div class="sidenav-toggler-inner">
                                         <i class="sidenav-toggler-line bg-white"></i>
@@ -797,6 +798,7 @@ System.out.println("Estado del corte: " + validacionFecha);
                 <script async defer src="https://buttons.github.io/buttons.js"></script>
                 <!-- Control Center for Soft Dashboard: parallax effects, scripts for the example pages etc -->
                 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+        <script src="../assets/js/custom-sidenav-toggle.js"></script>
                 <script>
                                             function validarAnticipo() {
                                                 // 1. Obtenemos los valores de los inputs

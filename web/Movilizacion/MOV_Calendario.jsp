@@ -81,6 +81,7 @@
     <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
+        <link rel="stylesheet" href="../assets/css/custom-sidenav-toggle.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
@@ -191,7 +192,7 @@
                             <span class="d-sm-inline d-none"><b><%=nombre%> <%=apellidos%></b></span>
                         </span>
                     </li>
-                    <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
+                    <li class="nav-item ps-3 d-flex align-items-center">
                         <a href="javascript:;" class="nav-link text-white p-0" id="iconNavbarSidenav">
                             <div class="sidenav-toggler-inner">
                                 <i class="sidenav-toggler-line bg-white"></i>
@@ -519,6 +520,7 @@
 <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
 <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
+        <script src="../assets/js/custom-sidenav-toggle.js"></script>
 <script>
 var ctx = '<%=request.getContextPath()%>';
 var miIdUsuario = <%=idUsuarioSesion%>;

@@ -1,0 +1,11 @@
+/* Permite ocultar/mostrar el sidenav tambien en escritorio (>=1200px)
+   con el mismo boton hamburguesa del navbar (id="iconNavbarSidenav").
+   En pantallas chicas el comportamiento original de Argon no cambia. */
+@media (min-width: 1200px) {
+    body.sidenav-oculto-desktop .sidenav {
+        transform: translateX(-17.125rem);
+    }
+    body.sidenav-oculto-desktop .sidenav.fixed-start + .main-content {
+        margin-left: 0 !important;
+    }
+}
