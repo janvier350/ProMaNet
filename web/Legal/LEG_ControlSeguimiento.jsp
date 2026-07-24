@@ -546,6 +546,8 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                 </div>
 
+                <br>
+
                 <%-- Tabla de EXPEL --%>
                 <div class="card">
                     <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
