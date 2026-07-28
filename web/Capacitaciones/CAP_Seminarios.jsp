@@ -130,16 +130,14 @@
             String nombreParticipantesAttr = esc(nombreParticipantes).replace("'", "&#39;");
 
             filasSem.append("<tr data-desc='").append(buscaIdx).append("'>")
-                    .append("<td class='celda-trunc' title='").append(esc(empresa)).append("'>").append(esc(empresa)).append("</td>")
-                    .append("<td class='celda-trunc' title='").append(esc(nombreSeminario)).append("'>").append(esc(nombreSeminario))
+                    .append("<td class='celda-info'><strong>").append(esc(nombreSeminario)).append("</strong>")
                     .append(eliminado ? " <span class='badge' style='background:#dc3545;color:#fff;'>ELIMINADO</span>" : "")
-                    .append("</td>")
-                    .append("<td><span class='badge' style='background:#28a745;color:#fff;'>").append(esc(estadoPago)).append("</span></td>")
+                    .append("<br><small class='text-muted'>").append(esc(empresa)).append("</small></td>")
                     .append("<td>").append(esc(modalidad)).append("</td>")
-                    .append("<td>").append(esc(fechaCapacitacion)).append("</td>")
-                    .append("<td class='celda-trunc' title='").append(esc(aprobacion)).append("'>").append(esc(aprobacion)).append("</td>")
-                    .append("<td class='celda-trunc' title='").append(esc(nombreParticipantes)).append("'>").append(esc(nombreParticipantes)).append("</td>")
-                    .append("<td class='celda-trunc' title='").append(esc(companiaFactura)).append("'>").append(esc(companiaFactura)).append("</td>")
+                    .append("<td class='celda-info'>").append(esc(fechaCapacitacion)).append("</td>")
+                    .append("<td class='celda-info'>").append(esc(aprobacion)).append("</td>")
+                    .append("<td class='celda-info'>").append(esc(nombreParticipantes)).append("</td>")
+                    .append("<td class='celda-info'>").append(esc(companiaFactura)).append("</td>")
                     .append("<td>").append(fechaFacturaDisplay).append("</td>")
                     .append("<td class='text-end'>").append(totalFactura).append("</td>")
                     .append("<td class='text-end'>").append(totalPagado).append("</td>")
@@ -195,11 +193,11 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
         <style>
-            #tablaSem td, #tablaSem th { font-size: 0.8125rem; white-space: nowrap; }
-            #tablaSem td.celda-trunc {
-                max-width: 160px;
-                overflow: hidden;
-                text-overflow: ellipsis;
+            #tablaSem td, #tablaSem th { font-size: 0.8125rem; white-space: nowrap; vertical-align: middle; }
+            #tablaSem td.celda-info {
+                white-space: normal;
+                word-break: break-word;
+                min-width: 160px;
             }
         </style>
     </head>
@@ -362,18 +360,22 @@
                                    placeholder="Buscar..." style="width:100%;max-width:220px;">
                         </div>
                     </div>
-                    <div class="card-header border-top d-flex flex-column flex-lg-row justify-content-end align-items-lg-center py-2">
-                        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center flex-wrap" style="gap:6px;">
-                            <label class="text-xs text-secondary mb-0 me-1">Factura desde</label>
-                            <input type="date" id="filtroFechaDesde" class="form-control form-control-sm" style="max-width:160px;">
-                            <label class="text-xs text-secondary mb-0 me-1">hasta</label>
-                            <input type="date" id="filtroFechaHasta" class="form-control form-control-sm" style="max-width:160px;">
-                            <button type="button" class="btn btn-sm btn-outline-success" id="btnExportarExcel">
-                                <i class="fa fa-file-excel-o mr-1"></i>Excel
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnExportarPDF">
-                                <i class="fa fa-file-pdf-o mr-1"></i>PDF
-                            </button>
+                    <div class="card-header border-top py-2">
+                        <div class="d-flex flex-wrap align-items-center justify-content-end" style="gap:16px;row-gap:8px;">
+                            <div class="d-flex align-items-center" style="gap:6px;">
+                                <label class="text-xs text-secondary mb-0" style="white-space:nowrap;">Factura desde</label>
+                                <input type="date" id="filtroFechaDesde" class="form-control form-control-sm" style="width:150px;">
+                                <label class="text-xs text-secondary mb-0" style="white-space:nowrap;">hasta</label>
+                                <input type="date" id="filtroFechaHasta" class="form-control form-control-sm" style="width:150px;">
+                            </div>
+                            <div class="d-flex align-items-center" style="gap:8px;">
+                                <button type="button" class="btn btn-sm btn-outline-success mb-0" id="btnExportarExcel">
+                                    <i class="fa fa-file-excel-o mr-1"></i>Excel
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger mb-0" id="btnExportarPDF">
+                                    <i class="fa fa-file-pdf-o mr-1"></i>PDF
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -381,9 +383,7 @@
                             <table class="table table-hover mb-0" id="tablaSem">
                                 <thead>
                                     <tr>
-                                        <th>Empresa Capacitadora</th>
                                         <th>Seminario</th>
-                                        <th>Estado</th>
                                         <th>Modalidad</th>
                                         <th>Fecha</th>
                                         <th>Aprobacion</th>
@@ -396,7 +396,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-<%=filasSem.length() > 0 ? filasSem.toString() : "<tr><td colspan='12' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay capacitaciones registradas.</td></tr>"%>
+<%=filasSem.length() > 0 ? filasSem.toString() : "<tr><td colspan='10' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay capacitaciones registradas.</td></tr>"%>
                                 </tbody>
                             </table>
                         </div>
