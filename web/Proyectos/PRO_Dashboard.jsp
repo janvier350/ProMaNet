@@ -839,6 +839,36 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "CAPACITACIONES_ACCESO")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Capacitaciones/CAP_Seminarios.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Registro de</p>
+                                                <h5 class="font-weight-bolder">
+                                                    CAPACITACIONES
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-primary text-sm font-weight-bolder">Registre</span>
+                                                    <b class="text-primary"> seminarios y facturacion.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
+                                                <i class="ni ni-hat-3 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
                     <% boolean muestraComputadoras = !usuario.equals("uparrales")
                             && (cargo.equals("ADMINISTRADOR") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL") || cargo.equals("JEFE")); %>
                     <% if (muestraComputadoras && COMUN.PermisoHelper.tiene(session, "MOVILIZACION_SOLICITAR")) { %>
