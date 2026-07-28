@@ -459,27 +459,27 @@
                                     <textarea name="nombreParticipantes" class="form-control" rows="2" maxlength="1000"></textarea>
                                 </div>
                                 <div class="col-12"><hr class="my-2"></div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Subtotal</label>
                                     <input type="number" step="0.01" name="subtotal" id="crSubtotal" class="form-control campo-calculo">
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>% IVA</label>
                                     <input type="number" step="0.01" name="ivaPorcentaje" id="crIvaPorcentaje" class="form-control campo-calculo" value="15">
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>IVA</label>
                                     <input type="number" step="0.01" name="ivaValor" id="crIvaValor" class="form-control" readonly>
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Total Factura</label>
                                     <input type="number" step="0.01" name="totalFactura" id="crTotalFactura" class="form-control" readonly>
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Retencion</label>
                                     <input type="number" step="0.01" name="retencion" id="crRetencion" class="form-control campo-calculo">
                                 </div>
-                                <div class="col-md-1 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Total a Pagar</label>
                                     <input type="number" step="0.01" name="totalPagado" id="crTotalPagado" class="form-control" readonly>
                                 </div>
@@ -584,27 +584,27 @@
                                     <textarea name="nombreParticipantes" id="editNombreParticipantes" class="form-control" rows="2" maxlength="1000"></textarea>
                                 </div>
                                 <div class="col-12"><hr class="my-2"></div>
-                                <div class="col-md-3 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Subtotal</label>
                                     <input type="number" step="0.01" name="subtotal" id="editSubtotal" class="form-control campo-calculo">
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>% IVA</label>
                                     <input type="number" step="0.01" name="ivaPorcentaje" id="editIvaPorcentaje" class="form-control campo-calculo">
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>IVA</label>
                                     <input type="number" step="0.01" name="ivaValor" id="editIvaValor" class="form-control" readonly>
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Total Factura</label>
                                     <input type="number" step="0.01" name="totalFactura" id="editTotalFactura" class="form-control" readonly>
                                 </div>
-                                <div class="col-md-2 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Retencion</label>
                                     <input type="number" step="0.01" name="retencion" id="editRetencion" class="form-control campo-calculo">
                                 </div>
-                                <div class="col-md-1 form-group mb-2">
+                                <div class="col-md-4 form-group mb-2">
                                     <label>Total a Pagar</label>
                                     <input type="number" step="0.01" name="totalPagado" id="editTotalPagado" class="form-control" readonly>
                                 </div>
