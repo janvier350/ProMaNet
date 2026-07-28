@@ -47,6 +47,7 @@
     boolean verEliminados = "1".equals(request.getParameter("eliminados"));
 
     StringBuilder opcionesEmpresa = new StringBuilder();
+    StringBuilder opcionesCompania = new StringBuilder();
     StringBuilder filasSem = new StringBuilder();
     int totalSem = 0;
 
@@ -66,15 +67,28 @@
         rsEmp.close();
         stEmp.close();
 
+        // Catalogo real de companias del grupo (misma tabla que usa el
+        // resto del sistema) para elegir la Compania Facturada.
+        PreparedStatement stComp = cn.prepareStatement(
+                "SELECT IDCOMPANIA, COMPANIA FROM COMPANIA WHERE ESTADO='a' ORDER BY COMPANIA");
+        ResultSet rsComp = stComp.executeQuery();
+        while (rsComp.next()) {
+            opcionesCompania.append("<option value=\"").append(rsComp.getInt(1)).append("\">")
+                    .append(esc(rsComp.getString(2))).append("</option>");
+        }
+        rsComp.close();
+        stComp.close();
+
         // Listado principal de capacitaciones.
         PreparedStatement stSem = cn.prepareStatement(
                 "SELECT s.ID_SEMINARIO, s.ID_EMPRESA, e.DESCRIPCION, s.NOMBRE_SEMINARIO, s.ESTADO_PAGO, " +
                 "s.FORMA_PAGO, s.APROBACION, s.HORARIO, s.FECHA_CAPACITACION, s.DURACION_HORAS, s.MODALIDAD, " +
                 "s.UBICACION, s.NO_PARTICIPANTES, s.NOMBRE_PARTICIPANTES, s.SUBTOTAL, s.IVA_PORCENTAJE, " +
-                "s.IVA_VALOR, s.TOTAL_FACTURA, s.RETENCION, s.TOTAL_PAGADO, s.COMPANIA_FACTURA, " +
-                "TO_CHAR(s.FECHA_FACTURA,'YYYY-MM-DD'), s.ACTIVO " +
+                "s.IVA_VALOR, s.TOTAL_FACTURA, s.RETENCION, s.TOTAL_PAGADO, s.ID_COMPANIA_FACTURA, c.COMPANIA, " +
+                "TO_CHAR(s.FECHA_FACTURA,'YYYY-MM-DD'), TO_CHAR(s.FECHA_FACTURA,'DD/MM/YYYY'), s.ACTIVO " +
                 "FROM CAPACITACIONES_SEMINARIO s " +
                 "LEFT JOIN CAPACITACIONES_EMPRESA e ON s.ID_EMPRESA = e.ID_EMPRESA " +
+                "LEFT JOIN COMPANIA c ON s.ID_COMPANIA_FACTURA = c.IDCOMPANIA " +
                 (verEliminados ? "" : "WHERE s.ACTIVO = 'A' ") +
                 "ORDER BY s.FECHA_CREACION DESC");
         ResultSet rsSem = stSem.executeQuery();
@@ -100,11 +114,13 @@
             String totalFactura = rsSem.getString(18) != null ? rsSem.getString(18) : "0";
             String retencion = rsSem.getString(19) != null ? rsSem.getString(19) : "0";
             String totalPagado = rsSem.getString(20) != null ? rsSem.getString(20) : "0";
-            String companiaFactura = rsSem.getString(21) != null ? rsSem.getString(21) : "";
-            String fechaFacturaIso = rsSem.getString(22) != null ? rsSem.getString(22) : "";
-            boolean eliminado = "I".equals(rsSem.getString(23));
+            String idCompaniaFacturaRaw = rsSem.getString(21) != null ? rsSem.getString(21) : "";
+            String companiaFactura = rsSem.getString(22) != null ? rsSem.getString(22) : "";
+            String fechaFacturaIso = rsSem.getString(23) != null ? rsSem.getString(23) : "";
+            String fechaFacturaDisplay = rsSem.getString(24) != null ? rsSem.getString(24) : "";
+            boolean eliminado = "I".equals(rsSem.getString(25));
 
-            String buscaIdx = (nombreSeminario + " " + empresa + " " + companiaFactura).toLowerCase().replace("'", "");
+            String buscaIdx = (nombreSeminario + " " + empresa + " " + companiaFactura + " " + aprobacion + " " + nombreParticipantes).toLowerCase().replace("'", "");
 
             String nombreSeminarioAttr = esc(nombreSeminario).replace("'", "&#39;");
             String aprobacionAttr = esc(aprobacion).replace("'", "&#39;");
@@ -112,20 +128,21 @@
             String fechaCapacitacionAttr = esc(fechaCapacitacion).replace("'", "&#39;");
             String ubicacionAttr = esc(ubicacion).replace("'", "&#39;");
             String nombreParticipantesAttr = esc(nombreParticipantes).replace("'", "&#39;");
-            String companiaFacturaAttr = esc(companiaFactura).replace("'", "&#39;");
 
             filasSem.append("<tr data-desc='").append(buscaIdx).append("'>")
-                    .append("<td>").append(esc(empresa)).append("</td>")
-                    .append("<td>").append(esc(nombreSeminario))
+                    .append("<td class='celda-trunc' title='").append(esc(empresa)).append("'>").append(esc(empresa)).append("</td>")
+                    .append("<td class='celda-trunc' title='").append(esc(nombreSeminario)).append("'>").append(esc(nombreSeminario))
                     .append(eliminado ? " <span class='badge' style='background:#dc3545;color:#fff;'>ELIMINADO</span>" : "")
                     .append("</td>")
-                    .append("<td><span class='badge' style='background:")
-                    .append("PAGADO".equals(estadoPago) ? "#28a745" : "#ffc107")
-                    .append(";color:#fff;'>").append(esc(estadoPago)).append("</span></td>")
+                    .append("<td><span class='badge' style='background:#28a745;color:#fff;'>").append(esc(estadoPago)).append("</span></td>")
                     .append("<td>").append(esc(modalidad)).append("</td>")
                     .append("<td>").append(esc(fechaCapacitacion)).append("</td>")
-                    .append("<td>").append(totalFactura).append("</td>")
-                    .append("<td>").append(totalPagado).append("</td>")
+                    .append("<td class='celda-trunc' title='").append(esc(aprobacion)).append("'>").append(esc(aprobacion)).append("</td>")
+                    .append("<td class='celda-trunc' title='").append(esc(nombreParticipantes)).append("'>").append(esc(nombreParticipantes)).append("</td>")
+                    .append("<td class='celda-trunc' title='").append(esc(companiaFactura)).append("'>").append(esc(companiaFactura)).append("</td>")
+                    .append("<td>").append(fechaFacturaDisplay).append("</td>")
+                    .append("<td class='text-end'>").append(totalFactura).append("</td>")
+                    .append("<td class='text-end'>").append(totalPagado).append("</td>")
                     .append("<td class='text-center'>")
                     .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
                     .append("<button type='button' class='btn btn-sm btn-outline-primary btn-editar-sem' style='padding:3px 8px;' ")
@@ -145,7 +162,7 @@
                     .append("data-subtotal='").append(subtotal).append("' ")
                     .append("data-ivaporcentaje='").append(ivaPorcentaje).append("' ")
                     .append("data-retencion='").append(retencion).append("' ")
-                    .append("data-companiafactura='").append(companiaFacturaAttr).append("' ")
+                    .append("data-idcompaniafactura='").append(idCompaniaFacturaRaw).append("' ")
                     .append("data-fechafactura='").append(fechaFacturaIso).append("'>")
                     .append("<i class='fa fa-pencil'></i></button>")
                     .append(eliminado
@@ -177,6 +194,14 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+        <style>
+            #tablaSem td, #tablaSem th { font-size: 0.8125rem; white-space: nowrap; }
+            #tablaSem td.celda-trunc {
+                max-width: 160px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        </style>
     </head>
     <body class="g-sidenav-show   bg-gray-100">
         <div class="min-height-300 bg-primary position-absolute w-100"></div>
@@ -337,6 +362,20 @@
                                    placeholder="Buscar..." style="width:100%;max-width:220px;">
                         </div>
                     </div>
+                    <div class="card-header border-top d-flex flex-column flex-lg-row justify-content-end align-items-lg-center py-2">
+                        <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center flex-wrap" style="gap:6px;">
+                            <label class="text-xs text-secondary mb-0 me-1">Factura desde</label>
+                            <input type="date" id="filtroFechaDesde" class="form-control form-control-sm" style="max-width:160px;">
+                            <label class="text-xs text-secondary mb-0 me-1">hasta</label>
+                            <input type="date" id="filtroFechaHasta" class="form-control form-control-sm" style="max-width:160px;">
+                            <button type="button" class="btn btn-sm btn-outline-success" id="btnExportarExcel">
+                                <i class="fa fa-file-excel-o mr-1"></i>Excel
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnExportarPDF">
+                                <i class="fa fa-file-pdf-o mr-1"></i>PDF
+                            </button>
+                        </div>
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover mb-0" id="tablaSem">
@@ -347,13 +386,17 @@
                                         <th>Estado</th>
                                         <th>Modalidad</th>
                                         <th>Fecha</th>
-                                        <th>Total Factura</th>
-                                        <th>Total Pagado</th>
+                                        <th>Aprobacion</th>
+                                        <th>Participantes</th>
+                                        <th>Compania Facturada</th>
+                                        <th>Fecha Factura</th>
+                                        <th class="text-end">Total Factura</th>
+                                        <th class="text-end">Total Pagado</th>
                                         <th class="text-center" style="width:90px;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-<%=filasSem.length() > 0 ? filasSem.toString() : "<tr><td colspan='8' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay capacitaciones registradas.</td></tr>"%>
+<%=filasSem.length() > 0 ? filasSem.toString() : "<tr><td colspan='12' class='text-center text-muted py-4'><i class='fa fa-inbox fa-2x d-block mb-2'></i>No hay capacitaciones registradas.</td></tr>"%>
                                 </tbody>
                             </table>
                         </div>
@@ -409,7 +452,6 @@
                                     <label>Estado</label>
                                     <select name="estadoPago" class="form-control" required>
                                         <option value="PAGADO">PAGADO</option>
-                                        <option value="POR COBRAR">POR COBRAR</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3 form-group mb-2">
@@ -418,7 +460,7 @@
                                         <option value=""></option>
                                         <option value="EFECTIVO">EFECTIVO</option>
                                         <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                                        <option value="CHEQUE">CHEQUE</option>
+                                        <option value="CHEQUE/DEPOSITO">CHEQUE/DEPOSITO</option>
                                         <option value="CANJE">CANJE</option>
                                     </select>
                                 </div>
@@ -484,8 +526,11 @@
                                     <input type="number" step="0.01" name="totalPagado" id="crTotalPagado" class="form-control" readonly>
                                 </div>
                                 <div class="col-md-8 form-group mb-2">
-                                    <label>Compania que Factura</label>
-                                    <input type="text" name="companiaFactura" class="form-control" maxlength="300">
+                                    <label>Compania Facturada</label>
+                                    <select name="idCompaniaFactura" id="crIdCompaniaFactura" class="form-control select2-modal">
+                                        <option value=""></option>
+<%=opcionesCompania.toString()%>
+                                    </select>
                                 </div>
                                 <div class="col-md-4 form-group mb-2">
                                     <label>Fecha de Factura</label>
@@ -534,7 +579,6 @@
                                     <label>Estado</label>
                                     <select name="estadoPago" id="editEstadoPago" class="form-control" required>
                                         <option value="PAGADO">PAGADO</option>
-                                        <option value="POR COBRAR">POR COBRAR</option>
                                     </select>
                                 </div>
                                 <div class="col-md-3 form-group mb-2">
@@ -543,7 +587,7 @@
                                         <option value=""></option>
                                         <option value="EFECTIVO">EFECTIVO</option>
                                         <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                                        <option value="CHEQUE">CHEQUE</option>
+                                        <option value="CHEQUE/DEPOSITO">CHEQUE/DEPOSITO</option>
                                         <option value="CANJE">CANJE</option>
                                     </select>
                                 </div>
@@ -609,8 +653,11 @@
                                     <input type="number" step="0.01" name="totalPagado" id="editTotalPagado" class="form-control" readonly>
                                 </div>
                                 <div class="col-md-8 form-group mb-2">
-                                    <label>Compania que Factura</label>
-                                    <input type="text" name="companiaFactura" id="editCompaniaFactura" class="form-control" maxlength="300">
+                                    <label>Compania Facturada</label>
+                                    <select name="idCompaniaFactura" id="editIdCompaniaFactura" class="form-control select2-modal">
+                                        <option value=""></option>
+<%=opcionesCompania.toString()%>
+                                    </select>
                                 </div>
                                 <div class="col-md-4 form-group mb-2">
                                     <label>Fecha de Factura</label>
@@ -779,14 +826,30 @@
                     document.getElementById('editSubtotal').value = this.getAttribute('data-subtotal');
                     document.getElementById('editIvaPorcentaje').value = this.getAttribute('data-ivaporcentaje');
                     document.getElementById('editRetencion').value = this.getAttribute('data-retencion');
-                    document.getElementById('editCompaniaFactura').value = this.getAttribute('data-companiafactura');
                     document.getElementById('editFechaFactura').value = this.getAttribute('data-fechafactura');
 
                     $('#editIdEmpresa').val(this.getAttribute('data-idempresa') || '').trigger('change');
+                    $('#editIdCompaniaFactura').val(this.getAttribute('data-idcompaniafactura') || '').trigger('change');
 
                     recalcular('edit');
                     modalEditarSem.show();
                 });
+            });
+
+            // --- Exportar (Excel / PDF) respetando el filtro de fecha de factura ---
+            function construirUrlExportar(servlet) {
+                var desde = document.getElementById('filtroFechaDesde').value;
+                var hasta = document.getElementById('filtroFechaHasta').value;
+                var params = [];
+                if (desde) params.push('fechaDesde=' + encodeURIComponent(desde));
+                if (hasta) params.push('fechaHasta=' + encodeURIComponent(hasta));
+                return ctx + '/' + servlet + (params.length ? '?' + params.join('&') : '');
+            }
+            document.getElementById('btnExportarExcel').addEventListener('click', function () {
+                window.location.href = construirUrlExportar('CAP_ExportarExcel');
+            });
+            document.getElementById('btnExportarPDF').addEventListener('click', function () {
+                window.location.href = construirUrlExportar('CAP_ExportarPDF');
             });
 
             // --- Eliminar / Restaurar (soft-delete) ---

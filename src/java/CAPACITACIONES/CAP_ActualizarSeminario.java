@@ -76,7 +76,7 @@ public class CAP_ActualizarSeminario extends HttpServlet {
                 Double totalFacturaD = CAP_InsertarSeminario.parseDouble(request.getParameter("totalFactura"));
                 Double retencionD = CAP_InsertarSeminario.parseDouble(request.getParameter("retencion"));
                 Double totalPagadoD = CAP_InsertarSeminario.parseDouble(request.getParameter("totalPagado"));
-                String companiaFactura = request.getParameter("companiaFactura");
+                Integer idCompaniaFactura = CAP_InsertarSeminario.parseInt(request.getParameter("idCompaniaFactura"));
                 String fechaFacturaStr = request.getParameter("fechaFactura");
 
                 try (PreparedStatement st = cn.prepareStatement(
@@ -84,7 +84,7 @@ public class CAP_ActualizarSeminario extends HttpServlet {
                         "ESTADO_PAGO = ?, FORMA_PAGO = ?, APROBACION = ?, HORARIO = ?, FECHA_CAPACITACION = ?, " +
                         "DURACION_HORAS = ?, MODALIDAD = ?, UBICACION = ?, NO_PARTICIPANTES = ?, " +
                         "NOMBRE_PARTICIPANTES = ?, SUBTOTAL = ?, IVA_PORCENTAJE = ?, IVA_VALOR = ?, " +
-                        "TOTAL_FACTURA = ?, RETENCION = ?, TOTAL_PAGADO = ?, COMPANIA_FACTURA = ?, " +
+                        "TOTAL_FACTURA = ?, RETENCION = ?, TOTAL_PAGADO = ?, ID_COMPANIA_FACTURA = ?, " +
                         "FECHA_FACTURA = ? WHERE ID_SEMINARIO = ?")) {
                     if (idEmpresa != null) st.setInt(1, idEmpresa); else st.setNull(1, Types.INTEGER);
                     st.setString(2, nombreSeminario.trim());
@@ -104,7 +104,7 @@ public class CAP_ActualizarSeminario extends HttpServlet {
                     st.setDouble(16, totalFacturaD != null ? totalFacturaD : 0);
                     st.setDouble(17, retencionD != null ? retencionD : 0);
                     st.setDouble(18, totalPagadoD != null ? totalPagadoD : 0);
-                    st.setString(19, companiaFactura != null ? companiaFactura.trim() : null);
+                    if (idCompaniaFactura != null) st.setInt(19, idCompaniaFactura); else st.setNull(19, Types.INTEGER);
                     if (fechaFacturaStr != null && !fechaFacturaStr.trim().isEmpty()) {
                         st.setDate(20, Date.valueOf(fechaFacturaStr.trim()));
                     } else {
