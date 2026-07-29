@@ -234,17 +234,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
         </li>-->
       </ul>
     <div class="sidenav-footer mx-3 ">
-      <div class="card card-plain shadow-none" id="sidenavCard">
-        <img class="w-50 mx-auto" src="../assets/img/illustrations/icon-documentation.svg" alt="sidebar_illustration">
-        <div class="card-body text-center p-3 w-100 pt-0">
-          <div class="docs-info">
-            <h6 class="mb-0">Need help?</h6>
-            <p class="text-xs font-weight-bold mb-0">Please check our docs</p>
-          </div>
-        </div>
-      </div>
-      <a href="https://www.creative-tim.com/learning-lab/bootstrap/license/argon-dashboard" target="_blank" class="btn btn-dark btn-sm w-100 mb-3">Documentation</a>
-      <a class="btn btn-primary btn-sm mb-0 w-100" href="https://www.creative-tim.com/product/argon-dashboard-pro?ref=sidebarfree" type="button">Upgrade to pro</a>
+      <a href="../cerrar.jsp" class="btn btn-dark btn-sm w-100 mb-3">Cerrar Sesión</a>
     </div>
   </aside>
   <div class="main-content position-relative max-height-vh-100 h-100">
@@ -456,7 +446,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                                 <i class="ni education_hat mr-2"></i><b>Solicitar soporte: </b> 
                                 <div class="input-group mb-3">
                                      
-                       <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+                       <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")){%>
                        <textarea  type="form-control"  name="soporteEditar" class="form-control" disabled="true" placeholder="Detalle su solicitud de soporte tecnico."><%=soporte %> </textarea>
                       <%  }else{
                   %>
@@ -489,7 +479,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
               </div>
                     </div>
                             
-                          <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+                          <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")){%>
 
 
                           <%}else{%>
@@ -520,7 +510,7 @@ String fechacompra =""; String  observaciones=""; String procesador =""; String 
                 </div>-->
                  
                   <hr class="horizontal dark">
-                  <% if(COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")){%>
+                  <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")){%>
                   <form action="../InsertReporteTecnico" method="POST">
                       <div class="row">
                          <div class="col-md-12">
