@@ -90,7 +90,7 @@
                 "LEFT JOIN CAPACITACIONES_EMPRESA e ON s.ID_EMPRESA = e.ID_EMPRESA " +
                 "LEFT JOIN COMPANIA c ON s.ID_COMPANIA_FACTURA = c.IDCOMPANIA " +
                 (verEliminados ? "" : "WHERE s.ACTIVO = 'A' ") +
-                "ORDER BY s.FECHA_CREACION DESC");
+                "ORDER BY s.FECHA_FACTURA DESC NULLS LAST, s.FECHA_CREACION DESC");
         ResultSet rsSem = stSem.executeQuery();
         while (rsSem.next()) {
             totalSem++;
