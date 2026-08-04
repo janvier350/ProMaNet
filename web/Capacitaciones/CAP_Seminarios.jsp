@@ -754,7 +754,7 @@
                     msgEl.textContent = 'Escriba el nombre de la empresa.';
                     return;
                 }
-                var fd = new FormData();
+                var fd = new URLSearchParams();
                 fd.append('descripcion', desc);
                 fetch(ctx + '/CAP_InsertarEmpresa', {method: 'POST', body: fd})
                     .then(function (r) { return r.json(); })

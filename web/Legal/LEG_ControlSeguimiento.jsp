@@ -1061,7 +1061,7 @@ String compania = (String) session.getAttribute("compania");
                     msgEl.textContent = 'Escriba el nombre.';
                     return;
                 }
-                var fd = new FormData();
+                var fd = new URLSearchParams();
                 fd.append('descripcion', desc);
                 fetch(ctx + '/' + cfg.endpoint, {method: 'POST', body: fd})
                     .then(function (r) { return r.json(); })
