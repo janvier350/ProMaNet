@@ -331,6 +331,21 @@ String compania = (String) session.getAttribute("compania");
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+        <style>
+            /* Evita que columnas con texto largo (nombres concatenados, asuntos)
+               estiren la tabla horizontalmente; el texto salta de linea en su lugar. */
+            #tablaIP td:nth-child(1), #tablaIP th:nth-child(1) {
+                max-width: 220px;
+                white-space: normal;
+                word-break: break-word;
+            }
+            #tablaExpel td:nth-child(6), #tablaExpel th:nth-child(6),
+            #tablaExpel td:nth-child(7), #tablaExpel th:nth-child(7) {
+                max-width: 200px;
+                white-space: normal;
+                word-break: break-word;
+            }
+        </style>
     </head>
     <body class="g-sidenav-show   bg-gray-100">
         <div class="min-height-300 bg-primary position-absolute w-100"></div>
