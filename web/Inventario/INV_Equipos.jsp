@@ -97,10 +97,11 @@ String compania = (String) session.getAttribute("compania");
   
     
         <script type="text/javascript" class="init">
+    var tablaEquipos;
     $(document).ready(function() {
         // Usamos una pequeña pausa para asegurar que el DOM esté listo tras los scripts de Argon
         setTimeout(function(){
-            $('#example').DataTable({
+            tablaEquipos = $('#example').DataTable({
                 "destroy": true,
                 "responsive": true,
                 "autoWidth": false,
@@ -109,22 +110,22 @@ String compania = (String) session.getAttribute("compania");
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/1.10.15/i18n/Spanish.json"
                 },
-                // El parámetro DOM es clave: 
+                // El parámetro DOM es clave:
                 // l - length, f - filtering, t - table, i - info, p - pagination
                 "dom": '<"row align-items-center"<"col-md-6"l><"col-md-6"f>>' +
                        '<"row"<"col-md-12"tr>>' +
                        '<"row align-items-center"<"col-md-5"i><"col-md-7"p>>',
             });
-        }, 500); 
-    });
-    
-    // Lógica del filtro personalizado
-    $('#filtroEstado').on('change', function() {
-        var estado = $(this).val();
-        
-        // .column(5) asume que 'Estado' es la sexta columna (empezando desde 0)
-        // Ajusta el número si moviste las columnas
-        table.column(5).search(estado).draw();
+
+            // Lógica del filtro personalizado (dentro del ready, luego de crear la tabla)
+            $('#filtroEstado').on('change', function() {
+                var estado = $(this).val();
+
+                // .column(5) asume que 'Estado' es la sexta columna (empezando desde 0)
+                // Ajusta el número si moviste las columnas
+                tablaEquipos.column(5).search(estado).draw();
+            });
+        }, 500);
     });
 </script>
                 
