@@ -335,9 +335,11 @@ String compania = (String) session.getAttribute("compania");
             /* Evita que columnas con texto largo (nombres concatenados, asuntos)
                estiren la tabla horizontalmente; el texto salta de linea en su lugar. */
             #tablaIP td:nth-child(1), #tablaIP th:nth-child(1) {
+                min-width: 160px;
                 max-width: 220px;
                 white-space: normal;
-                word-break: break-word;
+                word-break: normal;
+                overflow-wrap: break-word;
             }
             #tablaExpel td:nth-child(6), #tablaExpel th:nth-child(6),
             #tablaExpel td:nth-child(7), #tablaExpel th:nth-child(7) {
