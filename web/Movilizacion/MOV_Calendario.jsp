@@ -714,11 +714,7 @@ function mostrarDetalle(event) {
     document.getElementById('detMovilizador').textContent = p.movilizador;
     document.getElementById('detDestino').textContent = p.destino;
     document.getElementById('detMotivo').textContent = p.motivo || '-';
-    if (p.verDetalle === false) {
-        document.getElementById('detComentario').textContent = '🔒 Confidencial';
-    } else {
-        document.getElementById('detComentario').textContent = p.comentario || '-';
-    }
+    document.getElementById('detComentario').textContent = p.comentario || '-';
     document.getElementById('detFechaSolicitud').textContent = p.fechaSolicitud;
 
     if (p.gestionadoPor) {

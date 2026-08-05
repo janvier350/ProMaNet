@@ -49,13 +49,6 @@ public class MOV_EventosJson extends HttpServlet {
         String estadoFiltro = request.getParameter("estado");
         if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) estadoFiltro = null;
 
-        // Confidencialidad: solo el comentario queda restringido a quien
-        // creo la solicitud o quien gestiona movilizacion (Smoran).
-        // Motivo y destino son visibles para cualquier departamento.
-        int miId = -1;
-        try { miId = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
-        boolean puedeGestionar = PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR");
-
         Connection cn = null;
         try {
             cn = Servlets.Conexion.getConnection();
@@ -92,7 +85,6 @@ public class MOV_EventosJson extends HttpServlet {
                         String destinoTitulo = rs.getString(16);
 
                         int idSolicitante = rs.getInt(11);
-                        boolean verDetalle = puedeGestionar || (idSolicitante == miId);
                         String motivoStr = rs.getString(9);
 
                         JSONObject ev = new JSONObject();
@@ -114,8 +106,7 @@ public class MOV_EventosJson extends HttpServlet {
                         props.put("solicitante", rs.getString(10));
                         props.put("idUsuario", idSolicitante);
                         props.put("departamento", rs.getString(12) != null ? rs.getString(12) : "");
-                        props.put("comentario", verDetalle && rs.getString(6) != null ? rs.getString(6) : "");
-                        props.put("verDetalle", verDetalle);
+                        props.put("comentario", rs.getString(6) != null ? rs.getString(6) : "");
                         props.put("gestionadoPor", rs.getString(13) != null ? rs.getString(13) : "");
                         props.put("motivoRechazo", rs.getString(7) != null ? rs.getString(7) : "");
                         props.put("fechaSolicitud", rs.getString(14));
