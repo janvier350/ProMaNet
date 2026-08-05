@@ -189,6 +189,19 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
+                    <% boolean tieneAudAcceso = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
+                       boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
+                       String hrefAudAnticipos = tieneAudGestionar ? "../Auditoria/AUD_Dashboard.jsp" : "../Auditoria/AUD_SolicitarAnticipo.jsp";
+                       if (tieneAudAcceso || tieneAudGestionar) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="<%=hrefAudAnticipos%>">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-hand-holding-usd text-info text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Anticipos Auditoria</span>
+                        </a>
+                    </li>
+                    <% } %>
 <!--                    <li class="nav-item">
                         <a class="nav-link " href="../ReporteGastos/ReporteGastosIndivi.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
@@ -860,6 +873,36 @@ String compania = (String) session.getAttribute("compania");
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-primary shadow-primary text-center rounded-circle">
                                                 <i class="ni ni-hat-3 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <% if (tieneAudAcceso || tieneAudGestionar) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="<%=hrefAudAnticipos%>">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Anticipos</p>
+                                                <h5 class="font-weight-bolder">
+                                                    AUDITORIA
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-info text-sm font-weight-bolder">Solicite y</span>
+                                                    <b class="text-info"> gestione anticipos.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-info shadow-info text-center rounded-circle">
+                                                <i class="fa fa-hand-holding-usd text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
