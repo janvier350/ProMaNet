@@ -49,6 +49,12 @@ public class MOV_EventosJson extends HttpServlet {
         String estadoFiltro = request.getParameter("estado");
         if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) estadoFiltro = null;
 
+        // Confidencialidad: Motivo y Comentario solo se ven entre miembros
+        // del mismo departamento que hizo la solicitud (o quien gestiona
+        // movilizacion, que necesita el motivo para aprobar/rechazar).
+        String miDepartamento = (String) session.getAttribute("departamento");
+        boolean puedeGestionar = PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR");
+
         Connection cn = null;
         try {
             cn = Servlets.Conexion.getConnection();
@@ -86,11 +92,14 @@ public class MOV_EventosJson extends HttpServlet {
 
                         int idSolicitante = rs.getInt(11);
                         String motivoStr = rs.getString(9);
+                        String departamentoFila = rs.getString(12);
+                        boolean verDetalle = puedeGestionar
+                                || (miDepartamento != null && miDepartamento.equalsIgnoreCase(departamentoFila));
 
                         JSONObject ev = new JSONObject();
                         ev.put("id", rs.getInt(1));
                         ev.put("title", rs.getString(10)
-                                + (motivoStr != null ? " - " + motivoStr : "")
+                                + (verDetalle && motivoStr != null ? " - " + motivoStr : "")
                                 + (destinoTitulo != null ? " - " + destinoTitulo : ""));
                         ev.put("start", fecha + "T" + horaInicio);
                         ev.put("end", fecha + "T" + horaFin);
@@ -102,11 +111,12 @@ public class MOV_EventosJson extends HttpServlet {
                         props.put("horaInicio", horaInicio);
                         props.put("horaFin", horaFin);
                         props.put("movilizador", rs.getString(8));
-                        props.put("motivo", motivoStr != null ? motivoStr : "");
+                        props.put("motivo", verDetalle && motivoStr != null ? motivoStr : "");
                         props.put("solicitante", rs.getString(10));
                         props.put("idUsuario", idSolicitante);
-                        props.put("departamento", rs.getString(12) != null ? rs.getString(12) : "");
-                        props.put("comentario", rs.getString(6) != null ? rs.getString(6) : "");
+                        props.put("departamento", departamentoFila != null ? departamentoFila : "");
+                        props.put("comentario", verDetalle && rs.getString(6) != null ? rs.getString(6) : "");
+                        props.put("verDetalle", verDetalle);
                         props.put("gestionadoPor", rs.getString(13) != null ? rs.getString(13) : "");
                         props.put("motivoRechazo", rs.getString(7) != null ? rs.getString(7) : "");
                         props.put("fechaSolicitud", rs.getString(14));
