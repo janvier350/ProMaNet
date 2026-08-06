@@ -59,11 +59,14 @@ public class CTRL_Insert_Anticipo extends HttpServlet {
             response.sendRedirect("sesionInvalida.jsp");
             return;
         }
-        // Auditoria usa su propio modulo de anticipos (AUD_InsertarAnticipo),
-        // con su propia fecha de corte y tope. No se les deja insertar aqui
-        // para que no terminen con solicitudes duplicadas en dos sistemas.
-        if ("AUDITORÍA".equalsIgnoreCase((String) session.getAttribute("departamento"))) {
-            response.sendRedirect("../ProMaNet/Auditoria/AUD_SolicitarAnticipo.jsp");
+        // Auditoria (departamento completo o concesion individual, ej.
+        // quien gestiona los pagos) usa su propio modulo de anticipos
+        // (AUD_InsertarAnticipo), con su propia fecha de corte y tope. No
+        // se les deja insertar aqui para que no terminen con solicitudes
+        // duplicadas en dos sistemas.
+        boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
+        if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || tieneAudGestionar) {
+            response.sendRedirect(tieneAudGestionar ? "../ProMaNet/Auditoria/AUD_Dashboard.jsp" : "../ProMaNet/Auditoria/AUD_SolicitarAnticipo.jsp");
             return;
         }
 

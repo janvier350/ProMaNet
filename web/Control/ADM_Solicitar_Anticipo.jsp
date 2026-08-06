@@ -63,11 +63,14 @@ String compania = (String) session.getAttribute("compania");
                     response.sendRedirect("../sesionInvalida.jsp");
                     return;
              }
-             // Auditoria tiene su propio modulo de anticipos, independiente de
-             // este (con su propia fecha de corte y tope). Se les redirige
-             // ahi para que no usen dos flujos distintos por error.
-             if("AUDITORÍA".equalsIgnoreCase(departamento)){
-                    response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp");
+             // Auditoria (departamento completo o concesion individual a
+             // alguien de otro departamento, ej. quien gestiona los pagos)
+             // tiene su propio modulo de anticipos, independiente de este
+             // (con su propia fecha de corte y tope). Se les redirige ahi
+             // para que no usen dos flujos distintos por error.
+             boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
+             if(COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || tieneAudGestionar){
+                    response.sendRedirect(tieneAudGestionar ? "../Auditoria/AUD_Dashboard.jsp" : "../Auditoria/AUD_SolicitarAnticipo.jsp");
                     return;
              }
 
