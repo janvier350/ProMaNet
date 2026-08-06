@@ -13,9 +13,9 @@
 -- usa el modulo LEGAL para restringirse a un solo departamento.
 --
 -- Gestion (editar/marcar pagado, definir fecha de corte, exportar
--- reporte): concedida puntualmente al usuario lrosero via
+-- reporte): concedida puntualmente al usuario srosero via
 -- APP_USUARIO_PERMISO -- mismo mecanismo que se uso con smoran en
--- Movilizacion. A proposito SIN mapeo por rol ni departamento: lrosero
+-- Movilizacion. A proposito SIN mapeo por rol ni departamento: srosero
 -- hoy pertenece a Administracion Romeria (no a Auditoria) y aun asi
 -- debe poder gestionar este modulo; el dia que cambie el encargado,
 -- se reasigna con un solo UPDATE, sin tocar codigo.
@@ -53,9 +53,10 @@ INSERT INTO APP_PERMISO (ID_PERMISO, CODIGO, MODULO, DESCRIPCION, ESTADO) VALUES
 -- ANTICIPOS_AUD_ACCESO: todo el departamento AUDITORIA
 INSERT INTO APP_DEPARTAMENTO_PERMISO (DEPARTAMENTO, ID_PERMISO, TIPO) VALUES ('AUDITORÍA', 31, 'G');
 
--- ANTICIPOS_AUD_GESTIONAR: concesion individual a lrosero
+-- ANTICIPOS_AUD_GESTIONAR: concesion individual a srosero (Stefania
+-- Lisbeth Rosero Chiquito, IDUSUARIO 171).
 INSERT INTO APP_USUARIO_PERMISO (IDUSUARIO, ID_PERMISO, TIPO)
-    SELECT IDUSUARIO, 32, 'G' FROM USUARIO WHERE UPPER(USUARIO) = 'LROSERO';
+    SELECT IDUSUARIO, 32, 'G' FROM USUARIO WHERE UPPER(USUARIO) = 'SROSERO';
 
 COMMIT;
 
@@ -71,6 +72,6 @@ JOIN USUARIO u ON u.IDUSUARIO = up.IDUSUARIO
 JOIN APP_PERMISO p ON p.ID_PERMISO = up.ID_PERMISO
 WHERE p.MODULO = 'ANTICIPOS_AUDITORIA';
 
--- IMPORTANTE: lrosero debe cerrar sesion y volver a entrar para que el
+-- IMPORTANTE: srosero debe cerrar sesion y volver a entrar para que el
 -- permiso de gestion surta efecto (los permisos se cargan una sola vez,
 -- al hacer login).
