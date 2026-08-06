@@ -387,6 +387,78 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Historial de fechas de corte</h6>
+                        <p class="text-xs text-secondary mb-0">Consulta los anticipos pagados de cualquier mes anterior.</p>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Corte</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Definido por</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        try (Connection cn4 = Servlets.Conexion.getConnection()) {
+                                            if (cn4 != null) {
+                                                try (PreparedStatement st4 = cn4.prepareStatement(
+                                                        "SELECT TO_CHAR(fc.FECHA_CORTE,'DD/MM/YYYY'), TO_CHAR(fc.FECHA_CORTE,'YYYY-MM'), " +
+                                                        "NVL(u.NOMBRE||' '||u.APELLIDOS,'-'), fc.ESTADO " +
+                                                        "FROM AUD_FECHA_CORTE_ANTICIPO fc LEFT JOIN USUARIO u ON fc.ID_USUARIO = u.IDUSUARIO " +
+                                                        "ORDER BY fc.FECHA_CORTE DESC")) {
+                                                    try (ResultSet rs4 = st4.executeQuery()) {
+                                                        boolean hay4 = false;
+                                                        while (rs4.next()) {
+                                                            hay4 = true;
+                                                            String fechaDisplay = rs4.getString(1);
+                                                            String mesParam = rs4.getString(2);
+                                                            String definidoPor = rs4.getString(3);
+                                                            String estadoCorte = rs4.getString(4);
+                                                    %>
+                                                    <tr>
+                                                        <td><p class="text-xs font-weight-bold mb-0"><%=fechaDisplay%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=definidoPor%></p></td>
+                                                        <td class="text-center">
+                                                            <% if ("A".equals(estadoCorte)) { %>
+                                                                <span class="badge badge-sm bg-gradient-success">VIGENTE</span>
+                                                            <% } else { %>
+                                                                <span class="badge badge-sm bg-gradient-secondary">INACTIVA</span>
+                                                            <% } %>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <a class="btn btn-xs btn-outline-success py-1" href="../AUD_ReportePDF?mes=<%=mesParam%>&estado=PAGADO" target="_blank">
+                                                                <i class="fa fa-eye"></i> Ver pagados
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    <%
+                                                        }
+                                                        if (!hay4) {
+                                                    %>
+                                                    <tr><td colspan="4" class="text-center text-muted py-4">No hay fechas de corte registradas.</td></tr>
+                                                    <%
+                                                        }
+                                                    }
+                                                } catch (Exception ex) { ex.printStackTrace(); }
+                                            }
+                                        } catch (Exception ex) { ex.printStackTrace(); }
+                                    %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </main>
 

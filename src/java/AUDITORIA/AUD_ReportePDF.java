@@ -42,6 +42,8 @@ public class AUD_ReportePDF extends HttpServlet {
 
         String nombreGestor = session.getAttribute("nombre") + " " + session.getAttribute("apellidos");
         String fechaParam = request.getParameter("mes"); // YYYY-MM, opcional
+        String estadoFiltro = request.getParameter("estado"); // PENDIENTE/PAGADO, opcional
+        if (estadoFiltro != null && estadoFiltro.trim().isEmpty()) estadoFiltro = null;
         int mesFiltro, anioFiltro;
         if (fechaParam != null && fechaParam.matches("\\d{4}-\\d{2}")) {
             String[] p = fechaParam.split("-");
@@ -70,8 +72,10 @@ public class AUD_ReportePDF extends HttpServlet {
                     "a.ANTICIPO, a.ESTADO, a.ID_AUD_ANTICIPO " +
                     "FROM AUD_ANTICIPOS a JOIN USUARIO u ON a.ID_USUARIO = u.IDUSUARIO " +
                     "WHERE TRUNC(a.FECHA_SOLICITUD,'MM') = TO_DATE(?, 'MM/YYYY') " +
+                    (estadoFiltro != null ? "AND a.ESTADO = ? " : "") +
                     "ORDER BY a.FECHA_SOLICITUD DESC")) {
                 st.setString(1, String.format("%02d/%d", mesFiltro, anioFiltro));
+                if (estadoFiltro != null) st.setString(2, estadoFiltro);
                 try (ResultSet rs = st.executeQuery()) {
                     while (rs.next()) {
                         BigDecimal monto = rs.getBigDecimal(4);
@@ -115,7 +119,7 @@ public class AUD_ReportePDF extends HttpServlet {
             out.println("<div class='reporte-container'><div class='reporte-card'>");
             out.println("<div class='text-center mb-4'>");
             out.println("<h1 class='header-title'><i class='fas fa-chart-line me-3'></i>" + mesAnio + "</h1>");
-            out.println("<h3 class='subheader-title'>REPORTE DE ANTICIPOS - AUDITORIA</h3>");
+            out.println("<h3 class='subheader-title'>REPORTE DE ANTICIPOS " + ("PAGADO".equals(estadoFiltro) ? "PAGADOS" : "PENDIENTE".equals(estadoFiltro) ? "PENDIENTES" : "") + " - AUDITORIA</h3>");
             out.println("<div class='separator'></div></div>");
             out.println("<div class='d-flex justify-content-between align-items-center mb-4'>");
             out.println("<div class='badge-fecha'><i class='far fa-calendar-alt me-2'></i>Periodo: " + mesAnio + "</div>");
