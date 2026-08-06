@@ -191,14 +191,23 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
                     <% boolean tieneAudAcceso = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
                        boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
-                       String hrefAudAnticipos = tieneAudAcceso ? "../Auditoria/AUD_SolicitarAnticipo.jsp" : "../Auditoria/AUD_Dashboard.jsp";
-                       if (tieneAudAcceso || tieneAudGestionar) { %>
+                       if (tieneAudAcceso) { %>
                     <li class="nav-item">
-                        <a class="nav-link " href="<%=hrefAudAnticipos%>">
+                        <a class="nav-link " href="../Auditoria/AUD_SolicitarAnticipo.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="fa fa-hand-holding-usd text-info text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Anticipos Auditoria</span>
+                        </a>
+                    </li>
+                    <% } %>
+                    <% if (tieneAudGestionar) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Auditoria/AUD_Dashboard.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Gestionar Anticipos Aud.</span>
                         </a>
                     </li>
                     <% } %>
@@ -882,10 +891,10 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-                    <% if (tieneAudAcceso || tieneAudGestionar) { %>
+                    <% if (tieneAudAcceso) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="<%=hrefAudAnticipos%>">
+                            <a href="../Auditoria/AUD_SolicitarAnticipo.jsp">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
@@ -895,14 +904,44 @@ String compania = (String) session.getAttribute("compania");
                                                     AUDITORIA
                                                 </h5>
                                                 <p class="mb-0">
-                                                    <span class="text-info text-sm font-weight-bolder">Solicite y</span>
-                                                    <b class="text-info"> gestione anticipos.</b>
+                                                    <span class="text-info text-sm font-weight-bolder">Solicite</span>
+                                                    <b class="text-info"> anticipo de sueldo.</b>
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-info shadow-info text-center rounded-circle">
                                                 <i class="fa fa-hand-holding-usd text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <% if (tieneAudGestionar) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Auditoria/AUD_Dashboard.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Gestionar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    ANTICIPOS AUD.
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-warning text-sm font-weight-bolder">Pague y</span>
+                                                    <b class="text-warning"> administre anticipos.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                                                <i class="fa fa-tasks text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
