@@ -31,7 +31,7 @@ public class AUD_InsertarFechaCorte extends HttpServlet {
 
         String corte = request.getParameter("corte");
         if (corte == null || corte.trim().isEmpty()) {
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=La fecha de corte es requerida");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=La fecha de corte es requerida");
             return;
         }
 
@@ -58,7 +58,7 @@ public class AUD_InsertarFechaCorte extends HttpServlet {
                 try (ResultSet rsVerificar = stVerificar.executeQuery()) {
                     if (rsVerificar.next() && rsVerificar.getInt(1) > 0) {
                         cn.rollback();
-                        response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Ya existe una fecha de corte activa para ese mes");
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Ya existe una fecha de corte activa para ese mes");
                         return;
                     }
                 }
@@ -80,11 +80,11 @@ public class AUD_InsertarFechaCorte extends HttpServlet {
             }
 
             cn.commit();
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?msj=Fecha de corte registrada correctamente");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Fecha de corte registrada correctamente");
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Error al registrar la fecha de corte");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Error al registrar la fecha de corte");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }

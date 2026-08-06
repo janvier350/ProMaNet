@@ -43,10 +43,10 @@ public class AUD_ProcesarPago extends HttpServlet {
                 st.executeUpdate();
             }
 
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?msj=Anticipos marcados como pagados");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Anticipos marcados como pagados");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Error al procesar el pago");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Error al procesar el pago");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }

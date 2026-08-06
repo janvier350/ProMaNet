@@ -34,11 +34,11 @@ public class AUD_EditarAnticipo extends HttpServlet {
         try {
             nuevoMonto = Double.parseDouble(request.getParameter("anticipo"));
         } catch (Exception e) {
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Monto invalido");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Monto invalido");
             return;
         }
         if (idAnticipo == null || nuevoMonto <= 0) {
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Datos incompletos");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Datos incompletos");
             return;
         }
 
@@ -55,7 +55,7 @@ public class AUD_EditarAnticipo extends HttpServlet {
                 if (rsCorte.next()) {
                     java.sql.Date fechaCorte = rsCorte.getDate(1);
                     if (fechaCorte != null && new java.util.Date().after(fechaCorte)) {
-                        response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=El plazo para editar anticipos ya vencio");
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El plazo para editar anticipos ya vencio");
                         return;
                     }
                 }
@@ -67,7 +67,7 @@ public class AUD_EditarAnticipo extends HttpServlet {
                 stCheck.setString(1, idAnticipo);
                 try (ResultSet rsCheck = stCheck.executeQuery()) {
                     if (!rsCheck.next()) {
-                        response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Solicitud no encontrada");
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Solicitud no encontrada");
                         return;
                     }
                     sueldoActual = rsCheck.getDouble(1);
@@ -76,7 +76,7 @@ public class AUD_EditarAnticipo extends HttpServlet {
 
             double limite = sueldoActual * 0.50;
             if (nuevoMonto > limite) {
-                response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=El monto excede el 50% del sueldo ($" + limite + ")");
+                response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El monto excede el 50% del sueldo ($" + limite + ")");
                 return;
             }
 
@@ -87,10 +87,10 @@ public class AUD_EditarAnticipo extends HttpServlet {
                 st.executeUpdate();
             }
 
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?msj=Anticipo actualizado correctamente");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Anticipo actualizado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("../Auditoria/AUD_Dashboard.jsp?error=Error al actualizar");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Error al actualizar");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }

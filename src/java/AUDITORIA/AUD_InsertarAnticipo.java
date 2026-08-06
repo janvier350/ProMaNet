@@ -44,11 +44,11 @@ public class AUD_InsertarAnticipo extends HttpServlet {
         try {
             anticipo = Double.parseDouble(request.getParameter("anticipo"));
         } catch (Exception e) {
-            response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=Monto invalido");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=Monto invalido");
             return;
         }
         if (anticipo <= 0) {
-            response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=El monto debe ser mayor a cero");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=El monto debe ser mayor a cero");
             return;
         }
 
@@ -67,7 +67,7 @@ public class AUD_InsertarAnticipo extends HttpServlet {
                     java.sql.Date fechaCorte = rsCorte.getDate(1);
                     if (fechaCorte != null && new java.util.Date().after(fechaCorte)) {
                         cn.rollback();
-                        response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=El plazo para solicitar anticipos ya vencio");
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=El plazo para solicitar anticipos ya vencio");
                         return;
                     }
                 }
@@ -83,7 +83,7 @@ public class AUD_InsertarAnticipo extends HttpServlet {
             }
             if (sueldo <= 0) {
                 cn.rollback();
-                response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=No tienes un sueldo asignado, contacta a RRHH");
+                response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=No tienes un sueldo asignado, contacta a RRHH");
                 return;
             }
 
@@ -91,7 +91,7 @@ public class AUD_InsertarAnticipo extends HttpServlet {
             double limite = sueldo * 0.50;
             if (anticipo > limite) {
                 cn.rollback();
-                response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=El monto excede el 50% del sueldo ($" + limite + ")");
+                response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=El monto excede el 50% del sueldo ($" + limite + ")");
                 return;
             }
 
@@ -102,7 +102,7 @@ public class AUD_InsertarAnticipo extends HttpServlet {
                 try (ResultSet rsContar = stContar.executeQuery()) {
                     if (rsContar.next() && rsContar.getInt(1) >= 1) {
                         cn.rollback();
-                        response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=Ya tienes una solicitud pendiente");
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=Ya tienes una solicitud pendiente");
                         return;
                     }
                 }
@@ -125,11 +125,11 @@ public class AUD_InsertarAnticipo extends HttpServlet {
             }
 
             cn.commit();
-            response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?msj=Solicitud registrada correctamente");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?msj=Solicitud registrada correctamente");
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
-            response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp?error=Error al registrar la solicitud");
+            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?error=Error al registrar la solicitud");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }
