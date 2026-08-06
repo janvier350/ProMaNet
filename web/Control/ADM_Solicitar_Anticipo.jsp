@@ -68,9 +68,9 @@ String compania = (String) session.getAttribute("compania");
              // tiene su propio modulo de anticipos, independiente de este
              // (con su propia fecha de corte y tope). Se les redirige ahi
              // para que no usen dos flujos distintos por error.
-             boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
-             if(COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || tieneAudGestionar){
-                    response.sendRedirect(tieneAudGestionar ? "../Auditoria/AUD_Dashboard.jsp" : "../Auditoria/AUD_SolicitarAnticipo.jsp");
+             boolean tieneAudAcceso = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
+             if(tieneAudAcceso || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")){
+                    response.sendRedirect(tieneAudAcceso ? "../Auditoria/AUD_SolicitarAnticipo.jsp" : "../Auditoria/AUD_Dashboard.jsp");
                     return;
              }
 

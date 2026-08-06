@@ -191,7 +191,7 @@ String compania = (String) session.getAttribute("compania");
                     <% } %>
                     <% boolean tieneAudAcceso = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
                        boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
-                       String hrefAudAnticipos = tieneAudGestionar ? "../Auditoria/AUD_Dashboard.jsp" : "../Auditoria/AUD_SolicitarAnticipo.jsp";
+                       String hrefAudAnticipos = tieneAudAcceso ? "../Auditoria/AUD_SolicitarAnticipo.jsp" : "../Auditoria/AUD_Dashboard.jsp";
                        if (tieneAudAcceso || tieneAudGestionar) { %>
                     <li class="nav-item">
                         <a class="nav-link " href="<%=hrefAudAnticipos%>">

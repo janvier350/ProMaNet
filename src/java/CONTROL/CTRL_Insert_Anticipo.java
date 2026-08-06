@@ -64,9 +64,9 @@ public class CTRL_Insert_Anticipo extends HttpServlet {
         // (AUD_InsertarAnticipo), con su propia fecha de corte y tope. No
         // se les deja insertar aqui para que no terminen con solicitudes
         // duplicadas en dos sistemas.
-        boolean tieneAudGestionar = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
-        if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || tieneAudGestionar) {
-            response.sendRedirect(tieneAudGestionar ? "../ProMaNet/Auditoria/AUD_Dashboard.jsp" : "../ProMaNet/Auditoria/AUD_SolicitarAnticipo.jsp");
+        boolean tieneAudAcceso = COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
+        if (tieneAudAcceso || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")) {
+            response.sendRedirect(tieneAudAcceso ? "../ProMaNet/Auditoria/AUD_SolicitarAnticipo.jsp" : "../ProMaNet/Auditoria/AUD_Dashboard.jsp");
             return;
         }
 
