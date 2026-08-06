@@ -59,6 +59,13 @@ public class CTRL_Insert_Anticipo extends HttpServlet {
             response.sendRedirect("sesionInvalida.jsp");
             return;
         }
+        // Auditoria usa su propio modulo de anticipos (AUD_InsertarAnticipo),
+        // con su propia fecha de corte y tope. No se les deja insertar aqui
+        // para que no terminen con solicitudes duplicadas en dos sistemas.
+        if ("AUDITORÍA".equalsIgnoreCase((String) session.getAttribute("departamento"))) {
+            response.sendRedirect("../ProMaNet/Auditoria/AUD_SolicitarAnticipo.jsp");
+            return;
+        }
 
       Connection cn = null;
 PreparedStatement st = null;

@@ -63,6 +63,13 @@ String compania = (String) session.getAttribute("compania");
                     response.sendRedirect("../sesionInvalida.jsp");
                     return;
              }
+             // Auditoria tiene su propio modulo de anticipos, independiente de
+             // este (con su propia fecha de corte y tope). Se les redirige
+             // ahi para que no usen dos flujos distintos por error.
+             if("AUDITORÍA".equalsIgnoreCase(departamento)){
+                    response.sendRedirect("../Auditoria/AUD_SolicitarAnticipo.jsp");
+                    return;
+             }
 
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn3 = DriverManager.getConnection(url, user, pass);
