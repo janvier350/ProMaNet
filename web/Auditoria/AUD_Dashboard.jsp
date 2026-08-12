@@ -347,8 +347,16 @@
                                                 try (PreparedStatement st3 = cn3.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, NVL(u.SUELDO,0) " +
                                                         "FROM USUARIO u " +
-                                                        "WHERE u.ID_ADM_DEPARTAMENTO = (SELECT ID_DEPARTAMENTO FROM ADM_DEPARTAMENTO WHERE UPPER(DEPARTAMENTO) = 'AUDITORÍA') " +
-                                                        "AND u.ESTADO = 'a' " +
+                                                        "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
+                                                        "WHERE u.ESTADO = 'a' " +
+                                                        "AND (" +
+                                                        "  EXISTS (SELECT 1 FROM APP_DEPARTAMENTO_PERMISO dp JOIN APP_PERMISO p ON p.ID_PERMISO = dp.ID_PERMISO " +
+                                                        "          WHERE p.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND dp.TIPO = 'G' AND UPPER(dp.DEPARTAMENTO) = UPPER(d.DEPARTAMENTO)) " +
+                                                        "  OR EXISTS (SELECT 1 FROM APP_USUARIO_PERMISO up JOIN APP_PERMISO p ON p.ID_PERMISO = up.ID_PERMISO " +
+                                                        "             WHERE p.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND up.TIPO = 'G' AND up.IDUSUARIO = u.IDUSUARIO) " +
+                                                        ") " +
+                                                        "AND NOT EXISTS (SELECT 1 FROM APP_USUARIO_PERMISO up2 JOIN APP_PERMISO p2 ON p2.ID_PERMISO = up2.ID_PERMISO " +
+                                                        "                WHERE p2.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND up2.TIPO = 'D' AND up2.IDUSUARIO = u.IDUSUARIO) " +
                                                         "ORDER BY u.NOMBRE, u.APELLIDOS")) {
                                                     try (ResultSet rs3 = st3.executeQuery()) {
                                                         boolean hay3 = false;

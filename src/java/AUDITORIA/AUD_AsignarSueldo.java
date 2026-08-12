@@ -52,13 +52,21 @@ public class AUD_AsignarSueldo extends HttpServlet {
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
             try (PreparedStatement st = cn.prepareStatement(
-                    "UPDATE USUARIO SET SUELDO = ? WHERE IDUSUARIO = ? AND ID_ADM_DEPARTAMENTO = " +
-                    "(SELECT ID_DEPARTAMENTO FROM ADM_DEPARTAMENTO WHERE UPPER(DEPARTAMENTO) = 'AUDITORÍA')")) {
+                    "UPDATE USUARIO u SET SUELDO = ? WHERE IDUSUARIO = ? " +
+                    "AND (" +
+                    "  EXISTS (SELECT 1 FROM ADM_DEPARTAMENTO d JOIN APP_DEPARTAMENTO_PERMISO dp ON UPPER(dp.DEPARTAMENTO) = UPPER(d.DEPARTAMENTO) " +
+                    "          JOIN APP_PERMISO p ON p.ID_PERMISO = dp.ID_PERMISO " +
+                    "          WHERE d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO AND p.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND dp.TIPO = 'G') " +
+                    "  OR EXISTS (SELECT 1 FROM APP_USUARIO_PERMISO up JOIN APP_PERMISO p ON p.ID_PERMISO = up.ID_PERMISO " +
+                    "             WHERE p.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND up.TIPO = 'G' AND up.IDUSUARIO = u.IDUSUARIO) " +
+                    ") " +
+                    "AND NOT EXISTS (SELECT 1 FROM APP_USUARIO_PERMISO up2 JOIN APP_PERMISO p2 ON p2.ID_PERMISO = up2.ID_PERMISO " +
+                    "                WHERE p2.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND up2.TIPO = 'D' AND up2.IDUSUARIO = u.IDUSUARIO)")) {
                 st.setDouble(1, sueldo);
                 st.setString(2, idEjecutivo);
                 int filas = st.executeUpdate();
                 if (filas == 0) {
-                    response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Ese ejecutivo no pertenece a Auditoria");
+                    response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Ese ejecutivo no tiene acceso al modulo de Anticipos Auditoria");
                     return;
                 }
             }
