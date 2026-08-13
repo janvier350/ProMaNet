@@ -370,10 +370,16 @@
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=nombreE%></p></td>
                                                         <td><p class="text-xs mb-0">$ <%=sueldoE%></p></td>
                                                         <td class="text-center">
-                                                            <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-sueldo"
-                                                                    data-id="<%=idE%>" data-nombre="<%=nombreE%>" data-sueldo="<%=sueldoE%>">
-                                                                <i class="fa fa-pencil"></i> Editar
-                                                            </button>
+                                                            <div class="d-flex justify-content-center gap-1">
+                                                                <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-sueldo"
+                                                                        data-id="<%=idE%>" data-nombre="<%=nombreE%>" data-sueldo="<%=sueldoE%>">
+                                                                    <i class="fa fa-pencil"></i> Editar
+                                                                </button>
+                                                                <button type="button" class="btn btn-xs btn-outline-info py-1 btn-registrar-anticipo"
+                                                                        data-id="<%=idE%>" data-nombre="<%=nombreE%>" data-sueldo="<%=sueldoE%>">
+                                                                    <i class="fa fa-hand-holding-usd"></i> Registrar Anticipo
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                     <%
@@ -546,6 +552,33 @@
     </div>
 </div>
 
+<%-- Modal: registrar anticipo a nombre de otro (ej. quien no tiene usuario) --%>
+<div class="modal fade" id="modalRegistrarAnticipo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="../AUD_InsertarAnticipoManual" method="post">
+                <input type="hidden" name="idEjecutivo" id="registrarIdEjecutivo">
+                <div class="modal-header" style="background:#0dcaf0;">
+                    <h5 class="modal-title text-white"><i class="fa fa-hand-holding-usd me-2"></i>Registrar Anticipo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm mb-3">Ejecutivo: <strong id="registrarNombreEjecutivo"></strong></p>
+                    <p class="text-xs text-muted" id="registrarTopeInfo"></p>
+                    <div class="form-group mb-0">
+                        <label>Monto del anticipo</label>
+                        <input type="number" step="0.01" min="0.01" name="anticipo" id="registrarMontoAnticipo" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info btn-sm"><i class="fa fa-save me-1"></i>Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="../assets/js/core/popper.min.js"></script>
 <script src="../assets/js/core/bootstrap.min.js"></script>
 <script src="../assets/js/plugins/perfect-scrollbar.min.js"></script>
@@ -566,6 +599,19 @@
             document.getElementById('sueldoNombreEjecutivo').textContent = this.getAttribute('data-nombre');
             document.getElementById('sueldoMonto').value = this.getAttribute('data-sueldo');
             new bootstrap.Modal(document.getElementById('modalSueldo')).show();
+        });
+    });
+    document.querySelectorAll('.btn-registrar-anticipo').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var sueldo = parseFloat(this.getAttribute('data-sueldo')) || 0;
+            var tope = (sueldo * 0.5).toFixed(2);
+            document.getElementById('registrarIdEjecutivo').value = this.getAttribute('data-id');
+            document.getElementById('registrarNombreEjecutivo').textContent = this.getAttribute('data-nombre');
+            document.getElementById('registrarTopeInfo').textContent = 'Sueldo: $' + sueldo + ' — Tope maximo: $' + tope;
+            var montoInput = document.getElementById('registrarMontoAnticipo');
+            montoInput.max = tope;
+            montoInput.value = '';
+            new bootstrap.Modal(document.getElementById('modalRegistrarAnticipo')).show();
         });
     });
 </script>
