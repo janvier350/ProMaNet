@@ -713,7 +713,10 @@ String compania = (String) session.getAttribute("compania");
                         <% }%>
                         </div>
                     </div>
-                    <% if (COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO")) { %>
+                    <% // Quien ya tiene acceso a Anticipos Auditoria no debe ver esta
+                       // tarjeta: ambas terminan en la misma pagina (ver el redirect
+                       // en ADM_Solicitar_Anticipo.jsp) y mostrar las dos confunde.
+                       if (COMUN.PermisoHelper.tiene(session, "CONTROL_ACCESO") && !tieneAudAcceso && !tieneAudGestionar) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
                             <a href="../Control/ADM_Solicitar_Anticipo.jsp">
