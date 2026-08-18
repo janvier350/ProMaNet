@@ -245,12 +245,17 @@
                                                         <td class="text-center"><span class="badge badge-sm <%=badgeClase%>"><%=antiguedadTxt%></span></td>
                                                         <td><p class="text-xs mb-0"><%=jefeNombreE != null ? jefeNombreE : "-"%></p></td>
                                                         <td class="text-center">
-                                                            <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-config"
-                                                                    data-id="<%=idE%>" data-nombre="<%=nombreE%>"
-                                                                    data-fecha="<%=fechaIso != null ? fechaIso : ""%>"
-                                                                    data-idjefe="<%=idJefeE != null ? idJefeE : ""%>">
-                                                                <i class="fa fa-pencil"></i> Editar
-                                                            </button>
+                                                            <div class="d-flex justify-content-center gap-1">
+                                                                <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-config"
+                                                                        data-id="<%=idE%>" data-nombre="<%=nombreE%>"
+                                                                        data-fecha="<%=fechaIso != null ? fechaIso : ""%>"
+                                                                        data-idjefe="<%=idJefeE != null ? idJefeE : ""%>">
+                                                                    <i class="fa fa-pencil"></i> Editar
+                                                                </button>
+                                                                <a class="btn btn-xs btn-outline-success py-1" href="VAC_SaldoUsuario.jsp?id=<%=idE%>">
+                                                                    <i class="fa fa-calculator"></i> Ver Saldo
+                                                                </a>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                     <%
