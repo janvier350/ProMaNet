@@ -29,6 +29,13 @@
 -- Configuracion.
 -- =====================================================================
 
+-- Varios nombres de empresa traen '&' (BUADNET TAX&FINANCE, KAVODLEX
+-- LEGAL & CORPORATE...). SQL*Plus / SQL Developer interpretan eso como
+-- el inicio de una variable de sustitucion y detienen el script
+-- pidiendo un valor -- SET DEFINE OFF lo desactiva para que el '&' se
+-- guarde tal cual, como texto literal.
+SET DEFINE OFF;
+
 MERGE INTO VAC_CONFIG_USUARIO v
 USING (
     SELECT IDUSUARIO FROM USUARIO
