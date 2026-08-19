@@ -192,6 +192,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empleado</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Cedula</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Compania</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empresa (IESS)</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Departamento</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Ingreso</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Antiguedad</th>
@@ -206,7 +207,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, c.COMPANIA, d.DEPARTAMENTO, " +
                                                         "TO_CHAR(vc.FECHA_INGRESO,'YYYY-MM-DD'), TO_CHAR(vc.FECHA_INGRESO,'DD/MM/YYYY'), " +
-                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA " +
+                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN COMPANIA c ON u.IDCOMPANIA = c.IDCOMPANIA " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
@@ -225,6 +226,7 @@
                                                             String idJefeE = rs.getString(7);
                                                             String jefeNombreE = rs.getString(8);
                                                             String cedulaE = rs.getString(9);
+                                                            String empresaIessE = rs.getString(10);
 
                                                             String antiguedadTxt;
                                                             String badgeClase;
@@ -243,6 +245,7 @@
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=nombreE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=cedulaE != null ? cedulaE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=companiaE%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=empresaIessE != null ? empresaIessE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=deptoE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
                                                         <td class="text-center"><span class="badge badge-sm <%=badgeClase%>"><%=antiguedadTxt%></span></td>
@@ -253,7 +256,8 @@
                                                                         data-id="<%=idE%>" data-nombre="<%=nombreE%>"
                                                                         data-fecha="<%=fechaIso != null ? fechaIso : ""%>"
                                                                         data-idjefe="<%=idJefeE != null ? idJefeE : ""%>"
-                                                                        data-cedula="<%=cedulaE != null ? cedulaE : ""%>">
+                                                                        data-cedula="<%=cedulaE != null ? cedulaE : ""%>"
+                                                                        data-empresaiess="<%=empresaIessE != null ? empresaIessE : ""%>">
                                                                     <i class="fa fa-pencil"></i> Editar
                                                                 </button>
                                                                 <a class="btn btn-xs btn-outline-success py-1" href="VAC_SaldoUsuario.jsp?id=<%=idE%>">
@@ -296,6 +300,11 @@
                         <input type="text" name="cedula" id="configCedula" class="form-control">
                     </div>
                     <div class="form-group mb-3">
+                        <label>Empresa (afiliacion IESS)</label>
+                        <input type="text" name="empresaIess" id="configEmpresaIess" class="form-control">
+                        <small class="text-muted">Empresa con la que se hizo el Aviso de Entrada al IESS -- puede ser distinta de la Compania de Inventario.</small>
+                    </div>
+                    <div class="form-group mb-3">
                         <label>Fecha de ingreso real</label>
                         <input type="date" name="fechaIngreso" id="configFechaIngreso" class="form-control" required>
                     </div>
@@ -333,6 +342,7 @@
             document.getElementById('configIdEmpleado').value = this.getAttribute('data-id');
             document.getElementById('configNombreEmpleado').textContent = this.getAttribute('data-nombre');
             document.getElementById('configCedula').value = this.getAttribute('data-cedula');
+            document.getElementById('configEmpresaIess').value = this.getAttribute('data-empresaiess');
             document.getElementById('configFechaIngreso').value = this.getAttribute('data-fecha');
             $('#configIdJefe').val(this.getAttribute('data-idjefe')).trigger('change');
             modalConfig.show();
