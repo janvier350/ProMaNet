@@ -77,7 +77,10 @@ public class VAC_CalculoSaldo {
             p.numero = numero;
             p.desde = Date.valueOf(ingreso.plusYears(numero - 1));
             p.hasta = Date.valueOf(finPeriodo);
-            p.diasAcumulados = 15; // regla general (Codigo del Trabajo Ecuador)
+            // IMPORTANTE: Codigo del Trabajo Ecuador -- 15 dias por año, y a
+            // partir del 5to año un dia adicional por cada año excedente,
+            // sin superar los 30 dias totales (confirmado por el usuario).
+            p.diasAcumulados = numero < 5 ? 15 : Math.min(30, 15 + (numero - 4));
 
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT NVL(SUM(DIAS_GOZADOS),0) FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? AND NUM_PERIODO = ?")) {
