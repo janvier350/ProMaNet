@@ -282,7 +282,6 @@
                                                             boolean adminAlcanzado = jefeAprobado;
                                                             boolean adminAprobado = "APROBADO".equals(estadoSol) || "RECIBIDO".equals(estadoSol);
                                                             boolean adminRechazado = "RECHAZADO_ADMIN".equals(estadoSol);
-                                                            boolean recibido = "RECIBIDO".equals(estadoSol);
                                                             String motivoRechazo = jefeRechazado ? rsSol.getString(8) : (adminRechazado ? rsSol.getString(9) : null);
                                                     %>
                                                     <tr>
@@ -311,14 +310,6 @@
                                                                 <span class="badge badge-sm bg-gradient-warning" title="Administracion"><i class="fa fa-clock"></i> Admin.</span>
                                                                 <% } else { %>
                                                                 <span class="badge badge-sm bg-gradient-secondary" title="Administracion"><i class="fa fa-circle"></i> Admin.</span>
-                                                                <% } %>
-                                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
-                                                                <% if (recibido) { %>
-                                                                <span class="badge badge-sm bg-gradient-success" title="Recepcion"><i class="fa fa-check"></i> Recepcion</span>
-                                                                <% } else if (adminAprobado) { %>
-                                                                <span class="badge badge-sm bg-gradient-warning" title="Recepcion"><i class="fa fa-clock"></i> Recepcion</span>
-                                                                <% } else { %>
-                                                                <span class="badge badge-sm bg-gradient-secondary" title="Recepcion"><i class="fa fa-circle"></i> Recepcion</span>
                                                                 <% } %>
                                                             </div>
                                                         </td>

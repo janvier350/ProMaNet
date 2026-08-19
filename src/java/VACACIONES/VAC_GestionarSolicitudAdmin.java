@@ -12,10 +12,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// Aprobar/rechazar una solicitud de vacaciones a nivel Administracion,
-// y marcar como recibido el documento ya firmado (cierre final del
-// tramite). Ambas acciones requieren VACACIONES_GESTIONAR (concedido
-// hoy a SMORAN).
+// Aprobar/rechazar una solicitud de vacaciones a nivel Administracion.
+// La aprobacion de Administracion (SMORAN) es el ultimo paso del
+// tramite -- no hay una recepcion aparte del documento firmado. Ambas
+// acciones requieren VACACIONES_GESTIONAR (concedido hoy a SMORAN).
 @WebServlet(name = "VAC_GestionarSolicitudAdmin", urlPatterns = {"/VAC_GestionarSolicitudAdmin"})
 public class VAC_GestionarSolicitudAdmin extends HttpServlet {
 
@@ -42,12 +42,12 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
         }
 
         String idSolicitud = request.getParameter("idSolicitud");
-        String accion = request.getParameter("accion"); // APROBAR / RECHAZAR / RECIBIR
+        String accion = request.getParameter("accion"); // APROBAR / RECHAZAR
         String comentario = request.getParameter("comentario");
         String pDiasAprobados = request.getParameter("diasAprobados");
 
         if (idSolicitud == null || accion == null
-                || (!"APROBAR".equals(accion) && !"RECHAZAR".equals(accion) && !"RECIBIR".equals(accion))) {
+                || (!"APROBAR".equals(accion) && !"RECHAZAR".equals(accion))) {
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Datos incompletos");
             return;
         }
@@ -72,22 +72,6 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
                         diasSolicitados = rs.getInt(2);
                     }
                 }
-            }
-
-            if ("RECIBIR".equals(accion)) {
-                if (!"APROBADO".equals(estadoActual)) {
-                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Esa solicitud no esta en estado Aprobado");
-                    return;
-                }
-                try (PreparedStatement st = cn.prepareStatement(
-                        "UPDATE VAC_SOLICITUD SET ESTADO = 'RECIBIDO', ID_USUARIO_RECIBE = ?, FECHA_RECEPCION = SYSDATE " +
-                        "WHERE ID_SOLICITUD = ?")) {
-                    st.setInt(1, miId);
-                    st.setString(2, idSolicitud);
-                    st.executeUpdate();
-                }
-                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?msj=Documento marcado como recibido");
-                return;
             }
 
             // APROBAR / RECHAZAR
@@ -132,7 +116,7 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
                 st.executeUpdate();
             }
 
-            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?msj=Solicitud aprobada, pendiente de entrega del documento firmado");
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?msj=Solicitud aprobada");
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Error al procesar la solicitud");

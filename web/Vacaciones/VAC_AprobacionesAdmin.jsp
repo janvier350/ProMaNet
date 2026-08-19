@@ -100,7 +100,7 @@
                     <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="../Proyectos/PRO_Dashboard.jsp">Menu</a></li>
                     <li class="breadcrumb-item text-sm text-white active" aria-current="page">Vacaciones (Administracion)</li>
                 </ol>
-                <h6 class="font-weight-bolder text-white mb-0">Vacaciones - Aprobacion Administracion / Recepcion</h6>
+                <h6 class="font-weight-bolder text-white mb-0">Vacaciones - Aprobacion Administracion</h6>
             </nav>
             <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
                 <div class="ms-md-auto pe-md-3 d-flex align-items-center">
@@ -224,7 +224,8 @@
             <div class="col-12">
                 <div class="card mb-4">
                     <div class="card-header pb-0">
-                        <h6>Aprobadas - pendientes de recepcion del documento firmado</h6>
+                        <h6>Historial reciente</h6>
+                        <p class="text-xs text-secondary mb-0">La aprobacion de Administracion es el ultimo paso del tramite -- desde aqui se puede imprimir el documento ya resuelto.</p>
                     </div>
                     <div class="card-body px-0 pt-0 pb-2">
                         <div class="table-responsive p-3">
@@ -235,83 +236,9 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias Aprobados</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Aprobacion</th>
-                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <%
-                                        try (Connection cn2 = Servlets.Conexion.getConnection()) {
-                                            if (cn2 != null) {
-                                                try (PreparedStatement st2 = cn2.prepareStatement(
-                                                        "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_APROBADOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY') " +
-                                                        "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
-                                                        "WHERE s.ESTADO = 'APROBADO' ORDER BY s.FECHA_APROBACION_ADMIN ASC")) {
-                                                    try (ResultSet rs2 = st2.executeQuery()) {
-                                                        boolean hay2 = false;
-                                                        while (rs2.next()) {
-                                                            hay2 = true;
-                                                            String idSol2 = rs2.getString(1);
-                                                            String solicitante2 = rs2.getString(2);
-                                                    %>
-                                                    <tr>
-                                                        <td><p class="text-xs font-weight-bold mb-0"><%=solicitante2%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=rs2.getString(3)%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=rs2.getString(4)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs2.getInt(5)%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=rs2.getString(6)%></p></td>
-                                                        <td class="text-center">
-                                                            <div class="d-flex justify-content-center gap-1">
-                                                                <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSol2%>" target="_blank">
-                                                                    <i class="fa fa-print"></i> Imprimir
-                                                                </a>
-                                                                <form action="../VAC_GestionarSolicitudAdmin" method="post" class="d-inline"
-                                                                      onsubmit="return confirm('¿Confirmas que recibiste el documento firmado de <%=solicitante2%>?');">
-                                                                    <input type="hidden" name="idSolicitud" value="<%=idSol2%>">
-                                                                    <input type="hidden" name="accion" value="RECIBIR">
-                                                                    <button type="submit" class="btn btn-xs btn-outline-success py-1">
-                                                                        <i class="fa fa-inbox"></i> Marcar Recibido
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                    <%
-                                                        }
-                                                        if (!hay2) {
-                                                    %>
-                                                    <tr><td colspan="6" class="text-center text-muted py-4">No hay solicitudes pendientes de recepcion.</td></tr>
-                                                    <%
-                                                        }
-                                                    }
-                                                } catch (Exception ex) { ex.printStackTrace(); }
-                                            }
-                                        } catch (Exception ex) { ex.printStackTrace(); }
-                                    %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4">
-                    <div class="card-header pb-0">
-                        <h6>Historial reciente</h6>
-                    </div>
-                    <div class="card-body px-0 pt-0 pb-2">
-                        <div class="table-responsive p-3">
-                            <table class="table align-items-center mb-0">
-                                <thead>
-                                    <tr>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Solicitante</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Gestion</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -319,26 +246,40 @@
                                         try (Connection cn3 = Servlets.Conexion.getConnection()) {
                                             if (cn3 != null) {
                                                 try (PreparedStatement st3 = cn3.prepareStatement(
-                                                        "SELECT * FROM (SELECT u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.ESTADO " +
+                                                        "SELECT * FROM (SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
+                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_APROBADOS, " +
+                                                        "TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), s.ESTADO " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
-                                                        "WHERE s.ESTADO IN ('RECIBIDO','RECHAZADO_ADMIN') " +
-                                                        "ORDER BY NVL(s.FECHA_RECEPCION, s.FECHA_APROBACION_ADMIN) DESC) WHERE ROWNUM <= 20")) {
+                                                        "WHERE s.ESTADO IN ('APROBADO','RECIBIDO','RECHAZADO_ADMIN') " +
+                                                        "ORDER BY s.FECHA_APROBACION_ADMIN DESC) WHERE ROWNUM <= 20")) {
                                                     try (ResultSet rs3 = st3.executeQuery()) {
                                                         boolean hay3 = false;
                                                         while (rs3.next()) {
                                                             hay3 = true;
-                                                            String estado3 = rs3.getString(4);
+                                                            String idSol3 = rs3.getString(1);
+                                                            String estado3 = rs3.getString(7);
+                                                            boolean aprobado3 = "APROBADO".equals(estado3) || "RECIBIDO".equals(estado3);
                                                     %>
                                                     <tr>
-                                                        <td><p class="text-xs font-weight-bold mb-0"><%=rs3.getString(1)%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=rs3.getString(2)%></p></td>
+                                                        <td><p class="text-xs font-weight-bold mb-0"><%=rs3.getString(2)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs3.getString(3)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rs3.getString(4)%></p></td>
+                                                        <td class="text-center"><p class="text-xs mb-0"><%=aprobado3 ? String.valueOf(rs3.getInt(5)) : "-"%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rs3.getString(6)%></p></td>
                                                         <td class="text-center">
-                                                            <% if ("RECIBIDO".equals(estado3)) { %>
-                                                            <span class="badge badge-sm bg-gradient-success">Completado</span>
+                                                            <% if (aprobado3) { %>
+                                                            <span class="badge badge-sm bg-gradient-success">Aprobado</span>
                                                             <% } else { %>
                                                             <span class="badge badge-sm bg-gradient-danger">Rechazado Admin.</span>
+                                                            <% } %>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <% if (aprobado3) { %>
+                                                            <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSol3%>" target="_blank">
+                                                                <i class="fa fa-print"></i> Imprimir
+                                                            </a>
+                                                            <% } else { %>
+                                                            -
                                                             <% } %>
                                                         </td>
                                                     </tr>
@@ -346,7 +287,7 @@
                                                         }
                                                         if (!hay3) {
                                                     %>
-                                                    <tr><td colspan="4" class="text-center text-muted py-4">Sin historial todavia.</td></tr>
+                                                    <tr><td colspan="7" class="text-center text-muted py-4">Sin historial todavia.</td></tr>
                                                     <%
                                                         }
                                                     }

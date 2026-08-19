@@ -57,6 +57,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             String nombreAdmin = "", fechaAprobacionAdmin = "";
             String cedulaSolicitante = "";
             String comentarioJefe = "", comentarioAdmin = "";
+            String empresaSolicitante = "";
 
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT s.ID_USUARIO, s.ID_JEFE_DIRECTO, s.NUM_PERIODO, s.DIAS_SOLICITADOS, " +
@@ -66,7 +67,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     "u.NOMBRE||' '||u.APELLIDOS, r.CARGO, d.DEPARTAMENTO, " +
                     "j.NOMBRE||' '||j.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), " +
                     "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), " +
-                    "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN " +
+                    "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN, vc.EMPRESA_IESS " +
                     "FROM VAC_SOLICITUD s " +
                     "JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ROL r ON u.IDROL = r.IDROL " +
@@ -101,6 +102,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     cedulaSolicitante = rs.getString(18);
                     comentarioJefe = rs.getString(19);
                     comentarioAdmin = rs.getString(20);
+                    empresaSolicitante = rs.getString(21);
                 }
             }
 
@@ -131,6 +133,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             // ese bloque no debe decir "Pendiente" (da a entender que sigue
             // en tramite) sino que el flujo se detuvo antes.
             boolean noAlcanzoAdmin = rechazadoJefe;
+            String logoEmpresa = logoParaEmpresa(empresaSolicitante);
 
             try (PrintWriter out = response.getWriter()) {
                 out.println("<!DOCTYPE html><html><head><title>Solicitud de Vacaciones</title>");
@@ -153,11 +156,27 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println(".firma-section{margin-top:40px;}");
                 out.println(".firma-linea{border-top:1px solid #495057;width:260px;margin:50px auto 6px;}");
                 out.println(".separator{height:1px;background:#dee2e6;margin:25px 0;}");
+                out.println(".doc-header{display:flex;align-items:center;gap:15px;margin-bottom:20px;}");
+                out.println(".doc-logo{max-height:70px;max-width:220px;}");
+                out.println(".doc-empresa{font-weight:700;color:#343a40;font-size:1rem;}");
                 out.println("@media print{body{background:#fff;} .doc-card{box-shadow:none;} .btn-imprimir{display:none;}}");
                 out.println("</style></head><body>");
                 out.println("<div class='doc-container'>");
                 out.println("<div class='text-end mb-2'><button class='btn btn-primary btn-sm btn-imprimir' onclick='window.print()'><i class='fa fa-print me-1'></i>Imprimir</button></div>");
                 out.println("<div class='doc-card'>");
+
+                // Encabezado: logo + nombre de la empresa de afiliacion IESS
+                // (vc.EMPRESA_IESS). Si todavia no hay logo cargado para esa
+                // empresa se muestra solo el nombre, nunca un logo generico
+                // que no le corresponda.
+                out.println("<div class='doc-header'>");
+                if (logoEmpresa != null) {
+                    out.println("<img src='image/" + logoEmpresa + "' alt='Logo' class='doc-logo'>");
+                }
+                if (empresaSolicitante != null && !empresaSolicitante.trim().isEmpty()) {
+                    out.println("<div class='doc-empresa'>" + empresaSolicitante + "</div>");
+                }
+                out.println("</div>");
 
                 // Bloque 1: Solicitud (empleado)
                 out.println("<div class='bloque-titulo'>SOLICITUD DE VACACIONES (EMPLEADO)</div>");
@@ -222,5 +241,20 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }
+    }
+
+    // Logo del documento impreso, segun la empresa de afiliacion IESS
+    // (VAC_CONFIG_USUARIO.EMPRESA_IESS) -- NO segun la Compania de
+    // Inventario, que puede ser otra. Solo se listan las empresas para
+    // las que ya existe un archivo en /web/image; el resto se deja sin
+    // logo (nunca se usa el logo de una empresa distinta) hasta que se
+    // cargue el archivo correspondiente y se agregue aqui.
+    private static String logoParaEmpresa(String empresa) {
+        if (empresa == null) return null;
+        String e = empresa.trim();
+        if (e.equalsIgnoreCase("BUSINESS ADVISOR NETWORK BUADNET S.A.")) return "buadnet2020.png";
+        if (e.equalsIgnoreCase("LATINCONSULTING S.A.")) return "LatiSA.png";
+        if (e.equalsIgnoreCase("ARTHURS AUDIT GLOBAL HURSDIT S.A.")) return "Arthurs.png";
+        return null;
     }
 }
