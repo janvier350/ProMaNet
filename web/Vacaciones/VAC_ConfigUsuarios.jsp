@@ -190,6 +190,7 @@
                                 <thead>
                                     <tr>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empleado</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Cedula</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Compania</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Departamento</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Ingreso</th>
@@ -205,7 +206,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, c.COMPANIA, d.DEPARTAMENTO, " +
                                                         "TO_CHAR(vc.FECHA_INGRESO,'YYYY-MM-DD'), TO_CHAR(vc.FECHA_INGRESO,'DD/MM/YYYY'), " +
-                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS " +
+                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN COMPANIA c ON u.IDCOMPANIA = c.IDCOMPANIA " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
@@ -223,6 +224,7 @@
                                                             String fechaDisplay = rs.getString(6);
                                                             String idJefeE = rs.getString(7);
                                                             String jefeNombreE = rs.getString(8);
+                                                            String cedulaE = rs.getString(9);
 
                                                             String antiguedadTxt;
                                                             String badgeClase;
@@ -239,6 +241,7 @@
                                                     %>
                                                     <tr>
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=nombreE%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=cedulaE != null ? cedulaE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=companiaE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=deptoE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
@@ -249,7 +252,8 @@
                                                                 <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-config"
                                                                         data-id="<%=idE%>" data-nombre="<%=nombreE%>"
                                                                         data-fecha="<%=fechaIso != null ? fechaIso : ""%>"
-                                                                        data-idjefe="<%=idJefeE != null ? idJefeE : ""%>">
+                                                                        data-idjefe="<%=idJefeE != null ? idJefeE : ""%>"
+                                                                        data-cedula="<%=cedulaE != null ? cedulaE : ""%>">
                                                                     <i class="fa fa-pencil"></i> Editar
                                                                 </button>
                                                                 <a class="btn btn-xs btn-outline-success py-1" href="VAC_SaldoUsuario.jsp?id=<%=idE%>">
@@ -288,6 +292,10 @@
                 <div class="modal-body">
                     <p class="text-sm mb-3">Empleado: <strong id="configNombreEmpleado"></strong></p>
                     <div class="form-group mb-3">
+                        <label>Cedula</label>
+                        <input type="text" name="cedula" id="configCedula" class="form-control">
+                    </div>
+                    <div class="form-group mb-3">
                         <label>Fecha de ingreso real</label>
                         <input type="date" name="fechaIngreso" id="configFechaIngreso" class="form-control" required>
                     </div>
@@ -324,6 +332,7 @@
         btn.addEventListener('click', function () {
             document.getElementById('configIdEmpleado').value = this.getAttribute('data-id');
             document.getElementById('configNombreEmpleado').textContent = this.getAttribute('data-nombre');
+            document.getElementById('configCedula').value = this.getAttribute('data-cedula');
             document.getElementById('configFechaIngreso').value = this.getAttribute('data-fecha');
             $('#configIdJefe').val(this.getAttribute('data-idjefe')).trigger('change');
             modalConfig.show();

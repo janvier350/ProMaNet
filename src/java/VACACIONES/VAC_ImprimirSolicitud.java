@@ -55,6 +55,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             String estado = "";
             String nombreJefe = "", fechaAprobacionJefe = "";
             String nombreAdmin = "", fechaAprobacionAdmin = "";
+            String cedulaSolicitante = "";
 
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT s.ID_USUARIO, s.ID_JEFE_DIRECTO, s.NUM_PERIODO, s.DIAS_SOLICITADOS, " +
@@ -63,13 +64,15 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), " +
                     "u.NOMBRE||' '||u.APELLIDOS, r.CARGO, d.DEPARTAMENTO, " +
                     "j.NOMBRE||' '||j.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), " +
-                    "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY') " +
+                    "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), " +
+                    "vc.CEDULA " +
                     "FROM VAC_SOLICITUD s " +
                     "JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ROL r ON u.IDROL = r.IDROL " +
                     "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
                     "JOIN USUARIO j ON s.ID_JEFE_DIRECTO = j.IDUSUARIO " +
                     "LEFT JOIN USUARIO a ON s.ID_USUARIO_APRUEBA_ADMIN = a.IDUSUARIO " +
+                    "LEFT JOIN VAC_CONFIG_USUARIO vc ON u.IDUSUARIO = vc.ID_USUARIO " +
                     "WHERE s.ID_SOLICITUD = ?")) {
                 st.setString(1, idSolicitud);
                 try (ResultSet rs = st.executeQuery()) {
@@ -94,6 +97,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     fechaAprobacionJefe = rs.getString(15);
                     nombreAdmin = rs.getString(16);
                     fechaAprobacionAdmin = rs.getString(17);
+                    cedulaSolicitante = rs.getString(18);
                 }
             }
 
@@ -152,7 +156,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='row'>");
                 out.println("<div class='col-md-4 campo'><label>Fecha de solicitud</label><div class='valor'>" + fechaSolicitud + "</div></div>");
                 out.println("<div class='col-md-4 campo'><label>Funcionario</label><div class='valor'>" + nombreSolicitante + "</div></div>");
-                out.println("<div class='col-md-4 campo'><label>Cedula</label><div class='valor'>&nbsp;</div></div>");
+                out.println("<div class='col-md-4 campo'><label>Cedula</label><div class='valor'>" + (cedulaSolicitante != null && !cedulaSolicitante.trim().isEmpty() ? cedulaSolicitante : "&nbsp;") + "</div></div>");
                 out.println("</div><div class='row'>");
                 out.println("<div class='col-md-6 campo'><label>Cargo</label><div class='valor'>" + cargoSolicitante + "</div></div>");
                 out.println("<div class='col-md-6 campo'><label>Departamento</label><div class='valor'>" + departamentoSolicitante + "</div></div>");

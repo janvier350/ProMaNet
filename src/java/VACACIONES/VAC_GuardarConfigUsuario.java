@@ -35,6 +35,7 @@ public class VAC_GuardarConfigUsuario extends HttpServlet {
         String idEmpleado = request.getParameter("idEmpleado");
         String fechaIngreso = request.getParameter("fechaIngreso"); // YYYY-MM-DD
         String idJefe = request.getParameter("idJefe"); // puede venir vacio
+        String cedula = request.getParameter("cedula"); // puede venir vacia
 
         if (idEmpleado == null || fechaIngreso == null || fechaIngreso.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_ConfigUsuarios.jsp?error=Falta el empleado o la fecha de ingreso");
@@ -59,18 +60,21 @@ public class VAC_GuardarConfigUsuario extends HttpServlet {
                     "WHEN MATCHED THEN UPDATE SET " +
                     "  FECHA_INGRESO = TO_DATE(?, 'YYYY-MM-DD'), " +
                     "  ID_JEFE_DIRECTO = ?, " +
+                    "  CEDULA = ?, " +
                     "  ID_USUARIO_ACTUALIZA = ?, " +
                     "  FECHA_ACTUALIZACION = SYSDATE " +
-                    "WHEN NOT MATCHED THEN INSERT (ID_USUARIO, FECHA_INGRESO, ID_JEFE_DIRECTO, ID_USUARIO_ACTUALIZA, FECHA_ACTUALIZACION) " +
-                    "VALUES (?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, SYSDATE)")) {
+                    "WHEN NOT MATCHED THEN INSERT (ID_USUARIO, FECHA_INGRESO, ID_JEFE_DIRECTO, CEDULA, ID_USUARIO_ACTUALIZA, FECHA_ACTUALIZACION) " +
+                    "VALUES (?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, SYSDATE)")) {
                 st.setString(1, idEmpleado);
                 st.setString(2, fechaIngreso);
                 if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(3, idJefe); else st.setNull(3, java.sql.Types.NUMERIC);
-                st.setInt(4, idGestor);
-                st.setString(5, idEmpleado);
-                st.setString(6, fechaIngreso);
-                if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(7, idJefe); else st.setNull(7, java.sql.Types.NUMERIC);
-                st.setInt(8, idGestor);
+                if (cedula != null && !cedula.trim().isEmpty()) st.setString(4, cedula.trim()); else st.setNull(4, java.sql.Types.VARCHAR);
+                st.setInt(5, idGestor);
+                st.setString(6, idEmpleado);
+                st.setString(7, fechaIngreso);
+                if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(8, idJefe); else st.setNull(8, java.sql.Types.NUMERIC);
+                if (cedula != null && !cedula.trim().isEmpty()) st.setString(9, cedula.trim()); else st.setNull(9, java.sql.Types.VARCHAR);
+                st.setInt(10, idGestor);
                 st.executeUpdate();
             }
 
