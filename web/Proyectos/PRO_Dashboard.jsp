@@ -221,6 +221,32 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
+                    <%
+                        // Ser jefe directo de alguien es un dato (no un permiso): se
+                        // muestra el enlace solo si hoy tiene gente a cargo.
+                        boolean esJefeDirecto = false;
+                        try (java.sql.Connection cnJefe = Servlets.Conexion.getConnection()) {
+                            if (cnJefe != null) {
+                                String miIdStr = (String) session.getAttribute("cod");
+                                try (java.sql.PreparedStatement stJefe = cnJefe.prepareStatement(
+                                        "SELECT COUNT(*) FROM VAC_CONFIG_USUARIO WHERE ID_JEFE_DIRECTO = ?")) {
+                                    stJefe.setString(1, miIdStr);
+                                    try (java.sql.ResultSet rsJefe = stJefe.executeQuery()) {
+                                        if (rsJefe.next()) esJefeDirecto = rsJefe.getInt(1) > 0;
+                                    }
+                                }
+                            }
+                        } catch (Exception exJefe) { exJefe.printStackTrace(); }
+                        if (esJefeDirecto) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Vacaciones/VAC_AprobacionesJefe.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-user-check text-info text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Aprobaciones (Jefe)</span>
+                        </a>
+                    </li>
+                    <% } %>
                     <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR")) { %>
                     <li class="nav-item">
                         <a class="nav-link " href="../Vacaciones/VAC_ConfigUsuarios.jsp">
