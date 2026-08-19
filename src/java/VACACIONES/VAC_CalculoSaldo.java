@@ -19,11 +19,13 @@ import java.util.List;
 //
 // El consumo se resta por periodo especifico (no global) para poder
 // mostrar cuantos dias le quedan de CADA año, igual que el reporte de
-// vacaciones que ya manejaba la empresa en Excel. Por ahora el unico
-// consumo que se descuenta es el cargado manualmente en
-// VAC_HISTORICO_AJUSTE (el historial previo a este modulo); cuando
-// exista el flujo de solicitudes (Fase 3), sus dias aprobados y
-// recibidos se sumaran aqui tambien.
+// vacaciones que ya manejaba la empresa en Excel. Se descuenta tanto
+// lo cargado manualmente en VAC_HISTORICO_AJUSTE (el historial previo
+// a este modulo) como cualquier VAC_SOLICITUD todavia viva (pendiente
+// de jefe/administracion, aprobada o recibida) -- los dias quedan
+// reservados desde que se solicitan, no solo cuando ya se aprobaron,
+// para que dos solicitudes del mismo periodo no puedan pisarse entre
+// si mientras la primera sigue en tramite.
 public class VAC_CalculoSaldo {
 
     public static class Periodo {
@@ -82,15 +84,30 @@ public class VAC_CalculoSaldo {
             // sin superar los 30 dias totales (confirmado por el usuario).
             p.diasAcumulados = numero < 5 ? 15 : Math.min(30, 15 + (numero - 4));
 
+            int diasHistoricos = 0;
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT NVL(SUM(DIAS_GOZADOS),0) FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? AND NUM_PERIODO = ?")) {
                 st.setInt(1, idUsuario);
                 st.setInt(2, numero);
                 try (ResultSet rs = st.executeQuery()) {
-                    if (rs.next()) p.diasConsumidos = rs.getInt(1);
+                    if (rs.next()) diasHistoricos = rs.getInt(1);
                 }
             }
 
+            int diasSolicitudes = 0;
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT NVL(SUM(CASE WHEN ESTADO IN ('APROBADO','RECIBIDO') THEN NVL(DIAS_APROBADOS,DIAS_SOLICITADOS) " +
+                    "ELSE DIAS_SOLICITADOS END),0) FROM VAC_SOLICITUD " +
+                    "WHERE ID_USUARIO = ? AND NUM_PERIODO = ? " +
+                    "AND ESTADO NOT IN ('RECHAZADO_JEFE','RECHAZADO_ADMIN','CANCELADO')")) {
+                st.setInt(1, idUsuario);
+                st.setInt(2, numero);
+                try (ResultSet rs = st.executeQuery()) {
+                    if (rs.next()) diasSolicitudes = rs.getInt(1);
+                }
+            }
+
+            p.diasConsumidos = diasHistoricos + diasSolicitudes;
             p.diasDisponibles = Math.max(0, p.diasAcumulados - p.diasConsumidos);
             saldo.periodos.add(p);
             saldo.totalDisponible += p.diasDisponibles;

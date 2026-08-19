@@ -258,6 +258,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -267,7 +268,7 @@
                                                 try (PreparedStatement stSol = cnSol.prepareStatement(
                                                         "SELECT TO_CHAR(FECHA_SOLICITUD,'DD/MM/YYYY'), NUM_PERIODO, " +
                                                         "TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), " +
-                                                        "DIAS_SOLICITADOS, ESTADO " +
+                                                        "DIAS_SOLICITADOS, ESTADO, ID_SOLICITUD " +
                                                         "FROM VAC_SOLICITUD WHERE ID_USUARIO = ? ORDER BY FECHA_SOLICITUD DESC")) {
                                                     stSol.setInt(1, idUsuarioSesion);
                                                     try (ResultSet rsSol = stSol.executeQuery()) {
@@ -319,12 +320,17 @@
                                                                 <% } %>
                                                             </div>
                                                         </td>
+                                                        <td class="text-center">
+                                                            <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=rsSol.getString(7)%>" target="_blank">
+                                                                <i class="fa fa-print"></i>
+                                                            </a>
+                                                        </td>
                                                     </tr>
                                                     <%
                                                         }
                                                         if (!haySol) {
                                                     %>
-                                                    <tr><td colspan="6" class="text-center text-muted py-4">No tienes solicitudes registradas.</td></tr>
+                                                    <tr><td colspan="7" class="text-center text-muted py-4">No tienes solicitudes registradas.</td></tr>
                                                     <%
                                                         }
                                                     }

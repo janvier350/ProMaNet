@@ -257,6 +257,16 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
+                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Vacaciones/VAC_AprobacionesAdmin.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Vacaciones (Admin.)</span>
+                        </a>
+                    </li>
+                    <% } %>
 <!--                    <li class="nav-item">
                         <a class="nav-link " href="../ReporteGastos/ReporteGastosIndivi.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
