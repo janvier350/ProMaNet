@@ -56,6 +56,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             String nombreJefe = "", fechaAprobacionJefe = "";
             String nombreAdmin = "", fechaAprobacionAdmin = "";
             String cedulaSolicitante = "";
+            String comentarioJefe = "", comentarioAdmin = "";
 
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT s.ID_USUARIO, s.ID_JEFE_DIRECTO, s.NUM_PERIODO, s.DIAS_SOLICITADOS, " +
@@ -65,7 +66,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     "u.NOMBRE||' '||u.APELLIDOS, r.CARGO, d.DEPARTAMENTO, " +
                     "j.NOMBRE||' '||j.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), " +
                     "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), " +
-                    "vc.CEDULA " +
+                    "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN " +
                     "FROM VAC_SOLICITUD s " +
                     "JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ROL r ON u.IDROL = r.IDROL " +
@@ -98,6 +99,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     nombreAdmin = rs.getString(16);
                     fechaAprobacionAdmin = rs.getString(17);
                     cedulaSolicitante = rs.getString(18);
+                    comentarioJefe = rs.getString(19);
+                    comentarioAdmin = rs.getString(20);
                 }
             }
 
@@ -122,7 +125,12 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             }
 
             boolean aprobado = "APROBADO".equals(estado) || "RECIBIDO".equals(estado);
+            boolean rechazadoJefe = "RECHAZADO_JEFE".equals(estado);
             boolean rechazadoAdmin = "RECHAZADO_ADMIN".equals(estado);
+            // Si el jefe rechazo, la solicitud nunca llego a Administracion --
+            // ese bloque no debe decir "Pendiente" (da a entender que sigue
+            // en tramite) sino que el flujo se detuvo antes.
+            boolean noAlcanzoAdmin = rechazadoJefe;
 
             try (PrintWriter out = response.getWriter()) {
                 out.println("<!DOCTYPE html><html><head><title>Solicitud de Vacaciones</title>");
@@ -168,6 +176,12 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='col-md-6 campo'><label>Numero de dias que solicita</label><div class='valor'>" + diasSolicitados + " dias</div></div>");
                 out.println("<div class='col-md-6 campo'><label>Periodo de vacaciones al que corresponde</label><div class='valor'>DEL " + periodoDesde + " - " + periodoHasta + "</div></div>");
                 out.println("</div>");
+                if (rechazadoJefe) {
+                    out.println("<div class='text-center mb-2'><span class='estado-badge estado-rechazado'><i class='fa fa-times-circle me-1'></i>RECHAZADO POR EL JEFE DIRECTO</span></div>");
+                    if (comentarioJefe != null && !comentarioJefe.trim().isEmpty()) {
+                        out.println("<div class='campo'><label>Motivo del rechazo</label><div class='valor'>" + comentarioJefe + "</div></div>");
+                    }
+                }
                 out.println("<div class='firma-section text-center'>");
                 out.println("<div class='firma-linea'></div><div class='text-xs'>Firma Jefe Departamental</div>");
                 out.println("<div style='margin-top:-40px;'><small class='text-muted'>" + nombreJefe + "</small></div>");
@@ -182,10 +196,15 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     out.println("<span class='estado-badge estado-aprobado'><i class='fa fa-check-circle me-1'></i>APROBADO</span>");
                 } else if (rechazadoAdmin) {
                     out.println("<span class='estado-badge estado-rechazado'><i class='fa fa-times-circle me-1'></i>RECHAZADO</span>");
+                } else if (noAlcanzoAdmin) {
+                    out.println("<span class='estado-badge estado-rechazado'><i class='fa fa-ban me-1'></i>NO APLICA (RECHAZADO POR EL JEFE)</span>");
                 } else {
                     out.println("<span class='estado-badge estado-pendiente'><i class='fa fa-clock me-1'></i>PENDIENTE</span>");
                 }
                 out.println("</div>");
+                if (rechazadoAdmin && comentarioAdmin != null && !comentarioAdmin.trim().isEmpty()) {
+                    out.println("<div class='campo'><label>Motivo del rechazo</label><div class='valor'>" + comentarioAdmin + "</div></div>");
+                }
                 out.println("<div class='row'>");
                 out.println("<div class='col-md-4 campo'><label>Numero de dias aprobados</label><div class='valor'>" + (aprobado ? diasAprobados + " dias" : "-") + "</div></div>");
                 out.println("<div class='col-md-4 campo'><label>Dias por gozar (saldo)</label><div class='valor'>" + (aprobado ? diasPorGozar + " dias" : "-") + "</div></div>");

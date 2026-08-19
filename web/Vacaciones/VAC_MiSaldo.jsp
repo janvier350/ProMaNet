@@ -258,6 +258,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Motivo del rechazo</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
                                     </tr>
                                 </thead>
@@ -268,7 +269,7 @@
                                                 try (PreparedStatement stSol = cnSol.prepareStatement(
                                                         "SELECT TO_CHAR(FECHA_SOLICITUD,'DD/MM/YYYY'), NUM_PERIODO, " +
                                                         "TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), " +
-                                                        "DIAS_SOLICITADOS, ESTADO, ID_SOLICITUD " +
+                                                        "DIAS_SOLICITADOS, ESTADO, ID_SOLICITUD, COMENTARIO_JEFE, COMENTARIO_ADMIN " +
                                                         "FROM VAC_SOLICITUD WHERE ID_USUARIO = ? ORDER BY FECHA_SOLICITUD DESC")) {
                                                     stSol.setInt(1, idUsuarioSesion);
                                                     try (ResultSet rsSol = stSol.executeQuery()) {
@@ -282,6 +283,7 @@
                                                             boolean adminAprobado = "APROBADO".equals(estadoSol) || "RECIBIDO".equals(estadoSol);
                                                             boolean adminRechazado = "RECHAZADO_ADMIN".equals(estadoSol);
                                                             boolean recibido = "RECIBIDO".equals(estadoSol);
+                                                            String motivoRechazo = jefeRechazado ? rsSol.getString(8) : (adminRechazado ? rsSol.getString(9) : null);
                                                     %>
                                                     <tr>
                                                         <td><p class="text-xs mb-0"><%=rsSol.getString(1)%></p></td>
@@ -320,6 +322,7 @@
                                                                 <% } %>
                                                             </div>
                                                         </td>
+                                                        <td><p class="text-xs mb-0"><%=motivoRechazo != null ? motivoRechazo : "-"%></p></td>
                                                         <td class="text-center">
                                                             <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=rsSol.getString(7)%>" target="_blank">
                                                                 <i class="fa fa-print"></i>
@@ -330,7 +333,7 @@
                                                         }
                                                         if (!haySol) {
                                                     %>
-                                                    <tr><td colspan="7" class="text-center text-muted py-4">No tienes solicitudes registradas.</td></tr>
+                                                    <tr><td colspan="8" class="text-center text-muted py-4">No tienes solicitudes registradas.</td></tr>
                                                     <%
                                                         }
                                                     }

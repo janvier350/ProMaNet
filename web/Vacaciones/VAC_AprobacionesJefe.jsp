@@ -250,6 +250,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Gestion</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Motivo del rechazo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -258,7 +259,8 @@
                                             if (cn2 != null) {
                                                 try (PreparedStatement st2 = cn2.prepareStatement(
                                                         "SELECT u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), s.ESTADO " +
+                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), s.ESTADO, " +
+                                                        "s.COMENTARIO_JEFE " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "WHERE s.ID_JEFE_DIRECTO = ? AND s.ESTADO != 'PENDIENTE_JEFE' " +
                                                         "ORDER BY s.FECHA_APROBACION_JEFE DESC")) {
@@ -281,12 +283,13 @@
                                                             <span class="badge badge-sm bg-gradient-success">Aprobado por mi</span>
                                                             <% } %>
                                                         </td>
+                                                        <td><p class="text-xs mb-0"><%=rs2.getString(6) != null ? rs2.getString(6) : "-"%></p></td>
                                                     </tr>
                                                     <%
                                                         }
                                                         if (!hay2) {
                                                     %>
-                                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin historial todavia.</td></tr>
+                                                    <tr><td colspan="6" class="text-center text-muted py-4">Sin historial todavia.</td></tr>
                                                     <%
                                                         }
                                                     }

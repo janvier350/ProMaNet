@@ -802,6 +802,36 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
+                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Vacaciones/VAC_MiSaldo.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Solicitar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    VACACIONES
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-warning text-sm font-weight-bolder">Consulte su saldo y</span>
+                                                    <b class="text-warning"> solicite vacaciones.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                                                <i class="fa fa-umbrella-beach text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
                     <% if ((departamento.equals("ADMINISTRACIÓN")||departamento.equals("TECNOLOGÍA")) && COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
