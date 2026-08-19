@@ -1,5 +1,7 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.sql.Connection"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.ResultSet"%>
 <%@page import="VACACIONES.VAC_CalculoSaldo"%>
 <%
     String cargo     = (String) session.getAttribute("cargo");
@@ -23,6 +25,9 @@
     try (Connection cn = Servlets.Conexion.getConnection()) {
         if (cn != null) saldo = VAC_CalculoSaldo.calcular(cn, idUsuarioSesion);
     } catch (Exception ex) { ex.printStackTrace(); }
+
+    String msj = request.getParameter("msj");
+    String error = request.getParameter("error");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -134,6 +139,18 @@
     </nav>
 
     <div class="container-fluid py-4">
+        <% if (msj != null) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%=msj%>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <% } %>
+        <% if (error != null) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%=error%>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <% } %>
         <% if (!saldo.configurado) { %>
         <div class="alert alert-warning">
             <i class="fa fa-exclamation-triangle me-2"></i>
@@ -169,7 +186,13 @@
                 <div class="card">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold">Solicitar vacaciones</p>
-                        <p class="text-xs text-muted mb-0">Disponible proximamente en el sistema.</p>
+                        <% if (saldo.totalDisponible > 0) { %>
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalSolicitar">
+                            <i class="fa fa-plus me-1"></i> Nueva solicitud
+                        </button>
+                        <% } else { %>
+                        <p class="text-xs text-muted mb-0">No tienes dias disponibles para solicitar.</p>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -217,9 +240,144 @@
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6>Mis solicitudes</h6>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Solicitud</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Periodo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        try (Connection cnSol = Servlets.Conexion.getConnection()) {
+                                            if (cnSol != null) {
+                                                try (PreparedStatement stSol = cnSol.prepareStatement(
+                                                        "SELECT TO_CHAR(FECHA_SOLICITUD,'DD/MM/YYYY'), NUM_PERIODO, " +
+                                                        "TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), " +
+                                                        "DIAS_SOLICITADOS, ESTADO " +
+                                                        "FROM VAC_SOLICITUD WHERE ID_USUARIO = ? ORDER BY FECHA_SOLICITUD DESC")) {
+                                                    stSol.setInt(1, idUsuarioSesion);
+                                                    try (ResultSet rsSol = stSol.executeQuery()) {
+                                                        boolean haySol = false;
+                                                        while (rsSol.next()) {
+                                                            haySol = true;
+                                                            String estadoSol = rsSol.getString(6);
+                                                            boolean jefeAprobado = !"PENDIENTE_JEFE".equals(estadoSol) && !"RECHAZADO_JEFE".equals(estadoSol);
+                                                            boolean jefeRechazado = "RECHAZADO_JEFE".equals(estadoSol);
+                                                            boolean adminAlcanzado = jefeAprobado;
+                                                            boolean adminAprobado = "APROBADO".equals(estadoSol) || "RECIBIDO".equals(estadoSol);
+                                                            boolean adminRechazado = "RECHAZADO_ADMIN".equals(estadoSol);
+                                                            boolean recibido = "RECIBIDO".equals(estadoSol);
+                                                    %>
+                                                    <tr>
+                                                        <td><p class="text-xs mb-0"><%=rsSol.getString(1)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rsSol.getString(2)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rsSol.getString(3)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rsSol.getString(4)%></p></td>
+                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rsSol.getInt(5)%></p></td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                                <span class="badge badge-sm bg-gradient-success" title="Solicitante"><i class="fa fa-check"></i> Solicitante</span>
+                                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
+                                                                <% if (jefeRechazado) { %>
+                                                                <span class="badge badge-sm bg-gradient-danger" title="Jefe directo"><i class="fa fa-times"></i> Jefe</span>
+                                                                <% } else if (jefeAprobado) { %>
+                                                                <span class="badge badge-sm bg-gradient-success" title="Jefe directo"><i class="fa fa-check"></i> Jefe</span>
+                                                                <% } else { %>
+                                                                <span class="badge badge-sm bg-gradient-warning" title="Jefe directo"><i class="fa fa-clock"></i> Jefe</span>
+                                                                <% } %>
+                                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
+                                                                <% if (adminRechazado) { %>
+                                                                <span class="badge badge-sm bg-gradient-danger" title="Administracion"><i class="fa fa-times"></i> Admin.</span>
+                                                                <% } else if (adminAprobado) { %>
+                                                                <span class="badge badge-sm bg-gradient-success" title="Administracion"><i class="fa fa-check"></i> Admin.</span>
+                                                                <% } else if (adminAlcanzado) { %>
+                                                                <span class="badge badge-sm bg-gradient-warning" title="Administracion"><i class="fa fa-clock"></i> Admin.</span>
+                                                                <% } else { %>
+                                                                <span class="badge badge-sm bg-gradient-secondary" title="Administracion"><i class="fa fa-circle"></i> Admin.</span>
+                                                                <% } %>
+                                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
+                                                                <% if (recibido) { %>
+                                                                <span class="badge badge-sm bg-gradient-success" title="Recepcion"><i class="fa fa-check"></i> Recepcion</span>
+                                                                <% } else if (adminAprobado) { %>
+                                                                <span class="badge badge-sm bg-gradient-warning" title="Recepcion"><i class="fa fa-clock"></i> Recepcion</span>
+                                                                <% } else { %>
+                                                                <span class="badge badge-sm bg-gradient-secondary" title="Recepcion"><i class="fa fa-circle"></i> Recepcion</span>
+                                                                <% } %>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <%
+                                                        }
+                                                        if (!haySol) {
+                                                    %>
+                                                    <tr><td colspan="6" class="text-center text-muted py-4">No tienes solicitudes registradas.</td></tr>
+                                                    <%
+                                                        }
+                                                    }
+                                                } catch (Exception ex) { ex.printStackTrace(); }
+                                            }
+                                        } catch (Exception ex) { ex.printStackTrace(); }
+                                    %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <% } %>
     </div>
 </main>
+
+<%-- Modal: nueva solicitud de vacaciones --%>
+<div class="modal fade" id="modalSolicitar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="../VAC_InsertarSolicitud" method="post" id="formSolicitar">
+                <div class="modal-header" style="background:#f0ad4e;">
+                    <h5 class="modal-title text-white"><i class="fa fa-umbrella-beach me-2"></i>Nueva Solicitud de Vacaciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6 form-group mb-3">
+                            <label>Fecha desde</label>
+                            <input type="date" name="fechaDesde" id="solFechaDesde" class="form-control" required>
+                        </div>
+                        <div class="col-6 form-group mb-3">
+                            <label>Fecha hasta</label>
+                            <input type="date" name="fechaHasta" id="solFechaHasta" class="form-control" required>
+                        </div>
+                    </div>
+                    <div id="solResumen" class="alert alert-secondary py-2 px-3 mb-2" style="display:none;"></div>
+                    <div id="solAvisoFinde" class="alert alert-warning py-2 px-3 mb-0" style="display:none;">
+                        <i class="fa fa-exclamation-triangle me-1"></i>
+                        El regreso no puede caer viernes ni sabado: debes incluir el fin de semana completo.
+                        Ajusta la fecha hasta a un domingo o posterior.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning btn-sm" id="btnEnviarSolicitud"><i class="fa fa-paper-plane me-1"></i>Enviar Solicitud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script src="../assets/js/core/popper.min.js"></script>
 <script src="../assets/js/core/bootstrap.min.js"></script>
@@ -227,5 +385,44 @@
 <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 <script src="../assets/js/custom-sidenav-toggle.js"></script>
+<script>
+    (function () {
+        var inputDesde = document.getElementById('solFechaDesde');
+        var inputHasta = document.getElementById('solFechaHasta');
+        var resumen = document.getElementById('solResumen');
+        var avisoFinde = document.getElementById('solAvisoFinde');
+        var btnEnviar = document.getElementById('btnEnviarSolicitud');
+        if (!inputDesde) return;
+
+        function parseFecha(v) {
+            if (!v) return null;
+            var partes = v.split('-');
+            return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+        }
+
+        function revisar() {
+            var desde = parseFecha(inputDesde.value);
+            var hasta = parseFecha(inputHasta.value);
+            resumen.style.display = 'none';
+            avisoFinde.style.display = 'none';
+            btnEnviar.disabled = false;
+
+            if (!desde || !hasta || hasta < desde) return;
+
+            var dias = Math.round((hasta - desde) / (1000 * 60 * 60 * 24)) + 1;
+            resumen.style.display = '';
+            resumen.textContent = 'Dias solicitados: ' + dias + ' (calendario, incluye fines de semana)';
+
+            var diaSemanaHasta = hasta.getDay(); // 0=domingo ... 5=viernes, 6=sabado
+            if (diaSemanaHasta === 5 || diaSemanaHasta === 6) {
+                avisoFinde.style.display = '';
+                btnEnviar.disabled = true;
+            }
+        }
+
+        inputDesde.addEventListener('change', revisar);
+        inputHasta.addEventListener('change', revisar);
+    })();
+</script>
 </body>
 </html>
