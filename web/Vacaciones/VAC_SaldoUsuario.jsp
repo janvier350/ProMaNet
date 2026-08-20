@@ -292,14 +292,24 @@
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(5) != null ? rs2.getString(5) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=obs != null ? obs : "-"%></p></td>
                                                         <td class="text-center">
-                                                            <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-ajuste"
-                                                                    data-id="<%=idAjuste%>" data-numperiodo="<%=rs2.getString(2)%>"
-                                                                    data-dias="<%=rs2.getString(3)%>"
-                                                                    data-fechadesde="<%=rs2.getString(7) != null ? rs2.getString(7) : ""%>"
-                                                                    data-fechahasta="<%=rs2.getString(8) != null ? rs2.getString(8) : ""%>"
-                                                                    data-observaciones="<%=obs != null ? obs.replace("\"","&quot;") : ""%>">
-                                                                <i class="fa fa-pencil"></i> Editar
-                                                            </button>
+                                                            <div class="d-flex justify-content-center gap-1">
+                                                                <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-ajuste"
+                                                                        data-id="<%=idAjuste%>" data-numperiodo="<%=rs2.getString(2)%>"
+                                                                        data-dias="<%=rs2.getString(3)%>"
+                                                                        data-fechadesde="<%=rs2.getString(7) != null ? rs2.getString(7) : ""%>"
+                                                                        data-fechahasta="<%=rs2.getString(8) != null ? rs2.getString(8) : ""%>"
+                                                                        data-observaciones="<%=obs != null ? obs.replace("\"","&quot;") : ""%>">
+                                                                    <i class="fa fa-pencil"></i>
+                                                                </button>
+                                                                <form action="../VAC_EliminarAjusteHistorico" method="post" class="d-inline"
+                                                                      onsubmit="return confirm('¿Eliminar este ajuste historico? Esta accion no se puede deshacer.');">
+                                                                    <input type="hidden" name="idEmpleado" value="<%=idEmpleado%>">
+                                                                    <input type="hidden" name="idAjuste" value="<%=idAjuste%>">
+                                                                    <button type="submit" class="btn btn-xs btn-outline-danger py-1">
+                                                                        <i class="fa fa-trash"></i>
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                     <%
