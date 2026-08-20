@@ -197,7 +197,7 @@
                 <div class="card">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold">Cargar consumo historico</p>
-                        <button type="button" class="btn btn-outline-dark btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalAjuste">
+                        <button type="button" class="btn btn-outline-dark btn-sm mb-0" id="btnNuevoAjuste">
                             <i class="fa fa-plus me-1"></i> Nuevo ajuste
                         </button>
                     </div>
@@ -265,6 +265,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Desde</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Hasta</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Observaciones</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -272,27 +273,40 @@
                                         try (Connection cn2 = Servlets.Conexion.getConnection()) {
                                             if (cn2 != null) {
                                                 try (PreparedStatement st2 = cn2.prepareStatement(
-                                                        "SELECT NUM_PERIODO, DIAS_GOZADOS, TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), OBSERVACIONES " +
+                                                        "SELECT ID_AJUSTE, NUM_PERIODO, DIAS_GOZADOS, TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), " +
+                                                        "TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), OBSERVACIONES, " +
+                                                        "TO_CHAR(FECHA_DESDE,'YYYY-MM-DD'), TO_CHAR(FECHA_HASTA,'YYYY-MM-DD') " +
                                                         "FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? ORDER BY NUM_PERIODO, FECHA_REGISTRO")) {
                                                     st2.setString(1, idEmpleado);
                                                     try (ResultSet rs2 = st2.executeQuery()) {
                                                         boolean hay2 = false;
                                                         while (rs2.next()) {
                                                             hay2 = true;
+                                                            String idAjuste = rs2.getString(1);
+                                                            String obs = rs2.getString(6);
                                                     %>
                                                     <tr>
-                                                        <td class="text-center"><p class="text-xs mb-0"><%=rs2.getString(1)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs2.getString(2)%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=rs2.getString(3) != null ? rs2.getString(3) : "-"%></p></td>
+                                                        <td class="text-center"><p class="text-xs mb-0"><%=rs2.getString(2)%></p></td>
+                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs2.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(4) != null ? rs2.getString(4) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(5) != null ? rs2.getString(5) : "-"%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=obs != null ? obs : "-"%></p></td>
+                                                        <td class="text-center">
+                                                            <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-ajuste"
+                                                                    data-id="<%=idAjuste%>" data-numperiodo="<%=rs2.getString(2)%>"
+                                                                    data-dias="<%=rs2.getString(3)%>"
+                                                                    data-fechadesde="<%=rs2.getString(7) != null ? rs2.getString(7) : ""%>"
+                                                                    data-fechahasta="<%=rs2.getString(8) != null ? rs2.getString(8) : ""%>"
+                                                                    data-observaciones="<%=obs != null ? obs.replace("\"","&quot;") : ""%>">
+                                                                <i class="fa fa-pencil"></i> Editar
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                     <%
                                                         }
                                                         if (!hay2) {
                                                     %>
-                                                    <tr><td colspan="5" class="text-center text-muted py-4">Sin ajustes registrados.</td></tr>
+                                                    <tr><td colspan="6" class="text-center text-muted py-4">Sin ajustes registrados.</td></tr>
                                                     <%
                                                         }
                                                         }
@@ -315,36 +329,37 @@
 <div class="modal fade" id="modalAjuste" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="../VAC_GuardarAjusteHistorico" method="post">
+            <form action="../VAC_GuardarAjusteHistorico" method="post" id="formAjuste">
                 <input type="hidden" name="idEmpleado" value="<%=idEmpleado%>">
+                <input type="hidden" name="idAjuste" id="ajusteIdAjuste" value="">
                 <div class="modal-header" style="background:#343a40;">
-                    <h5 class="modal-title text-white"><i class="fa fa-history me-2"></i>Registrar Ajuste Historico</h5>
+                    <h5 class="modal-title text-white" id="modalAjusteTitulo"><i class="fa fa-history me-2"></i>Registrar Ajuste Historico</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-xs text-muted">Registra dias ya gozados antes de este modulo, tal como aparecen en el reporte de vacaciones historico del empleado.</p>
                     <div class="form-group mb-3">
                         <label>Numero de periodo (1er año = 1, 2do año = 2, etc.)</label>
-                        <input type="number" min="1" step="1" name="numPeriodo" class="form-control" required>
+                        <input type="number" min="1" step="1" name="numPeriodo" id="ajusteNumPeriodo" class="form-control" required>
                     </div>
                     <div class="form-group mb-3">
                         <label>Dias gozados en ese periodo</label>
-                        <input type="number" min="1" max="30" step="1" name="diasGozados" class="form-control" required>
+                        <input type="number" min="1" max="30" step="1" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
                         <small class="text-muted">El periodo 1-5 acumula 15 dias; desde el 6to año se suma 1 dia extra por año, hasta 30.</small>
                     </div>
                     <div class="row">
                         <div class="col-6 form-group mb-3">
                             <label>Fecha desde (opcional)</label>
-                            <input type="date" name="fechaDesde" class="form-control">
+                            <input type="date" name="fechaDesde" id="ajusteFechaDesde" class="form-control">
                         </div>
                         <div class="col-6 form-group mb-3">
                             <label>Fecha hasta (opcional)</label>
-                            <input type="date" name="fechaHasta" class="form-control">
+                            <input type="date" name="fechaHasta" id="ajusteFechaHasta" class="form-control">
                         </div>
                     </div>
                     <div class="form-group mb-0">
                         <label>Observaciones (opcional)</label>
-                        <textarea name="observaciones" class="form-control" rows="2"></textarea>
+                        <textarea name="observaciones" id="ajusteObservaciones" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -362,5 +377,37 @@
 <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 <script src="../assets/js/custom-sidenav-toggle.js"></script>
+<script>
+    var modalAjuste = new bootstrap.Modal(document.getElementById('modalAjuste'));
+    var modalAjusteTitulo = document.getElementById('modalAjusteTitulo');
+
+    function limpiarFormAjuste() {
+        document.getElementById('ajusteIdAjuste').value = '';
+        document.getElementById('ajusteNumPeriodo').value = '';
+        document.getElementById('ajusteDiasGozados').value = '';
+        document.getElementById('ajusteFechaDesde').value = '';
+        document.getElementById('ajusteFechaHasta').value = '';
+        document.getElementById('ajusteObservaciones').value = '';
+    }
+
+    document.getElementById('btnNuevoAjuste').addEventListener('click', function () {
+        limpiarFormAjuste();
+        modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Registrar Ajuste Historico';
+        modalAjuste.show();
+    });
+
+    document.querySelectorAll('.btn-editar-ajuste').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('ajusteIdAjuste').value = this.getAttribute('data-id');
+            document.getElementById('ajusteNumPeriodo').value = this.getAttribute('data-numperiodo');
+            document.getElementById('ajusteDiasGozados').value = this.getAttribute('data-dias');
+            document.getElementById('ajusteFechaDesde').value = this.getAttribute('data-fechadesde');
+            document.getElementById('ajusteFechaHasta').value = this.getAttribute('data-fechahasta');
+            document.getElementById('ajusteObservaciones').value = this.getAttribute('data-observaciones');
+            modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Editar Ajuste Historico';
+            modalAjuste.show();
+        });
+    });
+</script>
 </body>
 </html>

@@ -12,10 +12,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// Carga un consumo historico de vacaciones (anterior a este modulo)
-// para un periodo especifico de un empleado. Es lo que permite que el
-// saldo calculado por VAC_CalculoSaldo arranque correcto en vez de
-// asumir que nadie ha tomado vacaciones nunca.
+// Carga o edita un consumo historico de vacaciones (anterior a este
+// modulo) para un periodo especifico de un empleado. Es lo que permite
+// que el saldo calculado por VAC_CalculoSaldo arranque correcto en vez
+// de asumir que nadie ha tomado vacaciones nunca. Si viene idAjuste,
+// actualiza ese registro (verificando que sea del mismo empleado);
+// si no, inserta uno nuevo.
 @WebServlet(name = "VAC_GuardarAjusteHistorico", urlPatterns = {"/VAC_GuardarAjusteHistorico"})
 public class VAC_GuardarAjusteHistorico extends HttpServlet {
 
@@ -34,11 +36,13 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
         }
 
         String idEmpleado = request.getParameter("idEmpleado");
+        String idAjuste = request.getParameter("idAjuste"); // vacio/null = registro nuevo
         String numPeriodo = request.getParameter("numPeriodo");
         String diasGozados = request.getParameter("diasGozados");
         String fechaDesde = request.getParameter("fechaDesde"); // opcional, YYYY-MM-DD
         String fechaHasta = request.getParameter("fechaHasta"); // opcional, YYYY-MM-DD
         String observaciones = request.getParameter("observaciones");
+        boolean esEdicion = idAjuste != null && !idAjuste.trim().isEmpty();
 
         if (idEmpleado == null || numPeriodo == null || diasGozados == null
                 || numPeriodo.trim().isEmpty() || diasGozados.trim().isEmpty()) {
@@ -53,6 +57,26 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
         try {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
+
+            if (esEdicion) {
+                try (PreparedStatement st = cn.prepareStatement(
+                        "UPDATE VAC_HISTORICO_AJUSTE SET NUM_PERIODO = ?, DIAS_GOZADOS = ?, " +
+                        "FECHA_DESDE = TO_DATE(?, 'YYYY-MM-DD'), FECHA_HASTA = TO_DATE(?, 'YYYY-MM-DD'), " +
+                        "OBSERVACIONES = ?, ID_USUARIO_REGISTRA = ?, FECHA_REGISTRO = SYSDATE " +
+                        "WHERE ID_AJUSTE = ? AND ID_USUARIO = ?")) {
+                    st.setString(1, numPeriodo);
+                    st.setString(2, diasGozados);
+                    if (fechaDesde != null && !fechaDesde.trim().isEmpty()) st.setString(3, fechaDesde); else st.setNull(3, java.sql.Types.DATE);
+                    if (fechaHasta != null && !fechaHasta.trim().isEmpty()) st.setString(4, fechaHasta); else st.setNull(4, java.sql.Types.DATE);
+                    st.setString(5, observaciones);
+                    st.setInt(6, idGestor);
+                    st.setString(7, idAjuste);
+                    st.setString(8, idEmpleado);
+                    st.executeUpdate();
+                }
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado + "&msj=Ajuste actualizado correctamente");
+                return;
+            }
 
             int idNuevo = 1;
             try (PreparedStatement stSec = cn.prepareStatement("SELECT NVL(MAX(ID_AJUSTE),0)+1 FROM VAC_HISTORICO_AJUSTE");
