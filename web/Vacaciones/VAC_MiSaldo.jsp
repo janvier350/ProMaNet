@@ -186,12 +186,11 @@
                 <div class="card">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold">Solicitar vacaciones</p>
-                        <% if (saldo.totalDisponible > 0) { %>
                         <button type="button" class="btn btn-outline-primary btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalSolicitar">
                             <i class="fa fa-plus me-1"></i> Nueva solicitud
                         </button>
-                        <% } else { %>
-                        <p class="text-xs text-muted mb-0">No tienes dias disponibles para solicitar.</p>
+                        <% if (saldo.totalDisponible <= 0) { %>
+                        <p class="text-xs text-muted mb-0 mt-1">No tienes dias disponibles -- si es un adelanto acordado con Administracion, marca "solicitud anticipada" al solicitar.</p>
                         <% } %>
                     </div>
                 </div>
@@ -369,6 +368,16 @@
                         El regreso no puede caer viernes ni sabado: debes incluir el fin de semana completo.
                         Ajusta la fecha hasta a un domingo o posterior.
                     </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" name="anticipada" id="solAnticipada" value="on">
+                        <label class="form-check-label text-sm" for="solAnticipada">
+                            Es una solicitud anticipada (adelanto acordado con Administracion, todavia no tengo el dia ganado)
+                        </label>
+                    </div>
+                    <div id="solJustificacionWrap" class="form-group mt-2 mb-0" style="display:none;">
+                        <label>Justificacion del adelanto</label>
+                        <textarea name="justificacionAnticipo" id="solJustificacion" class="form-control" rows="2"></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
@@ -392,7 +401,16 @@
         var resumen = document.getElementById('solResumen');
         var avisoFinde = document.getElementById('solAvisoFinde');
         var btnEnviar = document.getElementById('btnEnviarSolicitud');
+        var chkAnticipada = document.getElementById('solAnticipada');
+        var justificacionWrap = document.getElementById('solJustificacionWrap');
+        var justificacionInput = document.getElementById('solJustificacion');
         if (!inputDesde) return;
+
+        chkAnticipada.addEventListener('change', function () {
+            justificacionWrap.style.display = chkAnticipada.checked ? '' : 'none';
+            justificacionInput.required = chkAnticipada.checked;
+            if (!chkAnticipada.checked) justificacionInput.value = '';
+        });
 
         function parseFecha(v) {
             if (!v) return null;

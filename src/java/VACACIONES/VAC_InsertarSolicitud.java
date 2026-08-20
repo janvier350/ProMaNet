@@ -47,6 +47,13 @@ public class VAC_InsertarSolicitud extends HttpServlet {
 
         String pFechaDesde = request.getParameter("fechaDesde");
         String pFechaHasta = request.getParameter("fechaHasta");
+        boolean anticipada = "on".equals(request.getParameter("anticipada")) || "true".equals(request.getParameter("anticipada"));
+        String justificacionAnticipo = request.getParameter("justificacionAnticipo");
+
+        if (anticipada && (justificacionAnticipo == null || justificacionAnticipo.trim().isEmpty())) {
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=Debes indicar la justificacion de la solicitud anticipada");
+            return;
+        }
 
         LocalDate desde, hasta;
         try {
@@ -129,17 +136,39 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             // alcance a cubrir TODOS los dias solicitados de una vez
             // (igual que el formato del documento impreso, que solo tiene
             // espacio para un periodo por solicitud).
-            VAC_CalculoSaldo.Saldo saldo = VAC_CalculoSaldo.calcular(cn, idUsuario);
+            //
+            // Si es ANTICIPADA, no se exige que el periodo ya este
+            // cumplido -- se adelanta contra el siguiente periodo en la
+            // linea (el que sigue al ultimo ya cumplido, o el periodo 1
+            // si todavia no cumple ni un año), tope maximo lo que ese
+            // periodo acumularia normalmente, para no adelantar mas de lo
+            // que el empleado alcanzaria a ganarse en un año.
             VAC_CalculoSaldo.Periodo periodoElegido = null;
-            int maxDisponibleUnPeriodo = 0;
-            for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
-                if (p.diasDisponibles > maxDisponibleUnPeriodo) maxDisponibleUnPeriodo = p.diasDisponibles;
-                if (p.diasDisponibles >= diasSolicitados) { periodoElegido = p; break; }
-            }
-            if (periodoElegido == null) {
-                cn.rollback();
-                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + maxDisponibleUnPeriodo + " dias, solicitaste " + diasSolicitados + ")");
-                return;
+            if (anticipada) {
+                VAC_CalculoSaldo.Periodo periodoAnticipo = VAC_CalculoSaldo.calcularPeriodoAnticipo(cn, idUsuario);
+                if (periodoAnticipo == null) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes fecha de ingreso configurada, contacta a Talento Humano");
+                    return;
+                }
+                if (periodoAnticipo.diasDisponibles < diasSolicitados) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=El adelanto no puede superar los dias que ganarias en ese periodo (maximo: " + periodoAnticipo.diasDisponibles + " dias, solicitaste " + diasSolicitados + ")");
+                    return;
+                }
+                periodoElegido = periodoAnticipo;
+            } else {
+                VAC_CalculoSaldo.Saldo saldo = VAC_CalculoSaldo.calcular(cn, idUsuario);
+                int maxDisponibleUnPeriodo = 0;
+                for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
+                    if (p.diasDisponibles > maxDisponibleUnPeriodo) maxDisponibleUnPeriodo = p.diasDisponibles;
+                    if (p.diasDisponibles >= diasSolicitados) { periodoElegido = p; break; }
+                }
+                if (periodoElegido == null) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + maxDisponibleUnPeriodo + " dias, solicitaste " + diasSolicitados + "). Si es un adelanto acordado con Administracion, marca la casilla de solicitud anticipada.");
+                    return;
+                }
             }
 
             // 4. Insertar.
@@ -151,8 +180,9 @@ public class VAC_InsertarSolicitud extends HttpServlet {
 
             try (PreparedStatement st = cn.prepareStatement(
                     "INSERT INTO VAC_SOLICITUD (ID_SOLICITUD, ID_USUARIO, ID_JEFE_DIRECTO, NUM_PERIODO, " +
-                    "FECHA_DESDE, FECHA_HASTA, FECHA_REINCORPORACION, DIAS_SOLICITADOS, ESTADO) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE')")) {
+                    "FECHA_DESDE, FECHA_HASTA, FECHA_REINCORPORACION, DIAS_SOLICITADOS, ESTADO, " +
+                    "ANTICIPADA, JUSTIFICACION_ANTICIPO) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE', ?, ?)")) {
                 st.setInt(1, idNuevo);
                 st.setInt(2, idUsuario);
                 st.setInt(3, idJefe);
@@ -161,11 +191,16 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                 st.setDate(6, Date.valueOf(hasta));
                 st.setDate(7, Date.valueOf(reincorporacion));
                 st.setInt(8, diasSolicitados);
+                st.setString(9, anticipada ? "S" : "N");
+                if (anticipada) st.setString(10, justificacionAnticipo.trim()); else st.setNull(10, java.sql.Types.VARCHAR);
                 st.executeUpdate();
             }
 
             cn.commit();
-            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?msj=Solicitud registrada, queda pendiente de aprobacion de tu jefe directo");
+            String msjOk = anticipada
+                    ? "Solicitud anticipada registrada, queda pendiente de aprobacion de tu jefe directo"
+                    : "Solicitud registrada, queda pendiente de aprobacion de tu jefe directo";
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?msj=" + msjOk);
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}
             e.printStackTrace();

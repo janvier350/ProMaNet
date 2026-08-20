@@ -58,6 +58,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             String cedulaSolicitante = "";
             String comentarioJefe = "", comentarioAdmin = "";
             String empresaSolicitante = "";
+            boolean anticipada = false;
+            String justificacionAnticipo = "";
 
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT s.ID_USUARIO, s.ID_JEFE_DIRECTO, s.NUM_PERIODO, s.DIAS_SOLICITADOS, " +
@@ -67,7 +69,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     "u.NOMBRE||' '||u.APELLIDOS, r.CARGO, d.DEPARTAMENTO, " +
                     "j.NOMBRE||' '||j.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), " +
                     "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), " +
-                    "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN, vc.EMPRESA_IESS " +
+                    "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN, vc.EMPRESA_IESS, " +
+                    "s.ANTICIPADA, s.JUSTIFICACION_ANTICIPO " +
                     "FROM VAC_SOLICITUD s " +
                     "JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ROL r ON u.IDROL = r.IDROL " +
@@ -103,6 +106,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     comentarioJefe = rs.getString(19);
                     comentarioAdmin = rs.getString(20);
                     empresaSolicitante = rs.getString(21);
+                    anticipada = "S".equals(rs.getString(22));
+                    justificacionAnticipo = rs.getString(23);
                 }
             }
 
@@ -116,14 +121,11 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             // de aprobacion -- se recalcula en vivo, nunca se guarda estatico.
             String periodoDesde = "-", periodoHasta = "-";
             int diasPorGozar = 0;
-            VAC_CalculoSaldo.Saldo saldo = VAC_CalculoSaldo.calcular(cn, idUsuarioSolicitud);
-            for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
-                if (p.numero == numPeriodo) {
-                    periodoDesde = new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.desde);
-                    periodoHasta = new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.hasta);
-                    diasPorGozar = p.diasDisponibles;
-                    break;
-                }
+            VAC_CalculoSaldo.Periodo periodoSolicitud = VAC_CalculoSaldo.obtenerPeriodo(cn, idUsuarioSolicitud, numPeriodo);
+            if (periodoSolicitud != null) {
+                periodoDesde = new java.text.SimpleDateFormat("dd/MM/yyyy").format(periodoSolicitud.desde);
+                periodoHasta = new java.text.SimpleDateFormat("dd/MM/yyyy").format(periodoSolicitud.hasta);
+                diasPorGozar = periodoSolicitud.diasDisponibles;
             }
 
             boolean aprobado = "APROBADO".equals(estado) || "RECIBIDO".equals(estado);
@@ -180,6 +182,12 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
 
                 // Bloque 1: Solicitud (empleado)
                 out.println("<div class='bloque-titulo'>SOLICITUD DE VACACIONES (EMPLEADO)</div>");
+                if (anticipada) {
+                    out.println("<div class='text-center mb-3'><span class='estado-badge estado-pendiente'><i class='fa fa-forward me-1'></i>SOLICITUD ANTICIPADA -- dias todavia no ganados, adelanto acordado con Administracion</span></div>");
+                    if (justificacionAnticipo != null && !justificacionAnticipo.trim().isEmpty()) {
+                        out.println("<div class='campo'><label>Justificacion del adelanto</label><div class='valor'>" + justificacionAnticipo + "</div></div>");
+                    }
+                }
                 out.println("<div class='row'>");
                 out.println("<div class='col-md-4 campo'><label>Fecha de solicitud</label><div class='valor'>" + fechaSolicitud + "</div></div>");
                 out.println("<div class='col-md-4 campo'><label>Funcionario</label><div class='valor'>" + nombreSolicitante + "</div></div>");

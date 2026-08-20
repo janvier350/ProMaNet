@@ -178,7 +178,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY'), " +
                                                         "TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, " +
-                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY') " +
+                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), s.ANTICIPADA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "WHERE s.ID_JEFE_DIRECTO = ? AND s.ESTADO = 'PENDIENTE_JEFE' " +
                                                         "ORDER BY s.FECHA_SOLICITUD ASC")) {
@@ -189,9 +189,16 @@
                                                             hay = true;
                                                             String idSol = rs.getString(1);
                                                             String solicitante = rs.getString(2);
+                                                            boolean esAnticipada = "S".equals(rs.getString(8));
                                                     %>
                                                     <tr>
-                                                        <td><p class="text-xs font-weight-bold mb-0"><%=solicitante%></p></td>
+                                                        <td>
+                                                            <p class="text-xs font-weight-bold mb-0"><%=solicitante%>
+                                                            <% if (esAnticipada) { %>
+                                                            <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            </p>
+                                                        </td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(4)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(5)%></p></td>
@@ -199,6 +206,9 @@
                                                         <td><p class="text-xs mb-0"><%=rs.getString(7)%></p></td>
                                                         <td class="text-center">
                                                             <div class="d-flex justify-content-center gap-1">
+                                                                <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSol%>" target="_blank">
+                                                                    <i class="fa fa-print"></i>
+                                                                </a>
                                                                 <form action="../VAC_GestionarSolicitudJefe" method="post" class="d-inline"
                                                                       onsubmit="return confirm('¿Aprobar la solicitud de <%=solicitante%>?');">
                                                                     <input type="hidden" name="idSolicitud" value="<%=idSol%>">

@@ -169,7 +169,7 @@
                                             if (cn != null) {
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, j.NOMBRE||' '||j.APELLIDOS " +
+                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, j.NOMBRE||' '||j.APELLIDOS, s.ANTICIPADA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_USUARIO_APRUEBA_JEFE = j.IDUSUARIO " +
                                                         "WHERE s.ESTADO = 'PENDIENTE_ADMIN' ORDER BY s.FECHA_APROBACION_JEFE ASC")) {
@@ -180,15 +180,25 @@
                                                             String idSol = rs.getString(1);
                                                             String solicitante = rs.getString(2);
                                                             int diasSol = rs.getInt(5);
+                                                            boolean esAnticipada = "S".equals(rs.getString(7));
                                                     %>
                                                     <tr>
-                                                        <td><p class="text-xs font-weight-bold mb-0"><%=solicitante%></p></td>
+                                                        <td>
+                                                            <p class="text-xs font-weight-bold mb-0"><%=solicitante%>
+                                                            <% if (esAnticipada) { %>
+                                                            <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            </p>
+                                                        </td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(4)%></p></td>
                                                         <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=diasSol%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(6)%></p></td>
                                                         <td class="text-center">
                                                             <div class="d-flex justify-content-center gap-1">
+                                                                <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSol%>" target="_blank">
+                                                                    <i class="fa fa-print"></i>
+                                                                </a>
                                                                 <button type="button" class="btn btn-xs btn-outline-success py-1 btn-aprobar-admin"
                                                                         data-id="<%=idSol%>" data-nombre="<%=solicitante%>" data-dias="<%=diasSol%>">
                                                                     <i class="fa fa-check"></i> Aprobar
