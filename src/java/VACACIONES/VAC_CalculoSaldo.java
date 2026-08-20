@@ -79,10 +79,13 @@ public class VAC_CalculoSaldo {
             p.numero = numero;
             p.desde = Date.valueOf(ingreso.plusYears(numero - 1));
             p.hasta = Date.valueOf(finPeriodo);
-            // IMPORTANTE: Codigo del Trabajo Ecuador -- 15 dias por año, y a
-            // partir del 5to año un dia adicional por cada año excedente,
-            // sin superar los 30 dias totales (confirmado por el usuario).
-            p.diasAcumulados = numero < 5 ? 15 : Math.min(30, 15 + (numero - 4));
+            // IMPORTANTE: Codigo del Trabajo Ecuador, Art. 69 -- 15 dias por
+            // año; "los trabajadores que hubieren prestado servicios por MAS
+            // DE CINCO AÑOS" ganan un dia adicional por cada año excedente,
+            // es decir el dia extra recien aplica al 6to año (el 5to año
+            // completo todavia no supera los cinco años), sin superar los
+            // 30 dias totales.
+            p.diasAcumulados = numero <= 5 ? 15 : Math.min(30, 15 + (numero - 5));
 
             int diasHistoricos = 0;
             try (PreparedStatement st = cn.prepareStatement(

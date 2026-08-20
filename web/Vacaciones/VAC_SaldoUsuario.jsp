@@ -330,7 +330,7 @@
                     <div class="form-group mb-3">
                         <label>Dias gozados en ese periodo</label>
                         <input type="number" min="1" max="30" step="1" name="diasGozados" class="form-control" required>
-                        <small class="text-muted">El periodo 1-4 acumula 15 dias; desde el 5to año se suma 1 dia extra por año, hasta 30.</small>
+                        <small class="text-muted">El periodo 1-5 acumula 15 dias; desde el 6to año se suma 1 dia extra por año, hasta 30.</small>
                     </div>
                     <div class="row">
                         <div class="col-6 form-group mb-3">
