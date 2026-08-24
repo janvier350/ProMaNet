@@ -234,6 +234,100 @@
             <div class="col-12">
                 <div class="card mb-4">
                     <div class="card-header pb-0">
+                        <h6>Todas las solicitudes (vista general)</h6>
+                        <p class="text-xs text-secondary mb-0">Solo lectura -- incluye las que todavia estan con el jefe directo. Aqui no se aprueba ni se rechaza nada. Muestra las 100 mas recientes.</p>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Solicitante</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jefe Directo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        try (Connection cnAll = Servlets.Conexion.getConnection()) {
+                                            if (cnAll != null) {
+                                                try (PreparedStatement stAll = cnAll.prepareStatement(
+                                                        "SELECT * FROM (SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, j.NOMBRE||' '||j.APELLIDOS, " +
+                                                        "TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), " +
+                                                        "s.DIAS_SOLICITADOS, s.ESTADO, s.ANTICIPADA " +
+                                                        "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
+                                                        "JOIN USUARIO j ON s.ID_JEFE_DIRECTO = j.IDUSUARIO " +
+                                                        "ORDER BY s.FECHA_SOLICITUD DESC) WHERE ROWNUM <= 100")) {
+                                                    try (ResultSet rsAll = stAll.executeQuery()) {
+                                                        boolean hayAll = false;
+                                                        while (rsAll.next()) {
+                                                            hayAll = true;
+                                                            String idSolAll = rsAll.getString(1);
+                                                            String estadoAll = rsAll.getString(7);
+                                                            boolean anticipadaAll = "S".equals(rsAll.getString(8));
+                                                            String badgeClaseAll;
+                                                            String badgeTextoAll;
+                                                            if ("APROBADO".equals(estadoAll) || "RECIBIDO".equals(estadoAll)) {
+                                                                badgeClaseAll = "bg-gradient-success"; badgeTextoAll = "Aprobado";
+                                                            } else if ("RECHAZADO_JEFE".equals(estadoAll)) {
+                                                                badgeClaseAll = "bg-gradient-danger"; badgeTextoAll = "Rechazado Jefe";
+                                                            } else if ("RECHAZADO_ADMIN".equals(estadoAll)) {
+                                                                badgeClaseAll = "bg-gradient-danger"; badgeTextoAll = "Rechazado Admin.";
+                                                            } else if ("PENDIENTE_JEFE".equals(estadoAll)) {
+                                                                badgeClaseAll = "bg-gradient-warning"; badgeTextoAll = "Pendiente Jefe";
+                                                            } else if ("PENDIENTE_ADMIN".equals(estadoAll)) {
+                                                                badgeClaseAll = "bg-gradient-warning"; badgeTextoAll = "Pendiente Admin.";
+                                                            } else {
+                                                                badgeClaseAll = "bg-gradient-secondary"; badgeTextoAll = "Cancelado";
+                                                            }
+                                                    %>
+                                                    <tr>
+                                                        <td>
+                                                            <p class="text-xs font-weight-bold mb-0"><%=rsAll.getString(2)%>
+                                                            <% if (anticipadaAll) { %>
+                                                            <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            </p>
+                                                        </td>
+                                                        <td><p class="text-xs mb-0"><%=rsAll.getString(3)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rsAll.getString(4)%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=rsAll.getString(5)%></p></td>
+                                                        <td class="text-center"><p class="text-xs mb-0"><%=rsAll.getInt(6)%></p></td>
+                                                        <td class="text-center"><span class="badge badge-sm <%=badgeClaseAll%>"><%=badgeTextoAll%></span></td>
+                                                        <td class="text-center">
+                                                            <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSolAll%>" target="_blank">
+                                                                <i class="fa fa-print"></i>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    <%
+                                                        }
+                                                        if (!hayAll) {
+                                                    %>
+                                                    <tr><td colspan="7" class="text-center text-muted py-4">Todavia no hay solicitudes registradas.</td></tr>
+                                                    <%
+                                                        }
+                                                    }
+                                                } catch (Exception ex) { ex.printStackTrace(); }
+                                            }
+                                        } catch (Exception ex) { ex.printStackTrace(); }
+                                    %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
                         <h6>Historial reciente</h6>
                         <p class="text-xs text-secondary mb-0">La aprobacion de Administracion es el ultimo paso del tramite -- desde aqui se puede imprimir el documento ya resuelto.</p>
                     </div>
