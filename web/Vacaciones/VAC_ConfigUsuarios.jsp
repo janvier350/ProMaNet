@@ -82,6 +82,14 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a class="nav-link " href="VAC_Dashboard.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Administrar Vacaciones</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link active" href="VAC_ConfigUsuarios.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
@@ -122,7 +130,8 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="../Proyectos/PRO_Dashboard.jsp">Menu</a></li>
-                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">Vacaciones - Configuracion</li>
+                    <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="VAC_Dashboard.jsp">Vacaciones</a></li>
+                    <li class="breadcrumb-item text-sm text-white active" aria-current="page">Configuracion</li>
                 </ol>
                 <h6 class="font-weight-bolder text-white mb-0">Vacaciones - Fecha de Ingreso y Jefe Directo</h6>
             </nav>

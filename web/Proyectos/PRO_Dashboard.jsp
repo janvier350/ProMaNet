@@ -247,23 +247,13 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
-                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR")) { %>
+                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
                     <li class="nav-item">
-                        <a class="nav-link " href="../Vacaciones/VAC_ConfigUsuarios.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Vacaciones - Config.</span>
-                        </a>
-                    </li>
-                    <% } %>
-                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Vacaciones/VAC_AprobacionesAdmin.jsp">
+                        <a class="nav-link " href="../Vacaciones/VAC_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
                             </div>
-                            <span class="nav-link-text ms-1">Vacaciones (Admin.)</span>
+                            <span class="nav-link-text ms-1">Administrar Vacaciones</span>
                         </a>
                     </li>
                     <% } %>
@@ -822,6 +812,36 @@ String compania = (String) session.getAttribute("compania");
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-warning shadow-warning text-center rounded-circle">
+                                                <i class="fa fa-umbrella-beach text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <% } %>
+
+                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Vacaciones/VAC_Dashboard.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Administrar</p>
+                                                <h5 class="font-weight-bolder">
+                                                    VACACIONES
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-dark text-sm font-weight-bolder">Configuracion y</span>
+                                                    <b class="text-dark"> aprobaciones.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-dark shadow-success text-center rounded-circle">
                                                 <i class="fa fa-umbrella-beach text-lg opacity-10" aria-hidden="true"></i>
                                             </div>
                                         </div>
