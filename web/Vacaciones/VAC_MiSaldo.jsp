@@ -26,6 +26,21 @@
         if (cn != null) saldo = VAC_CalculoSaldo.calcular(cn, idUsuarioSesion);
     } catch (Exception ex) { ex.printStackTrace(); }
 
+    // Ser jefe directo de alguien es un dato (no un permiso): se muestra
+    // el enlace de Aprobaciones solo si hoy tiene gente a cargo.
+    boolean esJefeDirecto = false;
+    try (Connection cnJefe = Servlets.Conexion.getConnection()) {
+        if (cnJefe != null) {
+            try (PreparedStatement stJefe = cnJefe.prepareStatement(
+                    "SELECT COUNT(*) FROM VAC_CONFIG_USUARIO WHERE ID_JEFE_DIRECTO = ?")) {
+                stJefe.setInt(1, idUsuarioSesion);
+                try (ResultSet rsJefe = stJefe.executeQuery()) {
+                    if (rsJefe.next()) esJefeDirecto = rsJefe.getInt(1) > 0;
+                }
+            }
+        }
+    } catch (Exception exJefe) { exJefe.printStackTrace(); }
+
     String msj = request.getParameter("msj");
     String error = request.getParameter("error");
 %>
@@ -66,14 +81,34 @@
                     <span class="nav-link-text ms-1">Dashboard</span>
                 </a>
             </li>
+            <% if (esJefeDirecto) { %>
+            <li class="nav-item">
+                <a class="nav-link " href="VAC_MiPanel.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Vacaciones</span>
+                </a>
+            </li>
+            <% } %>
             <li class="nav-item">
                 <a class="nav-link active" href="VAC_MiSaldo.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                         <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
                     </div>
-                    <span class="nav-link-text ms-1">Mis Vacaciones</span>
+                    <span class="nav-link-text ms-1"><%=esJefeDirecto ? "Mi Saldo" : "Mis Vacaciones"%></span>
                 </a>
             </li>
+            <% if (esJefeDirecto) { %>
+            <li class="nav-item">
+                <a class="nav-link " href="VAC_AprobacionesJefe.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fa fa-user-check text-info text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Aprobaciones</span>
+                </a>
+            </li>
+            <% } %>
             <li class="nav-item mt-3">
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
             </li>
@@ -107,6 +142,9 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
                     <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="../Proyectos/PRO_Dashboard.jsp">Menu</a></li>
+                    <% if (esJefeDirecto) { %>
+                    <li class="breadcrumb-item text-sm"><a class="opacity-5 text-white" href="VAC_MiPanel.jsp">Vacaciones</a></li>
+                    <% } %>
                     <li class="breadcrumb-item text-sm text-white active" aria-current="page">Mis Vacaciones</li>
                 </ol>
                 <h6 class="font-weight-bolder text-white mb-0">Mis Vacaciones</h6>

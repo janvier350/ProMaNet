@@ -211,19 +211,11 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
-                    <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
-                    <li class="nav-item">
-                        <a class="nav-link " href="../Vacaciones/VAC_MiSaldo.jsp">
-                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
-                            </div>
-                            <span class="nav-link-text ms-1">Mis Vacaciones</span>
-                        </a>
-                    </li>
-                    <% } %>
                     <%
                         // Ser jefe directo de alguien es un dato (no un permiso): se
-                        // muestra el enlace solo si hoy tiene gente a cargo.
+                        // calcula antes para decidir si el jefe ve un solo enlace
+                        // combinado (Mis Vacaciones + Aprobaciones) o el empleado
+                        // regular ve solo el de "Mis Vacaciones" directo.
                         boolean esJefeDirecto = false;
                         try (java.sql.Connection cnJefe = Servlets.Conexion.getConnection()) {
                             if (cnJefe != null) {
@@ -237,13 +229,23 @@ String compania = (String) session.getAttribute("compania");
                                 }
                             }
                         } catch (Exception exJefe) { exJefe.printStackTrace(); }
-                        if (esJefeDirecto) { %>
+                    %>
+                    <% if (esJefeDirecto) { %>
                     <li class="nav-item">
-                        <a class="nav-link " href="../Vacaciones/VAC_AprobacionesJefe.jsp">
+                        <a class="nav-link " href="../Vacaciones/VAC_MiPanel.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-user-check text-info text-sm opacity-10"></i>
+                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
                             </div>
-                            <span class="nav-link-text ms-1">Aprobaciones (Jefe)</span>
+                            <span class="nav-link-text ms-1">Vacaciones</span>
+                        </a>
+                    </li>
+                    <% } else if (COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Vacaciones/VAC_MiSaldo.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Mis Vacaciones</span>
                         </a>
                     </li>
                     <% } %>
@@ -795,7 +797,7 @@ String compania = (String) session.getAttribute("compania");
                     <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="../Vacaciones/VAC_MiSaldo.jsp">
+                            <a href="../Vacaciones/<%=esJefeDirecto ? "VAC_MiPanel.jsp" : "VAC_MiSaldo.jsp"%>">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
@@ -805,8 +807,13 @@ String compania = (String) session.getAttribute("compania");
                                                     VACACIONES
                                                 </h5>
                                                 <p class="mb-0">
+                                                    <% if (esJefeDirecto) { %>
+                                                    <span class="text-warning text-sm font-weight-bolder">Consulte su saldo y</span>
+                                                    <b class="text-warning"> apruebe a su equipo.</b>
+                                                    <% } else { %>
                                                     <span class="text-warning text-sm font-weight-bolder">Consulte su saldo y</span>
                                                     <b class="text-warning"> solicite vacaciones.</b>
+                                                    <% } %>
                                                 </p>
                                             </div>
                                         </div>
