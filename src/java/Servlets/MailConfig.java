@@ -2,6 +2,8 @@ package Servlets;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 // Configuracion SMTP para el envio de correos (ej. bienvenida al crear un
@@ -29,12 +31,15 @@ public class MailConfig {
             String ruta = System.getProperty("promanet.db.config", "/opt/promanet/db.properties");
             File f = new File(ruta);
             if (f.exists()) {
+                // Properties.load(InputStream) asume ISO-8859-1 por defecto
+                // -- si la clave tiene tildes o "ñ" y el archivo se guardo en
+                // UTF-8 (lo normal en Notepad/VSCode), se leeria mal. Se lee
+                // explicitamente como UTF-8 con la sobrecarga que recibe un
+                // Reader.
                 Properties p = new Properties();
                 FileInputStream in = new FileInputStream(f);
-                try {
-                    p.load(in);
-                } finally {
-                    in.close();
+                try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+                    p.load(reader);
                 }
                 SMTP_HOST = p.getProperty("smtp.host", SMTP_HOST);
                 SMTP_PORT = Integer.parseInt(p.getProperty("smtp.port", String.valueOf(SMTP_PORT)).trim());
