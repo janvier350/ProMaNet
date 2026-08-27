@@ -180,7 +180,7 @@ String compania = (String) session.getAttribute("compania");
                     .append("<td>").append(esc(proceso)).append("</td>")
                     .append("<td><span class='badge' style='background:#17a2b8;color:#fff;'>").append(esc(delito)).append("</span></td>")
                     .append("<td>").append(esc(fiscalia)).append("</td>")
-                    .append("<td>").append(esc(ubicacion)).append("</td>")
+                    .append("<td title='").append(ubicacionAttr).append("'>").append(esc(ubicacion)).append("</td>")
                     .append("<td class='text-center'>")
                     .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
                     .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg' style='padding:3px 8px;' ")
@@ -284,8 +284,8 @@ String compania = (String) session.getAttribute("compania");
                     .append("<td>").append(esc(juicio)).append("</td>")
                     .append("<td><span class='badge' style='background:#17a2b8;color:#fff;'>").append(esc(materia)).append("</span></td>")
                     .append("<td>").append(esc(tipoAccion)).append("</td>")
-                    .append("<td>").append(esc(asunto)).append("</td>")
-                    .append("<td>").append(esc(lugar)).append("</td>")
+                    .append("<td title='").append(asuntoAttr).append("'>").append(esc(asunto)).append("</td>")
+                    .append("<td title='").append(lugarAttr).append("'>").append(esc(lugar)).append("</td>")
                     .append("<td class='text-center'>")
                     .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
                     .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg-expel' style='padding:3px 8px;' ")
@@ -334,18 +334,26 @@ String compania = (String) session.getAttribute("compania");
         <style>
             /* Evita que columnas con texto largo (nombres concatenados, asuntos)
                estiren la tabla horizontalmente; el texto salta de linea en su lugar. */
-            #tablaIP td:nth-child(1), #tablaIP th:nth-child(1) {
+            #tablaIP td:nth-child(1), #tablaIP th:nth-child(1),
+            #tablaIP td:nth-child(2), #tablaIP th:nth-child(2) {
+                width: 18%;
                 min-width: 160px;
                 max-width: 220px;
                 white-space: normal;
                 word-break: normal;
                 overflow-wrap: break-word;
             }
+            /* Ubicacion (IP) y Asunto/Lugar (EXPEL): texto libre que puede ser muy
+               largo -- en vez de dejarlo saltar de linea (lo que estiraba la fila
+               hacia abajo), se trunca a una linea con "..." y el texto completo
+               queda disponible al pasar el mouse (title). */
+            #tablaIP td:nth-child(6), #tablaIP th:nth-child(6),
             #tablaExpel td:nth-child(6), #tablaExpel th:nth-child(6),
             #tablaExpel td:nth-child(7), #tablaExpel th:nth-child(7) {
-                max-width: 200px;
-                white-space: normal;
-                word-break: break-word;
+                max-width: 220px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
         </style>
     </head>
