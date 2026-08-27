@@ -101,6 +101,10 @@
         }
 
         String textoBienvenida = "";
+        boolean correoEnviado = false;
+        String correoError = null;
+        boolean emailValido = email != null && email.trim().contains("@");
+
         if (exito) {
             textoBienvenida =
                 "Estimado " + (nombreUsuario != null ? nombreUsuario : "") + ",\n" +
@@ -113,6 +117,23 @@
                 "\n" +
                 "Por favor confirma la recepción de este correo y, si tienes algún inconveniente en el primer acceso, comunícate con el área de Soporte.\n" +
                 "Saludos cordiales,";
+
+            // Envio automatico si hay SMTP configurado en el servidor y el
+            // usuario trae un email real. Si algo falla (SMTP caido, clave
+            // mal puesta, etc.) NO se revierte la creacion del usuario --
+            // solo se avisa en pantalla y queda el texto de siempre para
+            // copiar y pegar a mano.
+            if (Servlets.MailConfig.SMTP_HABILITADO && emailValido) {
+                try {
+                    correoEnviado = Servlets.Correo.enviar(
+                            email.trim(),
+                            "Bienvenido a la empresa - Accesos ProMaNet",
+                            textoBienvenida);
+                } catch (Exception eMail) {
+                    eMail.printStackTrace();
+                    correoError = eMail.getMessage();
+                }
+            }
         }
 %>
 <!DOCTYPE html>
@@ -136,7 +157,15 @@
         <div class="text-center mb-3">
             <i class="fa fa-check-circle text-success" style="font-size:2.5rem;"></i>
             <h5 class="mt-2 mb-0">Usuario creado correctamente</h5>
+            <% if (correoEnviado) { %>
+            <p class="text-sm text-success mb-0"><i class="fa fa-paper-plane me-1"></i>Correo de bienvenida enviado a <%=esc(email)%>.</p>
+            <% } else if (!Servlets.MailConfig.SMTP_HABILITADO) { %>
             <p class="text-sm text-secondary mb-0">Copia el siguiente texto y peg&aacute;lo en el correo de bienvenida.</p>
+            <% } else if (!emailValido) { %>
+            <p class="text-sm text-warning mb-0"><i class="fa fa-exclamation-triangle me-1"></i>Este usuario no tiene un email valido -- copia el texto y env&iacute;alo a mano.</p>
+            <% } else { %>
+            <p class="text-sm text-danger mb-0"><i class="fa fa-exclamation-triangle me-1"></i>No se pudo enviar el correo automaticamente<%=correoError != null ? " (" + esc(correoError) + ")" : ""%>. Copia el texto y env&iacute;alo a mano.</p>
+            <% } %>
         </div>
         <div class="form-group mb-3">
             <textarea id="txtBienvenida" class="form-control" rows="13" readonly><%=esc(textoBienvenida)%></textarea>

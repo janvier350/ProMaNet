@@ -3,12 +3,24 @@
 # clave real de RRHH.  Si este archivo NO existe, la app usa por defecto la
 # base LOCAL (ver Servlets/Conexion.java).
 #
+# Este mismo archivo tambien trae la configuracion SMTP para el correo de
+# bienvenida al crear un usuario (ver Servlets/MailConfig.java). Si las
+# claves smtp.* no estan o smtp.pass queda vacio, el envio automatico
+# simplemente se desactiva y la app sigue mostrando el texto para copiar y
+# pegar a mano (no rompe nada si todavia no se configura).
+#
 # En la VM (como opc):
 #   sudo mkdir -p /opt/promanet
 #   sudo tee /opt/promanet/db.properties >/dev/null <<'EOF'
 #   db.url=jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet
 #   db.user=RRHH
 #   db.pass=LA_CLAVE_REAL_DE_RRHH
+#
+#   smtp.host=mail.buadnet.com.ec
+#   smtp.port=465
+#   smtp.user=soporte@buadnet.com.ec
+#   smtp.pass=LA_CLAVE_REAL_DEL_CORREO
+#   smtp.from.nombre=ProMaNet - Soporte
 #   EOF
 #   sudo chown tomcat:tomcat /opt/promanet/db.properties
 #   sudo chmod 640 /opt/promanet/db.properties
@@ -17,3 +29,9 @@
 db.url=jdbc:oracle:thin:@promanet_low?TNS_ADMIN=/opt/promanet/wallet
 db.user=RRHH
 db.pass=PONER_CLAVE_REAL_DE_RRHH
+
+smtp.host=mail.buadnet.com.ec
+smtp.port=465
+smtp.user=soporte@buadnet.com.ec
+smtp.pass=PONER_CLAVE_REAL_DEL_CORREO
+smtp.from.nombre=ProMaNet - Soporte
