@@ -46,7 +46,11 @@ public class MailConfig {
                 SMTP_USER = p.getProperty("smtp.user", SMTP_USER);
                 SMTP_PASS = p.getProperty("smtp.pass", SMTP_PASS);
                 SMTP_FROM_NOMBRE = p.getProperty("smtp.from.nombre", SMTP_FROM_NOMBRE);
-                System.out.println("MailConfig: configuracion cargada desde " + ruta);
+                System.out.println("MailConfig: configuracion cargada desde " + ruta
+                        + " (smtp.pass " + (SMTP_PASS != null && !SMTP_PASS.trim().isEmpty() ? "presente" : "vacio o ausente") + ")");
+            } else {
+                System.out.println("MailConfig: no existe " + ruta + " -- correo de bienvenida deshabilitado "
+                        + "(revisa que el nombre del archivo no tenga .txt agregado por error).");
             }
         } catch (Exception e) {
             System.out.println("MailConfig: no se pudo cargar config externa, correo queda deshabilitado. " + e);
