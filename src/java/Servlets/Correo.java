@@ -1,13 +1,17 @@
 package Servlets;
 
 import jakarta.mail.Authenticator;
+import jakarta.mail.Flags;
+import jakarta.mail.Folder;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.PasswordAuthentication;
 import jakarta.mail.Session;
+import jakarta.mail.Store;
 import jakarta.mail.Transport;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.util.Date;
 import java.util.Properties;
 
 // Envio de correos por SMTP (cuenta soporte@buadnet.com.ec, hosting cPanel).
@@ -46,8 +50,49 @@ public class Correo {
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
         msg.setSubject(asunto, "UTF-8");
         msg.setText(cuerpoTexto, "UTF-8");
+        msg.setSentDate(new Date());
 
         Transport.send(msg);
+
+        // Dejar una copia en "Enviados" para que quede evidencia -- SMTP
+        // puro no toca esa carpeta (eso lo hacen los clientes de correo via
+        // IMAP, no el protocolo de envio). Si esto falla no se considera
+        // que el correo no se envio: ya salio por SMTP, esto es solo
+        // cosmetico/evidencia.
+        guardarCopiaEnviados(msg);
+
         return true;
+    }
+
+    private static void guardarCopiaEnviados(MimeMessage msg) {
+        try {
+            msg.setFlag(Flags.Flag.SEEN, true);
+        } catch (Exception ignore) {}
+
+        Properties props = new Properties();
+        props.put("mail.imap.ssl.enable", "true");
+        props.put("mail.imap.ssl.trust", MailConfig.IMAP_HOST);
+        Session imapSession = Session.getInstance(props);
+
+        for (String nombreCarpeta : MailConfig.IMAP_CARPETAS_ENVIADOS) {
+            Store store = null;
+            Folder carpeta = null;
+            try {
+                store = imapSession.getStore("imaps");
+                store.connect(MailConfig.IMAP_HOST, MailConfig.IMAP_PORT, MailConfig.SMTP_USER, MailConfig.SMTP_PASS);
+                carpeta = store.getFolder(nombreCarpeta);
+                if (!carpeta.exists()) continue;
+                carpeta.open(Folder.READ_WRITE);
+                carpeta.appendMessages(new Message[]{msg});
+                return;
+            } catch (Exception e) {
+                System.out.println("Correo: no se pudo guardar copia en la carpeta '" + nombreCarpeta + "'. " + e);
+            } finally {
+                try { if (carpeta != null && carpeta.isOpen()) carpeta.close(false); } catch (Exception ignore) {}
+                try { if (store != null) store.close(); } catch (Exception ignore) {}
+            }
+        }
+        System.out.println("Correo: no se encontro ninguna carpeta de Enviados conocida ("
+                + String.join(", ", MailConfig.IMAP_CARPETAS_ENVIADOS) + ") -- el correo SI se envio, solo no quedo copia.");
     }
 }

@@ -19,6 +19,16 @@ public class MailConfig {
     public static String SMTP_PASS = "";
     public static String SMTP_FROM_NOMBRE = "ProMaNet - Soporte";
 
+    // IMAP: solo se usa para dejar una copia del correo en "Enviados"
+    // despues de mandarlo por SMTP (SMTP puro no toca esa carpeta -- eso
+    // lo hacen los clientes de correo, no el protocolo). Mismo host y
+    // credenciales que el SMTP en la mayoria de hostings cPanel.
+    public static String IMAP_HOST = "mail.buadnet.com.ec";
+    public static int IMAP_PORT = 993;
+    // El nombre de la carpeta "Enviados" varia segun el servidor -- se
+    // intentan estas en orden hasta que una exista.
+    public static String[] IMAP_CARPETAS_ENVIADOS = {"INBOX.Sent", "Sent", "Sent Items"};
+
     // true solo si se cargo una clave real desde el archivo externo.
     public static boolean SMTP_HABILITADO = false;
 
@@ -46,6 +56,8 @@ public class MailConfig {
                 SMTP_USER = p.getProperty("smtp.user", SMTP_USER);
                 SMTP_PASS = p.getProperty("smtp.pass", SMTP_PASS);
                 SMTP_FROM_NOMBRE = p.getProperty("smtp.from.nombre", SMTP_FROM_NOMBRE);
+                IMAP_HOST = p.getProperty("imap.host", SMTP_HOST);
+                IMAP_PORT = Integer.parseInt(p.getProperty("imap.port", String.valueOf(IMAP_PORT)).trim());
                 System.out.println("MailConfig: configuracion cargada desde " + ruta
                         + " (smtp.pass " + (SMTP_PASS != null && !SMTP_PASS.trim().isEmpty() ? "presente" : "vacio o ausente") + ")");
             } else {

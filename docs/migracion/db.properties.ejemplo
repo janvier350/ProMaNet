@@ -9,6 +9,17 @@
 # simplemente se desactiva y la app sigue mostrando el texto para copiar y
 # pegar a mano (no rompe nada si todavia no se configura).
 #
+# imap.host / imap.port (opcionales, por defecto el mismo host de smtp.host
+# y puerto 993): despues de enviar, se conecta por IMAP y deja una copia
+# del correo en "Enviados" -- SMTP puro no toca esa carpeta por si solo.
+# Si esto falla no afecta el envio en si (ya salio por SMTP), solo no
+# queda la copia.
+#
+# OJO al crear/editar este archivo con el Bloc de notas en Windows: en
+# "Guardar como", elegir Tipo "Todos los archivos" (si no, Windows le
+# agrega ".txt" al final sin que se note en el Explorador por defecto, y
+# la app nunca encuentra el archivo).
+#
 # En la VM (como opc):
 #   sudo mkdir -p /opt/promanet
 #   sudo tee /opt/promanet/db.properties >/dev/null <<'EOF'
