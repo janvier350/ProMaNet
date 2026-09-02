@@ -155,8 +155,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println(".estado-aprobado{background:#d1e7dd;color:#0f5132;}");
                 out.println(".estado-pendiente{background:#fff3cd;color:#856404;}");
                 out.println(".estado-rechazado{background:#f8d7da;color:#842029;}");
-                out.println(".firma-section{margin-top:40px;}");
-                out.println(".firma-linea{border-top:1px solid #495057;width:260px;margin:50px auto 6px;}");
+                out.println(".firma-section{margin-top:15px;}");
+                out.println(".firma-linea{border-top:1px solid #495057;width:260px;margin:25px auto 6px;}");
                 out.println(".separator{height:1px;background:#dee2e6;margin:25px 0;}");
                 out.println(".doc-header{display:flex;align-items:center;gap:15px;margin-bottom:20px;}");
                 out.println(".doc-logo{max-height:70px;max-width:220px;}");
@@ -211,7 +211,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 }
                 out.println("<div class='firma-section text-center'>");
                 out.println("<div class='firma-linea'></div><div class='text-xs'>Firma Jefe Departamental</div>");
-                out.println("<div style='margin-top:-40px;'><small class='text-muted'>" + nombreJefe + "</small></div>");
+                out.println("<div style='margin-top:-15px;'><small class='text-muted'>" + nombreJefe + "</small></div>");
                 out.println("</div>");
 
                 out.println("<div class='separator'></div>");
@@ -239,7 +239,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("</div>");
                 out.println("<div class='firma-section text-center'>");
                 out.println("<div class='firma-linea'></div><div class='text-xs'>Firma Administrador</div>");
-                out.println("<div style='margin-top:-40px;'><small class='text-muted'>" + (nombreAdmin != null ? nombreAdmin : "") + "</small></div>");
+                out.println("<div style='margin-top:-15px;'><small class='text-muted'>" + (nombreAdmin != null ? nombreAdmin : "") + "</small></div>");
                 out.println("</div>");
 
                 out.println("</div></div></body></html>");
