@@ -140,11 +140,15 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             try (PrintWriter out = response.getWriter()) {
                 out.println("<!DOCTYPE html><html><head><title>Solicitud de Vacaciones</title>");
                 out.println("<meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'>");
-                out.println("<link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css' rel='stylesheet'>");
-                out.println("<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'>");
+                // Sin CSS externo (CDN) a proposito: si la red esta lenta o
+                // bloquea el CDN, el navegador se queda esperando esos
+                // archivos antes de poder armar la vista de impresion --
+                // este documento tiene que poder imprimirse siempre, asi que
+                // todo el estilo va inline, sin depender de internet.
                 out.println("<style>");
-                out.println("body{background:#f4f6f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;}");
-                out.println(".doc-container{max-width:900px;margin:30px auto;}");
+                out.println("*{box-sizing:border-box;}");
+                out.println("body{background:#f4f6f9;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;}");
+                out.println(".doc-container{max-width:900px;margin:30px auto;padding:0 15px;}");
                 out.println(".doc-card{background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.1);padding:35px;}");
                 out.println(".bloque-titulo{background:#343a40;color:#fff;text-align:center;padding:10px;border-radius:8px;font-weight:700;letter-spacing:.5px;margin-bottom:20px;}");
                 out.println(".bloque-titulo.aprobacion{background:#0d6efd;}");
@@ -161,10 +165,24 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println(".doc-header{display:flex;align-items:center;gap:15px;margin-bottom:20px;}");
                 out.println(".doc-logo{max-height:70px;max-width:220px;}");
                 out.println(".doc-empresa{font-weight:700;color:#343a40;font-size:1rem;}");
+                // Reemplazos minimos de las utilidades de Bootstrap que se
+                // usaban antes, para no tener que reescribir todo el HTML.
+                out.println(".row{display:flex;flex-wrap:wrap;margin:0 -8px;}");
+                out.println(".row > div{padding:0 8px;}");
+                out.println(".col-md-4{flex:0 0 33.3333%;max-width:33.3333%;}");
+                out.println(".col-md-6{flex:0 0 50%;max-width:50%;}");
+                out.println(".text-end{text-align:right;}");
+                out.println(".text-center{text-align:center;}");
+                out.println(".text-xs{font-size:.75rem;}");
+                out.println(".text-muted{color:#6c757d;}");
+                out.println(".mb-2{margin-bottom:8px;}");
+                out.println(".mb-3{margin-bottom:12px;}");
+                out.println(".mb-4{margin-bottom:16px;}");
+                out.println(".btn-imprimir{background:#0d6efd;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:.85rem;cursor:pointer;}");
                 out.println("@media print{body{background:#fff;} .doc-card{box-shadow:none;} .btn-imprimir{display:none;}}");
                 out.println("</style></head><body>");
                 out.println("<div class='doc-container'>");
-                out.println("<div class='text-end mb-2'><button class='btn btn-primary btn-sm btn-imprimir' onclick='window.print()'><i class='fa fa-print me-1'></i>Imprimir</button></div>");
+                out.println("<div class='text-end mb-2'><button class='btn-imprimir' onclick='window.print()'>Imprimir</button></div>");
                 out.println("<div class='doc-card'>");
 
                 // Encabezado: logo + nombre de la empresa de afiliacion IESS
@@ -183,7 +201,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 // Bloque 1: Solicitud (empleado)
                 out.println("<div class='bloque-titulo'>SOLICITUD DE VACACIONES (EMPLEADO)</div>");
                 if (anticipada) {
-                    out.println("<div class='text-center mb-3'><span class='estado-badge estado-pendiente'><i class='fa fa-forward me-1'></i>SOLICITUD ANTICIPADA -- dias todavia no ganados, adelanto acordado con Administracion</span></div>");
+                    out.println("<div class='text-center mb-3'><span class='estado-badge estado-pendiente'>SOLICITUD ANTICIPADA -- dias todavia no ganados, adelanto acordado con Administracion</span></div>");
                     if (justificacionAnticipo != null && !justificacionAnticipo.trim().isEmpty()) {
                         out.println("<div class='campo'><label>Justificacion del adelanto</label><div class='valor'>" + justificacionAnticipo + "</div></div>");
                     }
@@ -204,7 +222,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='col-md-6 campo'><label>Periodo de vacaciones al que corresponde</label><div class='valor'>DEL " + periodoDesde + " - " + periodoHasta + "</div></div>");
                 out.println("</div>");
                 if (rechazadoJefe) {
-                    out.println("<div class='text-center mb-2'><span class='estado-badge estado-rechazado'><i class='fa fa-times-circle me-1'></i>RECHAZADO POR EL JEFE DIRECTO</span></div>");
+                    out.println("<div class='text-center mb-2'><span class='estado-badge estado-rechazado'>RECHAZADO POR EL JEFE DIRECTO</span></div>");
                     if (comentarioJefe != null && !comentarioJefe.trim().isEmpty()) {
                         out.println("<div class='campo'><label>Motivo del rechazo</label><div class='valor'>" + comentarioJefe + "</div></div>");
                     }
@@ -221,13 +239,13 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='bloque-titulo aprobacion'>APROBACION DE VACACIONES (ADMINISTRACION - RRHH)</div>");
                 out.println("<div class='text-center mb-4'>");
                 if (aprobado) {
-                    out.println("<span class='estado-badge estado-aprobado'><i class='fa fa-check-circle me-1'></i>APROBADO</span>");
+                    out.println("<span class='estado-badge estado-aprobado'>APROBADO</span>");
                 } else if (rechazadoAdmin) {
-                    out.println("<span class='estado-badge estado-rechazado'><i class='fa fa-times-circle me-1'></i>RECHAZADO</span>");
+                    out.println("<span class='estado-badge estado-rechazado'>RECHAZADO</span>");
                 } else if (noAlcanzoAdmin) {
-                    out.println("<span class='estado-badge estado-rechazado'><i class='fa fa-ban me-1'></i>NO APLICA (RECHAZADO POR EL JEFE)</span>");
+                    out.println("<span class='estado-badge estado-rechazado'>NO APLICA (RECHAZADO POR EL JEFE)</span>");
                 } else {
-                    out.println("<span class='estado-badge estado-pendiente'><i class='fa fa-clock me-1'></i>PENDIENTE</span>");
+                    out.println("<span class='estado-badge estado-pendiente'>PENDIENTE</span>");
                 }
                 out.println("</div>");
                 if (rechazadoAdmin && comentarioAdmin != null && !comentarioAdmin.trim().isEmpty()) {
