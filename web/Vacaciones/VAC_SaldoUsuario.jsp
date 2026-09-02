@@ -197,9 +197,14 @@
                 <div class="card">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold">Cargar consumo historico</p>
-                        <button type="button" class="btn btn-outline-dark btn-sm mb-0" id="btnNuevoAjuste">
-                            <i class="fa fa-plus me-1"></i> Nuevo ajuste
-                        </button>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-dark btn-sm mb-0" id="btnNuevoAjuste">
+                                <i class="fa fa-plus me-1"></i> Nuevo ajuste
+                            </button>
+                            <a class="btn btn-outline-primary btn-sm mb-0" href="../VAC_ImprimirSaldo?id=<%=idEmpleado%>" target="_blank">
+                                <i class="fa fa-print me-1"></i> Imprimir
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
