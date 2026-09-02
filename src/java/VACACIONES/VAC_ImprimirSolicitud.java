@@ -210,8 +210,9 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     }
                 }
                 out.println("<div class='firma-section text-center'>");
+                out.println("<div class='firma-linea'></div>");
                 out.println("<div><small class='text-muted'>" + nombreJefe + "</small></div>");
-                out.println("<div class='firma-linea'></div><div class='text-xs'>Firma Jefe Departamental</div>");
+                out.println("<div class='text-xs'>Firma Jefe Departamental</div>");
                 out.println("</div>");
 
                 out.println("<div class='separator'></div>");
@@ -238,8 +239,9 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='col-md-4 campo'><label>Fecha de aprobacion</label><div class='valor'>" + (fechaAprobacionAdmin != null ? fechaAprobacionAdmin : "-") + "</div></div>");
                 out.println("</div>");
                 out.println("<div class='firma-section text-center'>");
+                out.println("<div class='firma-linea'></div>");
                 out.println("<div><small class='text-muted'>" + (nombreAdmin != null ? nombreAdmin : "") + "</small></div>");
-                out.println("<div class='firma-linea'></div><div class='text-xs'>Firma Administrador</div>");
+                out.println("<div class='text-xs'>Firma Administrador</div>");
                 out.println("</div>");
 
                 out.println("</div></div></body></html>");
