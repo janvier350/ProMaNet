@@ -227,10 +227,17 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                         out.println("<div class='campo'><label>Motivo del rechazo</label><div class='valor'>" + comentarioJefe + "</div></div>");
                     }
                 }
-                out.println("<div class='firma-section text-center'>");
+                out.println("<div class='firma-section row'>");
+                out.println("<div class='col-md-6 text-center'>");
+                out.println("<div class='firma-linea'></div>");
+                out.println("<div><small class='text-muted'>" + nombreSolicitante + "</small></div>");
+                out.println("<div class='text-xs'>Firma del Solicitante</div>");
+                out.println("</div>");
+                out.println("<div class='col-md-6 text-center'>");
                 out.println("<div class='firma-linea'></div>");
                 out.println("<div><small class='text-muted'>" + nombreJefe + "</small></div>");
                 out.println("<div class='text-xs'>Firma Jefe Departamental</div>");
+                out.println("</div>");
                 out.println("</div>");
 
                 out.println("<div class='separator'></div>");
