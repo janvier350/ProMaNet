@@ -779,6 +779,7 @@ String compania = (String) session.getAttribute("compania");
                 <option value="Para Venta">Para Venta</option>
                 <option value="Robada">Robada</option>
                 <option value="Infraestructura">Infraestructura</option>
+                <option value="Backup Oficina">Backup Oficina</option>
             </select>
         </div>
     </div>
@@ -805,7 +806,7 @@ String compania = (String) session.getAttribute("compania");
                         try{
                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                             Connection cn = DriverManager.getConnection(url, user, pass);
-                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
+                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV', 'BK')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
 //                            String sql = "select a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo, a.serial, a.procesador, a.hdd, a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre||' '||c.APELLIDOS, a.empresa,a.dispositivo,a.fichero "
 //                + " from inv_equipos a left join inv_asignacion b on b.idinvequipo = a.idinvequipo AND b.estado='A' left join usuario c on b.idusuario = c.idusuario where (a.estado = 'A' or a.estado='D' or a.estado='F' or a.estado='V' or a.estado='R' or a.estado='M' or a.estado='I' or a.estado='PV' )and a.estado_ai ='A' ORDER BY a.estado desc, c.nombre, c.apellidos";
 //                            String sql = "select a.IDUSUARIO, a.NOMBRE, a.APELLIDOS, a.EMAIL, b.COMPANIA  , c.departamento from USUARIO a, compania b, adm_departamento c where a.IDCOMPANIA = b.IDCOMPANIA AND a.ESTADO = 'a' AND a.id_adm_departamento =c.id_departamento order by 1";
@@ -883,10 +884,13 @@ String compania = (String) session.getAttribute("compania");
             <span class="badge badge-sm bg-gradient-primary">Mantenimiento</span>
         <%}%>
         <%if(rs.getString(14).equals("I")){%>
-           
+
              <!--<p class="text-xs font-weight-bold mb-0" title="Infraestructura." style="background-color: #008CBA">Infraestructura</p>-->
           <!--<p class="text-xs text-secondary mb-0 text-truncate" style="max-width: 100%; word-break: break-word; white-space: normal;"></p>-->
             <span class="badge badge-sm bg-gradient-faded-danger-vertical">Infraestructura</span>
+        <%}%>
+        <%if(rs.getString(14).equals("BK")){%>
+            <span class="badge badge-sm bg-gradient-info">Backup Oficina</span>
         <%}%>
         <br>
         
@@ -934,7 +938,7 @@ String compania = (String) session.getAttribute("compania");
                             <a class="btn btn-xs btn-primary mb-1 py-1" href="../Inventario/INV_Equipos_Editar.jsp?idInvEquipo=<%=rs.getString(1)%>">
                                 <i class="fas fa-edit">Asignar / Editar</i>
                             </a>
-                            <button type="button" class="btn btn-xs btn-outline-info py-1" onclick="previsualizarActa('<%=rs.getString(16)%>', '<%=rs.getString(15)%>', '<%=rs.getString(5)%>', '<%=rs.getString(6)%>', '<%=rs.getString(7)%>', '<%=rs.getString(4)%>')">
+                            <button type="button" class="btn btn-xs btn-outline-info py-1" onclick="previsualizarActa('<%=rs.getString(16)%>', '<%=rs.getString(15)%>', '<%=rs.getString(5)%>', '<%=rs.getString(6)%>', '<%=rs.getString(7)%>', '<%=rs.getString(4)%>', '<%=rs.getString(14)%>', '<%=rs.getString(3)%>', '<%=rs.getString(13) != null ? rs.getString(13).replace("'", "\\'").replace("\n", " ") : ""%>')">
                                 <i class="fa fa-file-pdf">Imprimir Acta</i>
                             </button>
                         </div>
@@ -1145,7 +1149,14 @@ String compania = (String) session.getAttribute("compania");
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   
   <script>
-function previsualizarActa(usuario, cedula, marca, modelo, serial, depto) {
+function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado, oficina, observaciones) {
+    const esBackup = (estado === 'BK');
+    // En backup no hay un usuario asignado (el equipo no tiene una
+    // asignacion real en INV_ASIGNACION) -- el responsable es quien se
+    // dejo anotado en Observaciones al marcar el equipo como Backup
+    // Oficina, no un usuario del sistema.
+    const responsable = esBackup ? (observaciones && observaciones.trim() !== '' ? observaciones : '(sin custodio registrado en Observaciones)') : usuario;
+
     const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
     const fechaActual = new Date().toLocaleDateString('es-ES', opcionesFecha);
     
@@ -1182,9 +1193,13 @@ function previsualizarActa(usuario, cedula, marca, modelo, serial, depto) {
     ventimp.document.write('<h2 class="text-center mt-5 mb-5" style="color: #5e72e4; letter-spacing: 1px;">Acta de Responsabilidad y Entrega</h2>');
 
     // --- NUEVA REDACCIÓN ACTUALIZADA ---
-    ventimp.document.write('<p class="text-justify">Yo, <strong class="text-uppercase">' + usuario + '</strong>, con identificación: <strong>' + cedula + '</strong>, declaro haber recibido de la empresa, en calidad de <strong>herramienta de trabajo</strong>, el equipo de cómputo detallado a continuación para el desempeño exclusivo de mis funciones laborales en el área de <strong>' + depto + '</strong>.</p>');
-
-    ventimp.document.write('<p class="text-justify mt-3">Hago constar que el bien se me entrega en <strong>perfectas condiciones físicas, operativo y totalmente funcional</strong>, libre de desperfectos que impidan su uso. El equipo queda bajo mi custodia para <strong>uso exclusivo de las actividades de la empresa</strong>, asumiendo la responsabilidad total de su correcto uso, cuidado y conservación, conforme a las directrices de seguridad y políticas del Departamento de Sistemas.</p>');
+    if (esBackup) {
+        ventimp.document.write('<p class="text-justify">Yo, <strong class="text-uppercase">' + responsable + '</strong>, en calidad de <strong>responsable/custodio de la oficina ' + oficina + '</strong>, declaro haber recibido de la empresa el equipo de cómputo detallado a continuación, el cual queda <strong>en calidad de respaldo (backup)</strong> bajo mi custodia en dicha oficina, para ser asignado a futuro personal o pasantes cuando se requiera, sin que a la fecha tenga un usuario asignado.</p>');
+        ventimp.document.write('<p class="text-justify mt-3">Hago constar que el bien se me entrega en <strong>perfectas condiciones físicas, operativo y totalmente funcional</strong>, libre de desperfectos que impidan su uso. Mientras el equipo permanezca bajo mi custodia como respaldo, asumo la responsabilidad de su correcto resguardo y conservación, conforme a las directrices de seguridad y políticas del Departamento de Sistemas, hasta que sea formalmente asignado a un usuario (momento en el cual se generará una nueva acta de entrega a nombre de esa persona).</p>');
+    } else {
+        ventimp.document.write('<p class="text-justify">Yo, <strong class="text-uppercase">' + usuario + '</strong>, con identificación: <strong>' + cedula + '</strong>, declaro haber recibido de la empresa, en calidad de <strong>herramienta de trabajo</strong>, el equipo de cómputo detallado a continuación para el desempeño exclusivo de mis funciones laborales en el área de <strong>' + depto + '</strong>.</p>');
+        ventimp.document.write('<p class="text-justify mt-3">Hago constar que el bien se me entrega en <strong>perfectas condiciones físicas, operativo y totalmente funcional</strong>, libre de desperfectos que impidan su uso. El equipo queda bajo mi custodia para <strong>uso exclusivo de las actividades de la empresa</strong>, asumiendo la responsabilidad total de su correcto uso, cuidado y conservación, conforme a las directrices de seguridad y políticas del Departamento de Sistemas.</p>');
+    }
 
     ventimp.document.write('<div class="mt-4 ps-4">');
     ventimp.document.write('<ul style="list-style: disc;">');
@@ -1207,7 +1222,7 @@ function previsualizarActa(usuario, cedula, marca, modelo, serial, depto) {
     
     ventimp.document.write('  <div style="flex: 1;">');
     ventimp.document.write('    <div class="firma-linea mx-auto"></div>');
-    ventimp.document.write('    <p class="text-xs">Recibí Conforme:<br><strong class="text-uppercase">' + usuario + '</strong></p>');
+    ventimp.document.write('    <p class="text-xs">' + (esBackup ? 'Recibí Conforme (Custodio Oficina):' : 'Recibí Conforme:') + '<br><strong class="text-uppercase">' + responsable + '</strong></p>');
     ventimp.document.write('  </div>');
     
     ventimp.document.write('  <div style="flex: 1;">');

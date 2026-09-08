@@ -299,7 +299,7 @@
         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
         Connection cn = DriverManager.getConnection(url, user, pass);
         String sql = "select a.idinvequipo, a.fechacompra, a.ubicacionoficina, a.departamento, a.marca, a.modelo, a.serial, a.procesador, a.hdd, a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre||' '||c.APELLIDOS, a.empresa,a.dispositivo,a.fichero "
-                + " from inv_equipos a left join inv_asignacion b on b.idinvequipo = a.idinvequipo AND b.estado='A' left join usuario c on b.idusuario = c.idusuario where (a.estado = 'A' or a.estado='D' )and a.estado_ai ='A' ORDER BY a.estado desc, c.nombre, c.apellidos";                
+                + " from inv_equipos a left join inv_asignacion b on b.idinvequipo = a.idinvequipo AND b.estado='A' left join usuario c on b.idusuario = c.idusuario where (a.estado = 'A' or a.estado='D' or a.estado='BK')and a.estado_ai ='A' ORDER BY a.estado desc, c.nombre, c.apellidos";
         PreparedStatement st = cn.prepareStatement(sql);
         ResultSet rs = st.executeQuery();       
     while (rs.next()) {%>

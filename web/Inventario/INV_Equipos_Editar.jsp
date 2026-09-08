@@ -878,16 +878,20 @@ String compania = (String) session.getAttribute("compania");
                                                             <option value="R" style="background-color: #ff9999">Robado</option>                                 
                                                             <%}%>  
                                                             <%if(rs.getString(13).equals("I")){%>
-                                                            <option value="I" style="background-color: #ff9999">Infraestructura</option> 
+                                                            <option value="I" style="background-color: #ff9999">Infraestructura</option>
                                                             <%}%>
-                                                            <option value="D">Disponible</option>                      
-                                                            <option value="M">Mantenimiento</option> 
-                                                            <option value="F">Fuera de Servicio</option>       
-                                                            <option value="PV">Para Venta</option>  
-                                                            <option value="V">Vendido</option>  
-                                                            <option value="R">Robado</option>                               
-                                                            <option value="A">Asignado</option>                             
-                                                            <option value="I">Infraestructura</option> 
+                                                            <%if(rs.getString(13).equals("BK")){%>
+                                                            <option value="BK" style="background-color: #99ccff">Backup Oficina</option>
+                                                            <%}%>
+                                                            <option value="D">Disponible</option>
+                                                            <option value="M">Mantenimiento</option>
+                                                            <option value="F">Fuera de Servicio</option>
+                                                            <option value="PV">Para Venta</option>
+                                                            <option value="V">Vendido</option>
+                                                            <option value="R">Robado</option>
+                                                            <option value="A">Asignado</option>
+                                                            <option value="I">Infraestructura</option>
+                                                            <option value="BK">Backup Oficina</option>
                                                         </select>
                                                     </div>
                                                 </div>
