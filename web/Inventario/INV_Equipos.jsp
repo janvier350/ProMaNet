@@ -14,6 +14,16 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import=" java.util.Date" %>
+<%!
+    // Escapa un valor para poder ponerlo dentro de un atributo HTML
+    // (data-*) sin que una comilla, & o < dentro del texto (ej. en
+    // Observaciones, que es texto libre largo) rompa el atributo o el
+    // HTML de la fila entera.
+    private String escAttr(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("\"", "&quot;").replace("'", "&#39;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+%>
 <!DOCTYPE html>
 <%
 String compania = (String) session.getAttribute("compania");
@@ -938,7 +948,16 @@ String compania = (String) session.getAttribute("compania");
                             <a class="btn btn-xs btn-primary mb-1 py-1" href="../Inventario/INV_Equipos_Editar.jsp?idInvEquipo=<%=rs.getString(1)%>">
                                 <i class="fas fa-edit">Asignar / Editar</i>
                             </a>
-                            <button type="button" class="btn btn-xs btn-outline-info py-1" onclick="previsualizarActa('<%=rs.getString(16)%>', '<%=rs.getString(15)%>', '<%=rs.getString(5)%>', '<%=rs.getString(6)%>', '<%=rs.getString(7)%>', '<%=rs.getString(4)%>', '<%=rs.getString(14)%>', '<%=rs.getString(3)%>', '<%=rs.getString(13) != null ? rs.getString(13).replace("'", "\\'").replace("\n", " ") : ""%>')">
+                            <button type="button" class="btn btn-xs btn-outline-info py-1 btn-imprimir-acta"
+                                    data-usuario="<%=escAttr(rs.getString(16))%>"
+                                    data-cedula="<%=escAttr(rs.getString(15))%>"
+                                    data-marca="<%=escAttr(rs.getString(5))%>"
+                                    data-modelo="<%=escAttr(rs.getString(6))%>"
+                                    data-serial="<%=escAttr(rs.getString(7))%>"
+                                    data-depto="<%=escAttr(rs.getString(4))%>"
+                                    data-estado="<%=escAttr(rs.getString(14))%>"
+                                    data-oficina="<%=escAttr(rs.getString(3))%>"
+                                    data-observaciones="<%=escAttr(rs.getString(13))%>">
                                 <i class="fa fa-file-pdf">Imprimir Acta</i>
                             </button>
                         </div>
@@ -1236,6 +1255,26 @@ function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado
     ventimp.document.write('</body></html>');
     ventimp.document.close();
 }
+
+// Delegado (en vez de bindear cada boton al cargar la pagina) porque
+// DataTables reordena/repagina las filas del DOM -- un bind directo se
+// perderia en filas que se re-renderizan.
+$(document).on('click', '.btn-imprimir-acta', function () {
+    // .attr() en vez de .data() a proposito: .data() intenta convertir
+    // el texto a numero/booleano/JSON si "parece" uno, y Observaciones
+    // es texto libre que podria calzar con ese patron por casualidad.
+    previsualizarActa(
+        $(this).attr('data-usuario'),
+        $(this).attr('data-cedula'),
+        $(this).attr('data-marca'),
+        $(this).attr('data-modelo'),
+        $(this).attr('data-serial'),
+        $(this).attr('data-depto'),
+        $(this).attr('data-estado'),
+        $(this).attr('data-oficina'),
+        $(this).attr('data-observaciones')
+    );
+});
 </script>
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
