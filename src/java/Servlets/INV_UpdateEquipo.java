@@ -73,7 +73,8 @@ public class INV_UpdateEquipo extends HttpServlet {
     String estado = request.getParameter("estado");
     String idusuario = request.getParameter("idusuario");
     String idInvEquipo = request.getParameter("idInvEquipo");
-    
+    String custodioBackup = request.getParameter("custodioBackup");
+
     String id_currier = request.getParameter("id_currier");
      System.out.println(estado);
     if(session.getAttribute("usuario")==null){
@@ -89,20 +90,42 @@ public class INV_UpdateEquipo extends HttpServlet {
          return;
         }
 
-        String sql3="";       
+        String sql3="";
          String sql = "update INV_EQUIPOS "
-                 + "set FECHACOMPRA = "
-                 +" to_date('"+fecha+" "+hour+"', 'yyyy/mm/dd hh24:mi:ss'), UBICACIONOFICINA = '"+ubicacion+"', DEPARTAMENTO= '"+departamento+"', MARCA= '"+marca
-                 +"', MODELO= '"+modelo+"', SERIAL= '"+serial+"', PROCESADOR= '"+procesador+"', HDD= '"+hdd+"', RAM= '"+ram+"', PANTALLA= '"+pantalla+"', OBSERVACIONES= '"+observaciones
-                 +"', ESTADO= '"+estado+"', EMPRESA= '"+empresa+"', ID_CURRIER = '"+id_currier+"', DISPOSITIVO= '"+dispositivo+"', FICHERO= '"+key +"' WHERE IDINVEQUIPO = "+idInvEquipo;
+                 + "set FECHACOMPRA = to_date(?, 'yyyy/mm/dd hh24:mi:ss'), UBICACIONOFICINA = ?, DEPARTAMENTO = ?, MARCA = ?, "
+                 + "MODELO = ?, SERIAL = ?, PROCESADOR = ?, HDD = ?, RAM = ?, PANTALLA = ?, OBSERVACIONES = ?, "
+                 + "ESTADO = ?, EMPRESA = ?, ID_CURRIER = ?, DISPOSITIVO = ?, FICHERO = ?, CUSTODIO_BACKUP = ? "
+                 + "WHERE IDINVEQUIPO = ?";
          try{
             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
             Connection cn = DriverManager.getConnection(url, user, pass);
             PreparedStatement st = cn.prepareStatement(sql);
-            ResultSet rs = st.executeQuery(); 
-            System.out.println(sql);
+            st.setString(1, fecha + " " + hour);
+            st.setString(2, ubicacion);
+            st.setString(3, departamento);
+            st.setString(4, marca);
+            st.setString(5, modelo);
+            st.setString(6, serial);
+            st.setString(7, procesador);
+            st.setString(8, hdd);
+            st.setString(9, ram);
+            st.setString(10, pantalla);
+            st.setString(11, observaciones);
+            st.setString(12, estado);
+            st.setString(13, empresa);
+            if (id_currier != null && !id_currier.trim().isEmpty()) {
+                try { st.setInt(14, Integer.parseInt(id_currier.trim())); }
+                catch (Exception ignore) { st.setNull(14, java.sql.Types.NUMERIC); }
+            } else {
+                st.setNull(14, java.sql.Types.NUMERIC);
+            }
+            st.setString(15, dispositivo);
+            st.setString(16, key);
+            if (custodioBackup != null && !custodioBackup.trim().isEmpty()) st.setString(17, custodioBackup.trim());
+            else st.setNull(17, java.sql.Types.VARCHAR);
+            st.setInt(18, Integer.parseInt(idInvEquipo));
+            st.executeUpdate();
             cn.commit();
-            rs.close();
             st.close();
             cn.close();
         }catch(Exception e){

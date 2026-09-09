@@ -719,7 +719,8 @@ String compania = (String) session.getAttribute("compania");
                         "       a.dispositivo, " +
                         "       a.fichero, " +
                         "       d.nombres || ' ' || d.apellidos AS currier_nombre_completo, " +
-                         "      d.id_currier " +
+                         "      d.id_currier, " +
+                         "      a.custodio_backup " +
                         "FROM inv_equipos a " +
                         "LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' " +
                         "LEFT JOIN usuario c ON b.idusuario = c.idusuario " +
@@ -1054,6 +1055,16 @@ String compania = (String) session.getAttribute("compania");
                                                         <!--<input value="<%= rs.getString(12)%>" type="text"  name="observaciones" class="form-control" />-->
                                                         <textarea  type="text"  name="observaciones" class="form-control"><%= rs.getString(12)%></textarea>
                                                     </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-control-label">Custodio (solo si el Estado es "Backup Oficina"):</label>
+                                                    <input class="form-control" type="text" name="custodioBackup" placeholder="Nombre del responsable de la oficina" value="<%=rs.getString(21) != null ? rs.getString(21) : ""%>">
+                                                    <small class="form-text text-muted">Este nombre es el que sale en el Acta de Entrega cuando el equipo esta en Backup Oficina -- no se usa Observaciones para eso.</small>
                                                 </div>
                                             </div>
                                         </div>

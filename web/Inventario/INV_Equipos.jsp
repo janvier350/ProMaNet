@@ -816,7 +816,7 @@ String compania = (String) session.getAttribute("compania");
                         try{
                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                             Connection cn = DriverManager.getConnection(url, user, pass);
-                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV', 'BK')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
+                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna, a.custodio_backup FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV', 'BK')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
 //                            String sql = "select a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo, a.serial, a.procesador, a.hdd, a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre||' '||c.APELLIDOS, a.empresa,a.dispositivo,a.fichero "
 //                + " from inv_equipos a left join inv_asignacion b on b.idinvequipo = a.idinvequipo AND b.estado='A' left join usuario c on b.idusuario = c.idusuario where (a.estado = 'A' or a.estado='D' or a.estado='F' or a.estado='V' or a.estado='R' or a.estado='M' or a.estado='I' or a.estado='PV' )and a.estado_ai ='A' ORDER BY a.estado desc, c.nombre, c.apellidos";
 //                            String sql = "select a.IDUSUARIO, a.NOMBRE, a.APELLIDOS, a.EMAIL, b.COMPANIA  , c.departamento from USUARIO a, compania b, adm_departamento c where a.IDCOMPANIA = b.IDCOMPANIA AND a.ESTADO = 'a' AND a.id_adm_departamento =c.id_departamento order by 1";
@@ -957,7 +957,8 @@ String compania = (String) session.getAttribute("compania");
                                     data-depto="<%=escAttr(rs.getString(4))%>"
                                     data-estado="<%=escAttr(rs.getString(14))%>"
                                     data-oficina="<%=escAttr(rs.getString(3))%>"
-                                    data-observaciones="<%=escAttr(rs.getString(13))%>">
+                                    data-observaciones="<%=escAttr(rs.getString(13))%>"
+                                    data-custodio="<%=escAttr(rs.getString(22))%>">
                                 <i class="fa fa-file-pdf">Imprimir Acta</i>
                             </button>
                         </div>
@@ -1168,13 +1169,15 @@ String compania = (String) session.getAttribute("compania");
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   
   <script>
-function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado, oficina, observaciones) {
+function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado, oficina, custodio) {
     const esBackup = (estado === 'BK');
     // En backup no hay un usuario asignado (el equipo no tiene una
-    // asignacion real en INV_ASIGNACION) -- el responsable es quien se
-    // dejo anotado en Observaciones al marcar el equipo como Backup
-    // Oficina, no un usuario del sistema.
-    const responsable = esBackup ? (observaciones && observaciones.trim() !== '' ? observaciones : '(sin custodio registrado en Observaciones)') : usuario;
+    // asignacion real en INV_ASIGNACION) -- el responsable es el
+    // custodio anotado en el campo dedicado "Custodio" del equipo
+    // (Editar equipo), NO el usuario del sistema ni Observaciones
+    // (Observaciones es la bitacora de notas del equipo, no el nombre
+    // de una persona).
+    const responsable = esBackup ? (custodio && custodio.trim() !== '' ? custodio : '(sin custodio registrado -- editar el equipo y llenar el campo Custodio)') : usuario;
 
     const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric' };
     const fechaActual = new Date().toLocaleDateString('es-ES', opcionesFecha);
@@ -1272,7 +1275,7 @@ $(document).on('click', '.btn-imprimir-acta', function () {
         $(this).attr('data-depto'),
         $(this).attr('data-estado'),
         $(this).attr('data-oficina'),
-        $(this).attr('data-observaciones')
+        $(this).attr('data-custodio')
     );
 });
 </script>
