@@ -958,7 +958,8 @@ String compania = (String) session.getAttribute("compania");
                                     data-estado="<%=escAttr(rs.getString(14))%>"
                                     data-oficina="<%=escAttr(rs.getString(3))%>"
                                     data-observaciones="<%=escAttr(rs.getString(13))%>"
-                                    data-custodio="<%=escAttr(rs.getString(22))%>">
+                                    data-custodio="<%=escAttr(rs.getString(22))%>"
+                                    data-idequipo="<%=escAttr(rs.getString(1))%>">
                                 <i class="fa fa-file-pdf">Imprimir Acta</i>
                             </button>
                         </div>
@@ -1169,7 +1170,7 @@ String compania = (String) session.getAttribute("compania");
   <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
   
   <script>
-function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado, oficina, custodio) {
+function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado, oficina, custodio, idEquipo) {
     const esBackup = (estado === 'BK');
     // En backup no hay un usuario asignado (el equipo no tiene una
     // asignacion real en INV_ASIGNACION) -- el responsable es el
@@ -1223,7 +1224,8 @@ function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado
         ventimp.document.write('<p class="text-justify mt-3">Hago constar que el bien se me entrega en <strong>perfectas condiciones físicas, operativo y totalmente funcional</strong>, libre de desperfectos que impidan su uso. El equipo queda bajo mi custodia para <strong>uso exclusivo de las actividades de la empresa</strong>, asumiendo la responsabilidad total de su correcto uso, cuidado y conservación, conforme a las directrices de seguridad y políticas del Departamento de Sistemas.</p>');
     }
 
-    ventimp.document.write('<div class="mt-4 ps-4">');
+    ventimp.document.write('<div class="mt-4 d-flex align-items-start" style="gap:20px;">');
+    ventimp.document.write('<div class="ps-4" style="flex:1;">');
     ventimp.document.write('<ul style="list-style: disc;">');
     ventimp.document.write('<li class="mb-1"><span class="texto-verde">Dispositivo:</span> Laptop</li>');
     ventimp.document.write('<li class="mb-1"><span class="texto-verde">Marca:</span> <strong class="text-dark">' + marca + '</strong></li>');
@@ -1231,6 +1233,16 @@ function previsualizarActa(usuario, cedula, marca, modelo, serial, depto, estado
     ventimp.document.write('<li class="mb-1"><span class="texto-verde">Serial:</span> ' + serial + '</li>');
     ventimp.document.write('<li class="mb-1"><span class="texto-verde">Accesorio:</span> Cargador Original</li>');
     ventimp.document.write('</ul></div>');
+    // Foto del equipo (si tiene una cargada) -- si no existe, la
+    // imagen falla en cargar (404) y el onerror oculta todo el bloque
+    // en vez de dejar el icono de imagen rota.
+    if (idEquipo) {
+        ventimp.document.write('<div style="flex:0 0 200px;text-align:center;">');
+        ventimp.document.write('<img src="../INV_MostrarImagenEquipo?nombre=equipo_' + idEquipo + '" style="max-width:200px;max-height:150px;object-fit:cover;border-radius:8px;border:1px solid #dee2e6;" onerror="this.parentElement.style.display=\'none\';">');
+        ventimp.document.write('<p class="text-xs text-muted mt-1 mb-0">Foto del equipo</p>');
+        ventimp.document.write('</div>');
+    }
+    ventimp.document.write('</div>');
 
     ventimp.document.write('<p class="mt-5 text-justify">Me comprometo a velar por el adecuado mantenimiento del activo asignado, garantizando su integridad física y operativa. En caso de daño por negligencia, pérdida o uso indebido fuera del ámbito laboral, acepto las políticas de reposición establecidas por la organización.</p>');
 
@@ -1275,7 +1287,8 @@ $(document).on('click', '.btn-imprimir-acta', function () {
         $(this).attr('data-depto'),
         $(this).attr('data-estado'),
         $(this).attr('data-oficina'),
-        $(this).attr('data-custodio')
+        $(this).attr('data-custodio'),
+        $(this).attr('data-idequipo')
     );
 });
 </script>
