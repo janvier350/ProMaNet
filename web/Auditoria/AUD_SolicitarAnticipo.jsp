@@ -42,7 +42,16 @@
                         java.sql.Date fc = rs.getDate(1);
                         if (fc != null) {
                             corteTexto = new java.text.SimpleDateFormat("dd/MM/yyyy").format(fc);
-                            plazoVencido = new java.util.Date().after(fc);
+                            // El dia de corte cuenta como habil: se compara
+                            // solo la parte de fecha, sin hora (FECHA_CORTE
+                            // viene a 00:00, y "new Date()" con hora actual
+                            // marcaba plazo vencido apenas cruzaba medianoche).
+                            java.util.Calendar cH = java.util.Calendar.getInstance();
+                            cH.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                            cH.set(java.util.Calendar.MINUTE, 0);
+                            cH.set(java.util.Calendar.SECOND, 0);
+                            cH.set(java.util.Calendar.MILLISECOND, 0);
+                            plazoVencido = cH.getTime().after(fc);
                         }
                     }
                 }

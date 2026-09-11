@@ -32,7 +32,14 @@
                         java.sql.Date fc = rs.getDate(1);
                         if (fc != null) {
                             corteTexto = new java.text.SimpleDateFormat("dd/MM/yyyy").format(fc);
-                            plazoVencido = new java.util.Date().after(fc);
+                            // Comparacion solo por fecha, sin hora -- el dia
+                            // de corte cuenta como habil.
+                            java.util.Calendar cH = java.util.Calendar.getInstance();
+                            cH.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                            cH.set(java.util.Calendar.MINUTE, 0);
+                            cH.set(java.util.Calendar.SECOND, 0);
+                            cH.set(java.util.Calendar.MILLISECOND, 0);
+                            plazoVencido = cH.getTime().after(fc);
                         }
                     }
                 }
@@ -426,7 +433,8 @@
                                             if (cn4 != null) {
                                                 try (PreparedStatement st4 = cn4.prepareStatement(
                                                         "SELECT TO_CHAR(fc.FECHA_CORTE,'DD/MM/YYYY'), TO_CHAR(fc.FECHA_CORTE,'YYYY-MM'), " +
-                                                        "NVL(u.NOMBRE||' '||u.APELLIDOS,'-'), fc.ESTADO " +
+                                                        "NVL(u.NOMBRE||' '||u.APELLIDOS,'-'), fc.ESTADO, " +
+                                                        "fc.ID_FECHA_CORTE, TO_CHAR(fc.FECHA_CORTE,'YYYY-MM-DD') " +
                                                         "FROM AUD_FECHA_CORTE_ANTICIPO fc LEFT JOIN USUARIO u ON fc.ID_USUARIO = u.IDUSUARIO " +
                                                         "ORDER BY fc.FECHA_CORTE DESC")) {
                                                     try (ResultSet rs4 = st4.executeQuery()) {
@@ -437,6 +445,8 @@
                                                             String mesParam = rs4.getString(2);
                                                             String definidoPor = rs4.getString(3);
                                                             String estadoCorte = rs4.getString(4);
+                                                            String idCorte = rs4.getString(5);
+                                                            String fechaIso = rs4.getString(6);
                                                     %>
                                                     <tr>
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=fechaDisplay%></p></td>
@@ -452,6 +462,12 @@
                                                             <a class="btn btn-xs btn-outline-success py-1" href="../AUD_ReportePDF?mes=<%=mesParam%>&estado=PAGADO" target="_blank">
                                                                 <i class="fa fa-eye"></i> Ver pagados
                                                             </a>
+                                                            <% if ("A".equals(estadoCorte)) { %>
+                                                            <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-corte-aud"
+                                                                    data-id="<%=idCorte%>" data-fecha="<%=fechaIso%>" data-fechatxt="<%=fechaDisplay%>">
+                                                                <i class="fa fa-pencil"></i> Editar
+                                                            </button>
+                                                            <% } %>
                                                         </td>
                                                     </tr>
                                                     <%
@@ -495,6 +511,33 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-dark btn-sm"><i class="fa fa-save me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%-- Modal: editar fecha de corte --%>
+<div class="modal fade" id="modalEditarCorteAud" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="../AUD_ActualizarFechaCorte" method="post">
+                <input type="hidden" name="idFechaCorte" id="editarCorteAudId">
+                <div class="modal-header" style="background:#5e72e4;color:#fff;">
+                    <h5 class="modal-title"><i class="fa fa-pencil me-2"></i>Editar Fecha de Corte</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm mb-3">Fecha actual: <strong id="editarCorteAudFechaActual"></strong></p>
+                    <div class="form-group mb-0">
+                        <label>Nueva fecha de corte</label>
+                        <input type="date" name="corte" id="editarCorteAudFecha" class="form-control" required>
+                        <small class="text-muted">El dia elegido cuenta como habil -- las solicitudes se aceptan hasta ese dia inclusive.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save me-1"></i>Guardar</button>
                 </div>
             </form>
         </div>
@@ -591,6 +634,14 @@
             document.getElementById('editIdAnticipo').value = this.getAttribute('data-id');
             document.getElementById('editMontoAnticipo').value = this.getAttribute('data-monto');
             new bootstrap.Modal(document.getElementById('modalEditar')).show();
+        });
+    });
+    document.querySelectorAll('.btn-editar-corte-aud').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('editarCorteAudId').value = this.getAttribute('data-id');
+            document.getElementById('editarCorteAudFecha').value = this.getAttribute('data-fecha');
+            document.getElementById('editarCorteAudFechaActual').textContent = this.getAttribute('data-fechatxt');
+            new bootstrap.Modal(document.getElementById('modalEditarCorteAud')).show();
         });
     });
     document.querySelectorAll('.btn-editar-sueldo').forEach(function (btn) {

@@ -570,7 +570,9 @@ function validarFecha() {
                                                         String TDO = "SELECT corte.fecha_corte AS fecha_original, " +
                                                                      "TO_CHAR(corte.fecha_corte, 'DD/MM/YYYY') AS fecha_corte_formateada_simple, " +
                                                                      "TO_CHAR(corte.fecha_corte, 'DD \"de\" Month \"de\" YYYY', 'NLS_DATE_LANGUAGE=SPANISH') AS fecha_corte_formateada, " +
-                                                                     "usu.nombre, usu.apellidos " +
+                                                                     "usu.nombre, usu.apellidos, " +
+                                                                     "corte.id_fecha_corte, " +
+                                                                     "TO_CHAR(corte.fecha_corte, 'YYYY-MM-DD') AS fecha_corte_iso " +
                                                                      "FROM ctrl_fecha_corte_anticipo corte " +
                                                                      "INNER JOIN usuario usu ON corte.id_usuario = usu.idusuario " +
                                                                      "ORDER BY corte.fecha_corte DESC";                                                      //            String sqlAtrasos1 = "SELECT a.idusuario , a.nombre, a.apellidos, a.sueldo, b.departamento, a.email FROM USUARIO A, ADM_DEPARTAMENTO B WHERE a.id_adm_departamento = b.id_departamento AND B.departamento IN ('MARKETING', 'TECNOLOGÍA', 'IMPUESTOS', 'ADMINISTRACIÓN', 'CONTABILIDAD') and sueldo > 0 AND A.estado = 'a'";
@@ -606,6 +608,12 @@ function validarFecha() {
                                                                class="btn btn-sm btn-success mb-0">
                                                                 <i class="fas fa-file-pdf me-1"></i> Ver pagados
                                                             </a>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary mb-0 btn-editar-corte"
+                                                                    data-id="<%=rsa5.getString(6)%>"
+                                                                    data-fecha="<%=rsa5.getString(7)%>"
+                                                                    data-fechatxt="<%=rsa5.getString(2)%>">
+                                                                <i class="fa fa-pencil me-1"></i> Editar
+                                                            </button>
                                                         </td>
 
                                                     </tr>
@@ -670,6 +678,33 @@ function validarFecha() {
                         </footer>
                     </div>
 
+
+                    <!-- Modal: Editar fecha de corte -->
+                    <div class="modal fade" id="modalEditarCorte" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <form action="../CTRL_Update_Fecha_Corte_Anticipo" method="post" onsubmit="return validarFechaEditar()">
+                                    <div class="modal-header" style="background:#5e72e4;color:#fff;">
+                                        <h5 class="modal-title"><i class="fa fa-pencil me-2"></i>Editar Fecha de Corte</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="text-sm mb-3">Fecha actual: <strong id="editarCorteFechaActual"></strong></p>
+                                        <input type="hidden" name="idFechaCorte" id="editarCorteId">
+                                        <div class="form-group">
+                                            <label class="form-control-label">Nueva fecha de corte</label>
+                                            <input class="form-control" type="date" name="corte" id="editarCorteFecha" required>
+                                            <small class="text-muted">El dia elegido cuenta como habil -- las solicitudes se aceptan hasta ese dia inclusive.</small>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save me-1"></i>Guardar</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
 
                     </main>
                     <div class="fixed-plugin">
@@ -785,6 +820,36 @@ function validarFecha() {
                                                 }
 
                                                 return true; // Permite el envío si todo está bien
+                                            }
+
+                                            // Manejo del boton "Editar" de la tabla: llena el modal con
+                                            // los datos de la fila y lo muestra. Delegado a document
+                                            // para que funcione si la tabla se recarga (DataTables, etc.).
+                                            document.addEventListener('click', function (e) {
+                                                var btn = e.target.closest('.btn-editar-corte');
+                                                if (!btn) return;
+                                                document.getElementById('editarCorteId').value = btn.getAttribute('data-id');
+                                                document.getElementById('editarCorteFecha').value = btn.getAttribute('data-fecha');
+                                                document.getElementById('editarCorteFechaActual').textContent = btn.getAttribute('data-fechatxt');
+                                                var modal = new bootstrap.Modal(document.getElementById('modalEditarCorte'));
+                                                modal.show();
+                                            });
+
+                                            function validarFechaEditar() {
+                                                var fechaSeleccionada = document.getElementById('editarCorteFecha').value;
+                                                if (!fechaSeleccionada) return false;
+                                                var hoy = new Date();
+                                                hoy.setHours(0, 0, 0, 0);
+                                                // Comparacion solo por fecha, sin hora -- el dia elegido
+                                                // se acepta como valido (misma logica que ahora usa el
+                                                // servidor al validar solicitudes de anticipo).
+                                                var partes = fechaSeleccionada.split('-');
+                                                var f = new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
+                                                if (f < hoy) {
+                                                    alert('La fecha de corte no puede ser anterior a hoy.');
+                                                    return false;
+                                                }
+                                                return true;
                                             }
                 </script>
                 </body>
