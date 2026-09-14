@@ -63,15 +63,39 @@ public class CTRL_Editar_Anticipo extends HttpServlet {
             Class.forName("oracle.jdbc.driver.OracleDriver");
             cn = DriverManager.getConnection(url, user, pass);
 
-            // 0. Validar que el plazo de anticipos siga vigente
+            // 0a. Validar que el plazo de anticipos siga vigente. El dia de
+            // corte cuenta como habil -- se compara solo por fecha (sin hora),
+            // igual que en la pantalla que muestra el aviso al usuario.
             String sqlCorte = "SELECT FECHA_CORTE FROM (SELECT FECHA_CORTE FROM CTRL_FECHA_CORTE_ANTICIPO " +
                     "WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1";
             try (PreparedStatement stCorte = cn.prepareStatement(sqlCorte);
                  ResultSet rsCorte = stCorte.executeQuery()) {
                 if (rsCorte.next()) {
                     java.sql.Date fechaCorte = rsCorte.getDate(1);
-                    if (fechaCorte != null && new java.util.Date().after(fechaCorte)) {
-                        response.sendRedirect("../ProMaNet/Control/ADM_Solicitar_Anticipo.jsp?error=El plazo para editar anticipos ya vencio");
+                    if (fechaCorte != null) {
+                        java.util.Calendar cH = java.util.Calendar.getInstance();
+                        cH.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                        cH.set(java.util.Calendar.MINUTE, 0);
+                        cH.set(java.util.Calendar.SECOND, 0);
+                        cH.set(java.util.Calendar.MILLISECOND, 0);
+                        if (cH.getTime().after(fechaCorte)) {
+                            response.sendRedirect("../ProMaNet/Control/ADM_Solicitar_Anticipo.jsp?error=El plazo para editar anticipos ya vencio");
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 0b. Validar que el anticipo no este ya PAGADO -- editarlo
+            // despues invalidaria el recibo emitido y descuadraria el ciclo
+            // de pago. El chequeo en la UI oculta el boton, este bloquea el
+            // intento de llegar por URL directa.
+            try (PreparedStatement stEstado = cn.prepareStatement(
+                    "SELECT ESTADO FROM CTRL_ANTICIPOS WHERE ID_CTRL_ANTICIPO = ?")) {
+                stEstado.setString(1, idAnticipo);
+                try (ResultSet rsEstado = stEstado.executeQuery()) {
+                    if (rsEstado.next() && "PAGADO".equalsIgnoreCase(rsEstado.getString(1))) {
+                        response.sendRedirect("../ProMaNet/Control/ADM_Solicitar_Anticipo.jsp?error=No se puede editar: el anticipo ya fue pagado");
                         return;
                     }
                 }

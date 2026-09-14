@@ -580,13 +580,24 @@ System.out.println("Estado del corte: " + validacionFecha);
                                                             <p class="text-sm font-weight-bold mb-0"><%=rsa5.getString(5)%> </p>
                                                         </td>
                                                         <td>
-                                                        <% if (validacionFecha != 1) { %>
+                                                        <%
+                                                            String estadoAnticipo = rsa5.getString(4);
+                                                            boolean yaPagado = "PAGADO".equalsIgnoreCase(estadoAnticipo);
+                                                            boolean plazoVencido = (validacionFecha == 1);
+                                                        %>
+                                                        <% if (!plazoVencido && !yaPagado) { %>
                                                         <button type="button" class="btn btn-sm shadow-none bg-gradient-warning mb-0 px-3"
                                                                 style="text-transform: none; border-radius: 0.5rem;"
                                                                 data-bs-toggle="modal"
                                                                 data-bs-target="#modalEditarAnticipo"
                                                                 onclick="prepararEdicion('<%=rsa5.getString(6)%>')">
                                                             <i class="fa fa-edit text-info me-1"></i> <span class="text-xs">Editar</span>
+                                                        </button>
+                                                        <% } else if (yaPagado) { %>
+                                                        <button type="button" class="btn btn-sm shadow-none bg-secondary mb-0 px-3" disabled
+                                                                style="text-transform: none; border-radius: 0.5rem; opacity:0.6;"
+                                                                title="No se puede editar: este anticipo ya fue pagado.">
+                                                            <i class="fa fa-lock me-1"></i> <span class="text-xs">Pagado</span>
                                                         </button>
                                                         <% } else { %>
                                                         <button type="button" class="btn btn-sm shadow-none bg-secondary mb-0 px-3" disabled

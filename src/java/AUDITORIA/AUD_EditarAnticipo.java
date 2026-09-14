@@ -47,23 +47,34 @@ public class AUD_EditarAnticipo extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
-            // Plazo vigente.
+            // Plazo vigente. El dia de corte SI cuenta como habil -- se
+            // compara solo por fecha (sin hora), igual que en el resto del
+            // modulo.
             try (PreparedStatement stCorte = cn.prepareStatement(
                     "SELECT FECHA_CORTE FROM (SELECT FECHA_CORTE FROM AUD_FECHA_CORTE_ANTICIPO " +
                     "WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1");
                  ResultSet rsCorte = stCorte.executeQuery()) {
                 if (rsCorte.next()) {
                     java.sql.Date fechaCorte = rsCorte.getDate(1);
-                    if (fechaCorte != null && new java.util.Date().after(fechaCorte)) {
-                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El plazo para editar anticipos ya vencio");
-                        return;
+                    if (fechaCorte != null) {
+                        java.util.Calendar cH = java.util.Calendar.getInstance();
+                        cH.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                        cH.set(java.util.Calendar.MINUTE, 0);
+                        cH.set(java.util.Calendar.SECOND, 0);
+                        cH.set(java.util.Calendar.MILLISECOND, 0);
+                        if (cH.getTime().after(fechaCorte)) {
+                            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El plazo para editar anticipos ya vencio");
+                            return;
+                        }
                     }
                 }
             }
 
+            // Un anticipo PAGADO no se puede editar -- la UI oculta el
+            // boton pero esto bloquea intentos directos por URL.
             double sueldoActual = 0;
             try (PreparedStatement stCheck = cn.prepareStatement(
-                    "SELECT SUELDO FROM AUD_ANTICIPOS WHERE ID_AUD_ANTICIPO = ?")) {
+                    "SELECT SUELDO, ESTADO FROM AUD_ANTICIPOS WHERE ID_AUD_ANTICIPO = ?")) {
                 stCheck.setString(1, idAnticipo);
                 try (ResultSet rsCheck = stCheck.executeQuery()) {
                     if (!rsCheck.next()) {
@@ -71,6 +82,10 @@ public class AUD_EditarAnticipo extends HttpServlet {
                         return;
                     }
                     sueldoActual = rsCheck.getDouble(1);
+                    if ("PAGADO".equalsIgnoreCase(rsCheck.getString(2))) {
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=No se puede editar: el anticipo ya fue pagado");
+                        return;
+                    }
                 }
             }
 
