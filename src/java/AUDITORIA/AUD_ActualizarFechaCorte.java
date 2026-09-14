@@ -48,6 +48,24 @@ public class AUD_ActualizarFechaCorte extends HttpServlet {
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
             cn.setAutoCommit(false);
 
+            // Bloqueo si ya hay anticipos PAGADO en el mes de esta fecha --
+            // editarla ahora invalidaria los recibos ya emitidos.
+            try (PreparedStatement stPag = cn.prepareStatement(
+                    "SELECT COUNT(*) FROM AUD_ANTICIPOS a " +
+                    "WHERE a.ESTADO = 'PAGADO' " +
+                    "AND TRUNC(a.FECHA_SOLICITUD,'MM') = (SELECT TRUNC(FECHA_CORTE,'MM') " +
+                    "                                     FROM AUD_FECHA_CORTE_ANTICIPO " +
+                    "                                     WHERE ID_FECHA_CORTE = ?)")) {
+                stPag.setString(1, idFechaCorte);
+                try (ResultSet rsPag = stPag.executeQuery()) {
+                    if (rsPag.next() && rsPag.getInt(1) > 0) {
+                        cn.rollback();
+                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=No se puede editar: ya hay anticipos pagados para ese mes");
+                        return;
+                    }
+                }
+            }
+
             // Solo una fecha de corte activa por mes -- excluye a si misma
             // por ID para no chocar cuando se edita dentro del mismo mes.
             try (PreparedStatement stVerificar = cn.prepareStatement(

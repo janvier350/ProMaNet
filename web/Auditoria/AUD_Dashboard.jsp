@@ -434,7 +434,15 @@
                                                 try (PreparedStatement st4 = cn4.prepareStatement(
                                                         "SELECT TO_CHAR(fc.FECHA_CORTE,'DD/MM/YYYY'), TO_CHAR(fc.FECHA_CORTE,'YYYY-MM'), " +
                                                         "NVL(u.NOMBRE||' '||u.APELLIDOS,'-'), fc.ESTADO, " +
-                                                        "fc.ID_FECHA_CORTE, TO_CHAR(fc.FECHA_CORTE,'YYYY-MM-DD') " +
+                                                        "fc.ID_FECHA_CORTE, TO_CHAR(fc.FECHA_CORTE,'YYYY-MM-DD'), " +
+                                                        // tienePagados = 1 si al menos un anticipo del mismo
+                                                        // mes ya paso a PAGADO -- una fecha con pagos NO se
+                                                        // puede editar (invalidaria los recibos emitidos).
+                                                        "(CASE WHEN EXISTS (" +
+                                                        "   SELECT 1 FROM AUD_ANTICIPOS a " +
+                                                        "    WHERE a.ESTADO = 'PAGADO' " +
+                                                        "      AND TRUNC(a.FECHA_SOLICITUD,'MM') = TRUNC(fc.FECHA_CORTE,'MM')" +
+                                                        " ) THEN 1 ELSE 0 END) AS tiene_pagados " +
                                                         "FROM AUD_FECHA_CORTE_ANTICIPO fc LEFT JOIN USUARIO u ON fc.ID_USUARIO = u.IDUSUARIO " +
                                                         "ORDER BY fc.FECHA_CORTE DESC")) {
                                                     try (ResultSet rs4 = st4.executeQuery()) {
@@ -447,6 +455,7 @@
                                                             String estadoCorte = rs4.getString(4);
                                                             String idCorte = rs4.getString(5);
                                                             String fechaIso = rs4.getString(6);
+                                                            boolean tienePagados = rs4.getInt(7) == 1;
                                                     %>
                                                     <tr>
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=fechaDisplay%></p></td>
@@ -462,11 +471,15 @@
                                                             <a class="btn btn-xs btn-outline-success py-1" href="../AUD_ReportePDF?mes=<%=mesParam%>&estado=PAGADO" target="_blank">
                                                                 <i class="fa fa-eye"></i> Ver pagados
                                                             </a>
-                                                            <% if ("A".equals(estadoCorte)) { %>
+                                                            <% if ("A".equals(estadoCorte) && !tienePagados) { %>
                                                             <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-corte-aud"
                                                                     data-id="<%=idCorte%>" data-fecha="<%=fechaIso%>" data-fechatxt="<%=fechaDisplay%>">
                                                                 <i class="fa fa-pencil"></i> Editar
                                                             </button>
+                                                            <% } else if (tienePagados) { %>
+                                                            <span class="badge badge-sm bg-gradient-secondary" title="No se puede editar una fecha con anticipos ya pagados">
+                                                                <i class="fa fa-lock me-1"></i> Cerrado
+                                                            </span>
                                                             <% } %>
                                                         </td>
                                                     </tr>

@@ -50,7 +50,6 @@ String compania = (String) session.getAttribute("compania");
     String fechaFormateada = ""; // Variable para guardar el valor del input
     String corte = "";
     String corteTexto = ""; // corte, pero legible en espanol, solo para mostrar en pantalla
-    String ultimoDiaTexto = ""; // un dia antes de corte: el ultimo dia real en que si se puede solicitar
     
     if(session.getAttribute("usuario")==null){
              response.sendRedirect("../sesionExpirada.jsp");
@@ -98,12 +97,18 @@ String compania = (String) session.getAttribute("compania");
                     java.text.SimpleDateFormat sdfEs = new java.text.SimpleDateFormat("d 'de' MMMM 'del' yyyy", new java.util.Locale("es", "ES"));
                     corteTexto = sdfEs.format(fecha);
 
-                    java.util.Calendar calUltimoDia = java.util.Calendar.getInstance();
-                    calUltimoDia.setTime(fecha);
-                    calUltimoDia.add(java.util.Calendar.DAY_OF_MONTH, -1);
-                    ultimoDiaTexto = sdfEs.format(calUltimoDia.getTime());
+                    // El dia de corte cuenta como habil -- se compara solo la
+                    // parte de fecha, sin hora (FECHA_CORTE viene a 00:00 y
+                    // "hoy" con hora actual, asi que hoy.after(fecha) marcaba
+                    // vencido apenas cruzaba medianoche del dia de corte).
+                    java.util.Calendar cH = java.util.Calendar.getInstance();
+                    cH.setTime(hoy);
+                    cH.set(java.util.Calendar.HOUR_OF_DAY, 0);
+                    cH.set(java.util.Calendar.MINUTE, 0);
+                    cH.set(java.util.Calendar.SECOND, 0);
+                    cH.set(java.util.Calendar.MILLISECOND, 0);
 
-                    if (hoy.after(fecha)) {
+                    if (cH.getTime().after(fecha)) {
                         validacionFecha = 1;
                     } else {
                         validacionFecha = 2;
@@ -441,13 +446,13 @@ System.out.println("Estado del corte: " + validacionFecha);
 
                                 </div>
                                 <hr class="horizontal dark">
-                                <p>Puede solicitar su anticipo de sueldo <strong>hasta el <%= ultimoDiaTexto %></strong>. A partir del <strong><%= corteTexto %></strong> ya no se aceptan solicitudes.</p>
+                                <p>El plazo para solicitar su anticipo de sueldo de este mes vence el <strong><%= corteTexto %></strong>.</p>
 
                                 <% if (validacionFecha == 1) { %>
                                 <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius:8px;color:#fff;">
                                     <i class="fa fa-exclamation-triangle me-3" style="font-size:1.5rem;"></i>
                                     <div style="color:#fff;">
-                                        <strong style="color:#fff;">Plazo vencido.</strong> El último día para solicitar anticipos fue el <strong style="color:#fff;"><%= ultimoDiaTexto %></strong>. Desde el <strong style="color:#fff;"><%= corteTexto %></strong> ya no es posible realizar nuevas solicitudes.
+                                        <strong style="color:#fff;">Plazo vencido.</strong> La fecha límite para solicitar anticipos este mes fue el <strong style="color:#fff;"><%= corteTexto %></strong>.
                                     </div>
                                 </div>
                                 <% } else { %>

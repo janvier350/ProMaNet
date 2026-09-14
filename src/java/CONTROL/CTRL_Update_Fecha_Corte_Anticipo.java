@@ -66,6 +66,24 @@ public class CTRL_Update_Fecha_Corte_Anticipo extends HttpServlet {
             cn = DriverManager.getConnection(url, user, pass);
             cn.setAutoCommit(false);
 
+            // Bloqueo si ya hay anticipos PAGADO en el mes de esta fecha
+            // -- editarla ahora invalidaria los recibos ya emitidos.
+            String sqlPagados = "SELECT COUNT(*) FROM CTRL_ANTICIPOS a " +
+                    "WHERE a.ESTADO = 'PAGADO' " +
+                    "AND TRUNC(a.FECHA_SOLICITUD,'MM') = (SELECT TRUNC(FECHA_CORTE,'MM') " +
+                    "                                     FROM CTRL_FECHA_CORTE_ANTICIPO " +
+                    "                                     WHERE ID_FECHA_CORTE = ?)";
+            st = cn.prepareStatement(sqlPagados);
+            st.setString(1, idFechaCorte);
+            rs = st.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                cn.rollback();
+                response.sendRedirect("../ProMaNet/Control/ADM_Asignar_Fecha_Corte_Anticipos.jsp?mensaje=No se puede editar: ya hay anticipos pagados para ese mes.");
+                return;
+            }
+            rs.close();
+            st.close();
+
             // Validar que no exista OTRA fecha activa en el mismo mes/año
             // que la nueva -- se excluye a si misma (id distinto) para
             // permitir editar dentro del mismo mes sin conflicto.

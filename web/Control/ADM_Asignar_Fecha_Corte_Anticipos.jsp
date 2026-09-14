@@ -567,12 +567,21 @@ function validarFecha() {
                                                                 try {
                                                                   DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                                                                   Connection cna5 = DriverManager.getConnection(url, user, pass);   
+                                                        // tienePagados = 1 si al menos un anticipo de ese mismo mes
+                                                        // (mes de FECHA_SOLICITUD = mes de FECHA_CORTE) ya paso a
+                                                        // PAGADO -- una fecha con pagos NO se puede editar (invalidaria
+                                                        // los recibos ya emitidos y descuadraria el ciclo de pago).
                                                         String TDO = "SELECT corte.fecha_corte AS fecha_original, " +
                                                                      "TO_CHAR(corte.fecha_corte, 'DD/MM/YYYY') AS fecha_corte_formateada_simple, " +
                                                                      "TO_CHAR(corte.fecha_corte, 'DD \"de\" Month \"de\" YYYY', 'NLS_DATE_LANGUAGE=SPANISH') AS fecha_corte_formateada, " +
                                                                      "usu.nombre, usu.apellidos, " +
                                                                      "corte.id_fecha_corte, " +
-                                                                     "TO_CHAR(corte.fecha_corte, 'YYYY-MM-DD') AS fecha_corte_iso " +
+                                                                     "TO_CHAR(corte.fecha_corte, 'YYYY-MM-DD') AS fecha_corte_iso, " +
+                                                                     "(CASE WHEN EXISTS (" +
+                                                                     "   SELECT 1 FROM CTRL_ANTICIPOS a " +
+                                                                     "    WHERE a.ESTADO = 'PAGADO' " +
+                                                                     "      AND TRUNC(a.FECHA_SOLICITUD,'MM') = TRUNC(corte.FECHA_CORTE,'MM')" +
+                                                                     " ) THEN 1 ELSE 0 END) AS tiene_pagados " +
                                                                      "FROM ctrl_fecha_corte_anticipo corte " +
                                                                      "INNER JOIN usuario usu ON corte.id_usuario = usu.idusuario " +
                                                                      "ORDER BY corte.fecha_corte DESC";                                                      //            String sqlAtrasos1 = "SELECT a.idusuario , a.nombre, a.apellidos, a.sueldo, b.departamento, a.email FROM USUARIO A, ADM_DEPARTAMENTO B WHERE a.id_adm_departamento = b.id_departamento AND B.departamento IN ('MARKETING', 'TECNOLOGÍA', 'IMPUESTOS', 'ADMINISTRACIÓN', 'CONTABILIDAD') and sueldo > 0 AND A.estado = 'a'";
@@ -608,12 +617,18 @@ function validarFecha() {
                                                                class="btn btn-sm btn-success mb-0">
                                                                 <i class="fas fa-file-pdf me-1"></i> Ver pagados
                                                             </a>
+                                                            <% if (rsa5.getInt(8) == 0) { %>
                                                             <button type="button" class="btn btn-sm btn-outline-primary mb-0 btn-editar-corte"
                                                                     data-id="<%=rsa5.getString(6)%>"
                                                                     data-fecha="<%=rsa5.getString(7)%>"
                                                                     data-fechatxt="<%=rsa5.getString(2)%>">
                                                                 <i class="fa fa-pencil me-1"></i> Editar
                                                             </button>
+                                                            <% } else { %>
+                                                            <span class="badge badge-sm bg-gradient-secondary mb-0" title="No se puede editar una fecha con anticipos ya pagados">
+                                                                <i class="fa fa-lock me-1"></i> Cerrado
+                                                            </span>
+                                                            <% } %>
                                                         </td>
 
                                                     </tr>
