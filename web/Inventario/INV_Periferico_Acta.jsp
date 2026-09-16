@@ -65,26 +65,36 @@
             String sqlAsig;
             boolean porId = idAsignacionParam != null && !idAsignacionParam.trim().isEmpty()
                             && !"ultima".equalsIgnoreCase(idAsignacionParam.trim());
+            // USUARIO no tiene CEDULA ni DEPARTAMENTO directamente:
+            //   - CEDULA sale de VAC_CONFIG_USUARIO
+            //   - DEPARTAMENTO sale de ADM_DEPARTAMENTO vinculado por
+            //     USUARIO.ID_ADM_DEPARTAMENTO
+            // Ambos como LEFT JOIN para no ocultar el registro si el
+            // usuario aun no tiene configurada la cedula.
             if (porId) {
                 sqlAsig =
                     "SELECT a.ID_ASIGNACION, TO_CHAR(a.FECHAASIGNACION,'DD/MM/YYYY'), " +
-                    " u.NOMBRE || ' ' || u.APELLIDOS, u.CEDULA, u.DEPARTAMENTO, " +
+                    " u.NOMBRE || ' ' || u.APELLIDOS, vc.CEDULA, d.DEPARTAMENTO, " +
                     " m.DESCRIPCION, m.CODIGO, a.OBSERVACION_MOTIVO, " +
                     " (SELECT ur.NOMBRE || ' ' || ur.APELLIDOS FROM USUARIO ur WHERE ur.IDUSUARIO = a.ID_USUARIO_REGISTRA) " +
                     "FROM INV_PERIFERICO_ASIGNACION a " +
                     " JOIN USUARIO u ON u.IDUSUARIO = a.IDUSUARIO " +
                     " JOIN INV_PERIFERICO_MOTIVO m ON m.ID_MOTIVO = a.ID_MOTIVO " +
+                    " LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO " +
+                    " LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
                     "WHERE a.ID_ASIGNACION = ? AND a.ID_PERIFERICO = ?";
             } else {
                 sqlAsig =
                     "SELECT * FROM ( " +
                     "  SELECT a.ID_ASIGNACION, TO_CHAR(a.FECHAASIGNACION,'DD/MM/YYYY'), " +
-                    "   u.NOMBRE || ' ' || u.APELLIDOS, u.CEDULA, u.DEPARTAMENTO, " +
+                    "   u.NOMBRE || ' ' || u.APELLIDOS, vc.CEDULA, d.DEPARTAMENTO, " +
                     "   m.DESCRIPCION, m.CODIGO, a.OBSERVACION_MOTIVO, " +
                     "   (SELECT ur.NOMBRE || ' ' || ur.APELLIDOS FROM USUARIO ur WHERE ur.IDUSUARIO = a.ID_USUARIO_REGISTRA) OPERADOR " +
                     "  FROM INV_PERIFERICO_ASIGNACION a " +
                     "   JOIN USUARIO u ON u.IDUSUARIO = a.IDUSUARIO " +
                     "   JOIN INV_PERIFERICO_MOTIVO m ON m.ID_MOTIVO = a.ID_MOTIVO " +
+                    "   LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO " +
+                    "   LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
                     "  WHERE a.ID_PERIFERICO = ? " +
                     "  ORDER BY a.FECHAASIGNACION DESC, a.ID_ASIGNACION DESC " +
                     ") WHERE ROWNUM = 1";
