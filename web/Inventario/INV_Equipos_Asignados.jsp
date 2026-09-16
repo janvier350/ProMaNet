@@ -787,6 +787,7 @@ String compania = (String) session.getAttribute("compania");
 
                                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Editar / Asignar</th>
                                                 <!--<th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Asignar</th>-->
+                                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Periféricos</th>
                                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"></th>
                                                 <!--<th class="text-secondary opacity-7"></th>-->
                                             </tr>
@@ -1039,6 +1040,53 @@ String compania = (String) session.getAttribute("compania");
                                                                         </div>
                                                                       </div>
                                                                     </td>-->
+                                                <td class="align-middle" style="max-width: 220px;">
+                                                    <%
+                                                        // Lista los perifericos actualmente asignados a este mismo
+                                                        // ejecutivo -- se ejecuta por fila pero es una consulta
+                                                        // pequeña y el listado tiene indices por (IDUSUARIO, ESTADO).
+                                                        String idUsuarioFila = rs.getString(15);
+                                                        if (idUsuarioFila != null && !idUsuarioFila.trim().isEmpty()) {
+                                                            try (java.sql.Connection cnP = Servlets.Conexion.getConnection()) {
+                                                                if (cnP != null) {
+                                                                    try (java.sql.PreparedStatement stP = cnP.prepareStatement(
+                                                                            "SELECT t.DESCRIPCION, p.MARCA, p.MODELO, p.SERIAL " +
+                                                                            "FROM INV_PERIFERICO_ASIGNACION a " +
+                                                                            " JOIN INV_PERIFERICO p ON p.ID_PERIFERICO = a.ID_PERIFERICO " +
+                                                                            " JOIN INV_PERIFERICO_TIPO t ON t.ID_TIPO = p.ID_TIPO " +
+                                                                            "WHERE a.IDUSUARIO = ? AND a.ESTADO = 'A' " +
+                                                                            "  AND p.ESTADO_AI = 'A' " +
+                                                                            "ORDER BY t.DESCRIPCION")) {
+                                                                        stP.setString(1, idUsuarioFila);
+                                                                        try (java.sql.ResultSet rsP = stP.executeQuery()) {
+                                                                            boolean any = false;
+                                                                            while (rsP.next()) {
+                                                                                any = true;
+                                                                                String tDesc = rsP.getString(1);
+                                                                                String pM = rsP.getString(2) != null ? rsP.getString(2) : "";
+                                                                                String pMod = rsP.getString(3) != null ? rsP.getString(3) : "";
+                                                                                String pSer = rsP.getString(4) != null ? rsP.getString(4) : "";
+                                                    %>
+                                                    <span class="badge badge-sm bg-gradient-info me-1 mb-1"
+                                                          title="<%= (pM + " " + pMod + (pSer.isEmpty() ? "" : " (SN " + pSer + ")")).replace("\"","'") %>">
+                                                        <%= tDesc %>
+                                                    </span>
+                                                    <%
+                                                                            }
+                                                                            if (!any) {
+                                                    %>
+                                                    <span class="text-xs text-muted">-</span>
+                                                    <%
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            } catch (Exception e) { e.printStackTrace(); }
+                                                        } else {
+                                                    %>
+                                                    <span class="text-xs text-muted">-</span>
+                                                    <% } %>
+                                                </td>
                                                 <td class="align-middle">
                                                     <button class="btn btn-link text-secondary mb-0">
                                                         <i class="fa fa-ellipsis-v text-xs"></i>

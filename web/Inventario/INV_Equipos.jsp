@@ -573,8 +573,26 @@ String compania = (String) session.getAttribute("compania");
                   </div>
                          </a>
                 </div>
-                    
-                    
+
+                    <div class="col-md-4 mt-md-4">
+                     <a href="../Inventario/INV_Perifericos.jsp" >
+                  <div class="card">
+                    <div class="card-header mx-4 p-3 text-center">
+                      <div class="icon icon-shape icon-lg bg-gradient-info shadow text-center border-radius-lg">
+                       <i class="fa fa-keyboard-o opacity-10"></i>
+                      </div>
+                    </div>
+                    <div class="card-body pt-0 p-3 text-center">
+                      <h6 class="text-center mb-0">Perifericos</h6>
+                      <span class="text-xs">Mouse, teclado, cargador, docking, etc.</span>
+                      <hr class="horizontal dark my-3">
+                      <h5 class="mb-0"></h5>
+                    </div>
+                  </div>
+                         </a>
+                </div>
+
+
               </div>
             </div>        
                     
