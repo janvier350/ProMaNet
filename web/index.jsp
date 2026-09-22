@@ -101,9 +101,14 @@
                     <div class="mb-3">
                       <input type="password"  name = "pass" class="form-control form-control-lg" placeholder="Clave" aria-label="Password">
                     </div>
-                    <div class="form-check form-switch">
-                      <input class="form-check-input" type="checkbox" id="rememberMe">
-                      <label class="form-check-label" for="rememberMe">Acuérdate de mí</label>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label" for="rememberMe">Acuérdate de mí</label>
+                      </div>
+                      <a href="RecuperarClave.jsp" class="text-xs text-primary text-gradient font-weight-bold">
+                        ¿Olvidaste tu contraseña?
+                      </a>
                     </div>
                     <div class="text-center">
                       <button type="submit" class="form-control btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0">Iniciar Sesión</button>
