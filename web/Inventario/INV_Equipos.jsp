@@ -233,23 +233,44 @@ String compania = (String) session.getAttribute("compania");
             //  fecha de generacion, cantidad de registros y filtros aplicados.
             // ===================================================================
 
-            // Precarga del logo (PNG local, misma origen) a base64 para
-            // insertarlo en el PDF. Si falla la carga no se cae el export
-            // -- simplemente se omite el logo.
-            var _logoDataURL = null;
-            (function precargarLogo(){
-                var img = new Image();
-                img.onload = function(){
-                    try {
-                        var canvas = document.createElement('canvas');
-                        canvas.width = img.naturalWidth || img.width;
-                        canvas.height = img.naturalHeight || img.height;
-                        canvas.getContext('2d').drawImage(img, 0, 0);
-                        _logoDataURL = canvas.toDataURL('image/png');
-                    } catch (e) { /* canvas tainted u otro -- se ignora */ }
+            // Logo moderno de ProMaNet dibujado con primitivas vectoriales
+            // de pdfmake -- queda crisp a cualquier zoom, no depende de un
+            // archivo externo y no se ve pixelado como el PNG anterior.
+            // Se llama antes de sacar el PDF; devuelve un stack columnar
+            // con el icono (nodos de red) y el wordmark ProMaNet.
+            function _logoPDFMake(){
+                return {
+                    columns: [
+                        {
+                            width: 46,
+                            canvas: [
+                                { type: 'rect', x: 0, y: 0, w: 42, h: 42, r: 8, color: '#5e72e4' },
+                                // aristas de la red
+                                { type: 'line', x1: 11, y1: 10, x2: 21, y2: 21, lineWidth: 1.1, lineColor: '#ffffff' },
+                                { type: 'line', x1: 31, y1: 10, x2: 21, y2: 21, lineWidth: 1.1, lineColor: '#ffffff' },
+                                { type: 'line', x1: 11, y1: 32, x2: 21, y2: 21, lineWidth: 1.1, lineColor: '#ffffff' },
+                                { type: 'line', x1: 31, y1: 32, x2: 21, y2: 21, lineWidth: 1.1, lineColor: '#ffffff' },
+                                // nodos
+                                { type: 'ellipse', x: 11, y: 10, r1: 2.6, r2: 2.6, color: '#ffffff' },
+                                { type: 'ellipse', x: 31, y: 10, r1: 2.6, r2: 2.6, color: '#ffffff' },
+                                { type: 'ellipse', x: 11, y: 32, r1: 2.6, r2: 2.6, color: '#ffffff' },
+                                { type: 'ellipse', x: 31, y: 32, r1: 2.6, r2: 2.6, color: '#ffffff' },
+                                { type: 'ellipse', x: 21, y: 21, r1: 3.6, r2: 3.6, color: '#ffffff' }
+                            ]
+                        },
+                        {
+                            width: 'auto',
+                            text: [
+                                { text: 'Pro', color: '#344767' },
+                                { text: 'Ma',  color: '#5e72e4' },
+                                { text: 'Net', color: '#344767' }
+                            ],
+                            fontSize: 20, bold: true,
+                            margin: [8, 12, 0, 0]
+                        }
+                    ]
                 };
-                img.src = '../assets/img/promanetlogo.png';
-            })();
+            }
 
             function _fmt(v, fallback){ return (v != null && String(v).trim() !== '') ? String(v).trim() : (fallback || '-'); }
 
@@ -303,29 +324,98 @@ String compania = (String) session.getAttribute("compania");
             var botones = new $.fn.dataTable.Buttons(tablaEquipos, {
                 buttons: [
                     // --- EXCEL ---------------------------------------------------
+                    // Se dejan title/messageTop en null y se arma el header
+                    // por customize insertando filas reales -- asi cada dato
+                    // queda en su celda y no en un merge gigante donde \n no
+                    // se ve. El offset de filas del cuerpo se ajusta antes
+                    // de prepender el bloque nuevo.
                     {
                         extend: 'excelHtml5',
-                        title: 'Inventario de Equipos',
+                        title: null,
+                        messageTop: null,
                         filename: function(){
                             return 'Inventario_Equipos_' + new Date().toISOString().slice(0,10);
                         },
                         exportOptions: _exportOpts,
-                        // messageTop se convierte en una fila arriba de la
-                        // tabla con toda la info del reporte. Multi-linea
-                        // separada por " | " para que quepa comodo.
-                        messageTop: function(){
+                        customize: function(xlsx){
+                            var sheet = xlsx.xl.worksheets['sheet1.xml'];
                             var i = armarInfoReporte();
-                            return 'Empresa: ' + i.empresa +
-                                '  |  Generado por: ' + i.usuario +
-                                '  |  Fecha de generacion: ' + i.fechaGeneracion +
-                                '  |  Fecha de corte: ' + i.fechaCorte +
-                                '  |  Registros exportados: ' + i.totalFiltrados + ' de ' + i.totalGeneral +
-                                '\nFiltros aplicados -> ' +
-                                'Estado: ' + i.fEstado +
-                                '  |  Compra: ' + i.fDesde + ' a ' + i.fHasta +
-                                '  |  Ubicacion: ' + i.fUbicacion +
-                                '  |  Departamento: ' + i.fDepartamento +
-                                '  |  Tipo: ' + i.fTipo;
+
+                            // Bloque de encabezado como pares [label, value].
+                            // La primera fila es solo titulo (columna A merged
+                            // no la hacemos -- queda en A). Filas vacias =
+                            // separador visual.
+                            var meta = [
+                                ['INVENTARIO DE EQUIPOS', ''],
+                                ['', ''],
+                                ['Empresa',              i.empresa],
+                                ['Generado por',         i.usuario],
+                                ['Fecha de generacion',  i.fechaGeneracion],
+                                ['Fecha de corte',       i.fechaCorte],
+                                ['Registros exportados', i.totalFiltrados + ' de ' + i.totalGeneral],
+                                ['', ''],
+                                ['Filtros aplicados',    ''],
+                                ['   Estado',            i.fEstado],
+                                ['   Compra desde',      i.fDesde],
+                                ['   Compra hasta',      i.fHasta],
+                                ['   Ubicacion',         i.fUbicacion],
+                                ['   Departamento',      i.fDepartamento],
+                                ['   Tipo',              i.fTipo],
+                                ['', '']
+                            ];
+                            var offset = meta.length;
+
+                            var doc = sheet;
+                            var ns = doc.documentElement.namespaceURI;
+                            var sheetData = doc.getElementsByTagName('sheetData')[0];
+
+                            // Desplazar filas existentes hacia abajo por offset.
+                            var oldRows = Array.prototype.slice.call(sheetData.getElementsByTagName('row'));
+                            for (var r = oldRows.length - 1; r >= 0; r--) {
+                                var row = oldRows[r];
+                                var oldR = parseInt(row.getAttribute('r'), 10);
+                                var newR = oldR + offset;
+                                row.setAttribute('r', String(newR));
+                                var cs = row.getElementsByTagName('c');
+                                for (var c = 0; c < cs.length; c++) {
+                                    var ref = cs[c].getAttribute('r');
+                                    cs[c].setAttribute('r', ref.replace(/\d+/, String(newR)));
+                                }
+                            }
+
+                            // Prepender filas de encabezado. Estilos DataTables:
+                            //   51 = title (grande, bold, wrap)
+                            //   2  = bold
+                            //   0  = default
+                            for (var k = meta.length - 1; k >= 0; k--) {
+                                var rowNum = k + 1;
+                                var newRow = doc.createElementNS(ns, 'row');
+                                newRow.setAttribute('r', String(rowNum));
+
+                                // Celda A (label o titulo)
+                                var cA = doc.createElementNS(ns, 'c');
+                                cA.setAttribute('t', 'inlineStr');
+                                cA.setAttribute('r', 'A' + rowNum);
+                                if (k === 0)       cA.setAttribute('s', '51');
+                                else if (meta[k][0]) cA.setAttribute('s', '2');
+                                var isA = doc.createElementNS(ns, 'is');
+                                var tA  = doc.createElementNS(ns, 't');
+                                tA.textContent = meta[k][0] || '';
+                                isA.appendChild(tA); cA.appendChild(isA); newRow.appendChild(cA);
+
+                                // Celda B (value)
+                                if (meta[k][1] !== '' && meta[k][1] != null) {
+                                    var cB = doc.createElementNS(ns, 'c');
+                                    cB.setAttribute('t', 'inlineStr');
+                                    cB.setAttribute('r', 'B' + rowNum);
+                                    var isB = doc.createElementNS(ns, 'is');
+                                    var tB  = doc.createElementNS(ns, 't');
+                                    tB.textContent = String(meta[k][1]);
+                                    isB.appendChild(tB); cB.appendChild(isB); newRow.appendChild(cB);
+                                }
+
+                                sheetData.insertBefore(newRow, sheetData.firstChild);
+                            }
                         }
                     },
                     // --- PDF -----------------------------------------------------
@@ -397,16 +487,14 @@ String compania = (String) session.getAttribute("compania");
 
                             var encabezado = {
                                 columns: [
-                                    // Columna izquierda: logo + titulo
+                                    // Columna izquierda: logo (vectorial) + titulo
                                     {
                                         width: '35%',
-                                        stack: (_logoDataURL
-                                            ? [{ image: _logoDataURL, width: 110, margin: [0, 0, 0, 6] }]
-                                            : []
-                                        ).concat([
-                                            { text: 'Inventario de Equipos', style: 'title' },
-                                            { text: 'Reporte generado automaticamente por ProMaNet', fontSize: 8, color: '#8898aa' }
-                                        ])
+                                        stack: [
+                                            _logoPDFMake(),
+                                            { text: 'Inventario de Equipos', style: 'title', margin: [0, 8, 0, 0] },
+                                            { text: 'Reporte generado automaticamente', fontSize: 8, color: '#8898aa' }
+                                        ]
                                     },
                                     // Columna centro: datos generales
                                     {
