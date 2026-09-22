@@ -127,13 +127,62 @@ String compania = (String) session.getAttribute("compania");
                        '<"row align-items-center"<"col-md-5"i><"col-md-7"p>>',
             });
 
-            // Lógica del filtro personalizado (dentro del ready, luego de crear la tabla)
-            $('#filtroEstado').on('change', function() {
-                var estado = $(this).val();
+            // Filtro personalizado global: se lee cada input al vuelo y se
+            // decide por fila con $.fn.dataTable.ext.search. Los data-*
+            // vienen del <tr> generado en el server.
+            //   - Estado: se sigue delegando a la busqueda de la columna 5
+            //     (mismo criterio que antes -- texto exacto).
+            //   - Rango de fechas: compara con data-fechaiso (YYYY-MM-DD),
+            //     que es lexicograficamente comparable.
+            //   - Ubicacion / Departamento: substring case-insensitive
+            //     sobre data-ubicacion / data-departamento (los inputs son
+            //     libres con datalist para autocompletar).
+            //   - Equipo: substring case-insensitive sobre data-equipo
+            //     (marca + modelo concatenados).
+            function norm(s){ return (s || '').toString().toLowerCase().trim(); }
 
-                // .column(5) asume que 'Estado' es la sexta columna (empezando desde 0)
-                // Ajusta el número si moviste las columnas
-                tablaEquipos.column(5).search(estado).draw();
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData, counter){
+                if (settings.nTable.id !== 'example') return true;
+                var tr = tablaEquipos.row(dataIndex).node();
+                if (!tr) return true;
+
+                var fDesde = $('#filtroFechaDesde').val();  // YYYY-MM-DD o vacio
+                var fHasta = $('#filtroFechaHasta').val();
+                var fUbi   = norm($('#filtroUbicacion').val());
+                var fDep   = norm($('#filtroDepartamento').val());
+                var fEq    = norm($('#filtroEquipo').val());
+
+                var fechaIso = tr.getAttribute('data-fechaiso') || '';
+                var ubic     = norm(tr.getAttribute('data-ubicacion'));
+                var dep      = norm(tr.getAttribute('data-departamento'));
+                var eq       = norm(tr.getAttribute('data-equipo'));
+
+                if (fDesde && (!fechaIso || fechaIso < fDesde)) return false;
+                if (fHasta && (!fechaIso || fechaIso > fHasta)) return false;
+                if (fUbi   && ubic.indexOf(fUbi) === -1)        return false;
+                if (fDep   && dep.indexOf(fDep) === -1)         return false;
+                if (fEq    && eq.indexOf(fEq)  === -1)          return false;
+                return true;
+            });
+
+            // Estado sigue usando el search por columna nativo de DataTables
+            // (rendimiento y consistencia con el resto de la busqueda global).
+            $('#filtroEstado').on('change', function(){
+                tablaEquipos.column(5).search($(this).val()).draw();
+            });
+
+            $('#filtroFechaDesde, #filtroFechaHasta').on('change', function(){ tablaEquipos.draw(); });
+            $('#filtroUbicacion, #filtroDepartamento, #filtroEquipo').on('input change', function(){ tablaEquipos.draw(); });
+
+            $('#btnLimpiarFiltros').on('click', function(){
+                $('#filtroEstado').val('');
+                $('#filtroFechaDesde').val('');
+                $('#filtroFechaHasta').val('');
+                $('#filtroUbicacion').val('');
+                $('#filtroDepartamento').val('');
+                $('#filtroEquipo').val('');
+                tablaEquipos.column(5).search('');
+                tablaEquipos.draw();
             });
         }, 500);
     });
@@ -784,12 +833,12 @@ String compania = (String) session.getAttribute("compania");
 
               </div>
    <div class="card-body px-0 pt-0 pb-2">
-       <div class="row px-4 mt-3">
-    <div class="col-md-4">
-        <div class="form-group">
-            <label class="form-control-label text-xs font-weight-bold text-uppercase">Filtrar por Estado:</label>
+       <div class="row px-4 mt-3 g-2">
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Estado</label>
             <select id="filtroEstado" class="form-control form-control-sm">
-                <option value="">Todos los estados</option>
+                <option value="">Todos</option>
                 <option value="Asignado">Asignado</option>
                 <option value="Disponible">Disponible</option>
                 <option value="Fuera de servicio">Fuera de servicio</option>
@@ -801,6 +850,51 @@ String compania = (String) session.getAttribute("compania");
                 <option value="Backup Oficina">Backup Oficina</option>
             </select>
         </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Compra desde</label>
+            <input type="date" id="filtroFechaDesde" class="form-control form-control-sm">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Compra hasta</label>
+            <input type="date" id="filtroFechaHasta" class="form-control form-control-sm">
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Ubicacion</label>
+            <input type="text" id="filtroUbicacion" class="form-control form-control-sm" list="dlUbicaciones" placeholder="Cualquiera">
+            <datalist id="dlUbicaciones">
+                <% for (String u : ubicacionesDistinct) { %>
+                <option value="<%=escAttr(u)%>">
+                <% } %>
+            </datalist>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Departamento</label>
+            <input type="text" id="filtroDepartamento" class="form-control form-control-sm" list="dlDepartamentos" placeholder="Cualquiera">
+            <datalist id="dlDepartamentos">
+                <% for (String d : departamentosDistinct) { %>
+                <option value="<%=escAttr(d)%>">
+                <% } %>
+            </datalist>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group mb-2">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Equipo (marca / modelo)</label>
+            <input type="text" id="filtroEquipo" class="form-control form-control-sm" placeholder="Ej. ThinkPad">
+        </div>
+    </div>
+    <div class="col-md-12 text-end">
+        <button type="button" id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm mb-0">
+            <i class="fa fa-eraser me-1"></i> Limpiar filtros
+        </button>
     </div>
 </div>
     <div class="table-responsive p-3"> 
@@ -821,19 +915,38 @@ String compania = (String) session.getAttribute("compania");
                     </tr>
                 </thead>
             <tbody>
-                       <% 
+                       <%
+                        // Sets para armar los datalists de ubicacion/departamento
+                        // con los valores que realmente aparecen en la lista, en vez
+                        // de hardcodear opciones (asi el filtro siempre refleja lo
+                        // que hay en BD y crece solo cuando se agregan oficinas).
+                        java.util.Set<String> ubicacionesDistinct = new java.util.TreeSet<>();
+                        java.util.Set<String> departamentosDistinct = new java.util.TreeSet<>();
                         try{
                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                             Connection cn = DriverManager.getConnection(url, user, pass);
-                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna, a.custodio_backup FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV', 'BK')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
+                            // fech_compra_iso (col 23) se usa para el filtro de rango
+                            // de fechas cliente-side (comparable como string YYYY-MM-DD).
+                            String sql = "SELECT a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo,  a.serial, a.procesador,a.procesador,  a.hdd,a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre || ' ' || c.apellidos AS usuario_nombre_completo, a.empresa, a.dispositivo, a.fichero, d.nombres || ' ' || d.apellidos AS currier_nombre_completo, TO_CHAR(b.fechaasignacion, 'YYYY/MM/DD') AS fech_asigna, a.custodio_backup, TO_CHAR(a.fechacompra, 'YYYY-MM-DD') AS fech_compra_iso FROM inv_equipos a LEFT JOIN inv_asignacion b ON b.idinvequipo = a.idinvequipo AND b.estado = 'A' LEFT JOIN usuario c ON b.idusuario = c.idusuario LEFT JOIN inv_currier d ON a.id_currier = d.id_currier WHERE (a.estado IN ('A', 'D', 'F', 'V', 'R', 'M', 'I', 'PV', 'BK')) AND a.estado_ai = 'A' ORDER BY a.estado DESC, c.nombre, c.apellidos";
 //                            String sql = "select a.idinvequipo, TO_CHAR(a.fechacompra, 'DD/MM/YYYY') AS fech_compra, a.ubicacionoficina, a.departamento, a.marca, a.modelo, a.serial, a.procesador, a.hdd, a.ram, a.pantalla, a.observaciones, a.estado, b.idusuario, c.nombre||' '||c.APELLIDOS, a.empresa,a.dispositivo,a.fichero "
 //                + " from inv_equipos a left join inv_asignacion b on b.idinvequipo = a.idinvequipo AND b.estado='A' left join usuario c on b.idusuario = c.idusuario where (a.estado = 'A' or a.estado='D' or a.estado='F' or a.estado='V' or a.estado='R' or a.estado='M' or a.estado='I' or a.estado='PV' )and a.estado_ai ='A' ORDER BY a.estado desc, c.nombre, c.apellidos";
 //                            String sql = "select a.IDUSUARIO, a.NOMBRE, a.APELLIDOS, a.EMAIL, b.COMPANIA  , c.departamento from USUARIO a, compania b, adm_departamento c where a.IDCOMPANIA = b.IDCOMPANIA AND a.ESTADO = 'a' AND a.id_adm_departamento =c.id_departamento order by 1";
                             PreparedStatement st = cn.prepareStatement(sql);
-                            ResultSet rs = st.executeQuery();       
-                            while (rs.next()) {%>
-                        
-                        <tr>
+                            ResultSet rs = st.executeQuery();
+                            while (rs.next()) {
+                                String _ubic = rs.getString(3) != null ? rs.getString(3) : "";
+                                String _depto = rs.getString(4) != null ? rs.getString(4) : "";
+                                String _marca = rs.getString(5) != null ? rs.getString(5) : "";
+                                String _modelo = rs.getString(6) != null ? rs.getString(6) : "";
+                                String _fechaIso = rs.getString(23) != null ? rs.getString(23) : "";
+                                if (!_ubic.trim().isEmpty()) ubicacionesDistinct.add(_ubic.trim());
+                                if (!_depto.trim().isEmpty()) departamentosDistinct.add(_depto.trim());
+                        %>
+
+                        <tr data-fechaiso="<%=escAttr(_fechaIso)%>"
+                            data-ubicacion="<%=escAttr(_ubic)%>"
+                            data-departamento="<%=escAttr(_depto)%>"
+                            data-equipo="<%=escAttr((_marca + " " + _modelo).trim())%>">
                     <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs.getString(1)%></p></td>
                     <td>
                         <p class="text-xs font-weight-bold mb-0"><%=rs.getString(2)%></p>
