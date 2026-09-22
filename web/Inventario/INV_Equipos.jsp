@@ -139,21 +139,27 @@ String compania = (String) session.getAttribute("compania");
             // los data-* de las filas ya renderizadas. Asi el filtro
             // refleja lo que realmente hay en la lista sin necesidad de
             // una segunda consulta al server ni orden especial en el JSP.
-            (function poblarDatalists(){
-                var ubis = {}, deps = {};
+            (function poblarDatalistsYTipos(){
+                var ubis = {}, deps = {}, tipos = {};
                 $('#example tbody tr').each(function(){
                     var u = ($(this).attr('data-ubicacion') || '').trim();
                     var d = ($(this).attr('data-departamento') || '').trim();
+                    var t = ($(this).attr('data-tipo') || '').trim();
                     if (u) ubis[u] = true;
                     if (d) deps[d] = true;
+                    if (t) tipos[t] = true;
                 });
                 var dlU = document.getElementById('dlUbicaciones');
                 var dlD = document.getElementById('dlDepartamentos');
+                var selT = document.getElementById('filtroTipoEquipo');
                 Object.keys(ubis).sort().forEach(function(v){
                     var o = document.createElement('option'); o.value = v; dlU.appendChild(o);
                 });
                 Object.keys(deps).sort().forEach(function(v){
                     var o = document.createElement('option'); o.value = v; dlD.appendChild(o);
+                });
+                Object.keys(tipos).sort().forEach(function(v){
+                    var o = document.createElement('option'); o.value = v; o.textContent = v; selT.appendChild(o);
                 });
             })();
 
@@ -184,18 +190,18 @@ String compania = (String) session.getAttribute("compania");
                 var fHasta = $('#filtroFechaHasta').val();
                 var fUbi   = norm($('#filtroUbicacion').val());
                 var fDep   = norm($('#filtroDepartamento').val());
-                var fEq    = norm($('#filtroEquipo').val());
+                var fTipo  = ($('#filtroTipoEquipo').val() || '').trim();
 
                 var fechaIso = tr.getAttribute('data-fechaiso') || '';
                 var ubic     = norm(tr.getAttribute('data-ubicacion'));
                 var dep      = norm(tr.getAttribute('data-departamento'));
-                var eq       = norm(tr.getAttribute('data-equipo'));
+                var tipo     = (tr.getAttribute('data-tipo') || '').trim();
 
                 if (fDesde && (!fechaIso || fechaIso < fDesde)) return false;
                 if (fHasta && (!fechaIso || fechaIso > fHasta)) return false;
                 if (fUbi   && ubic.indexOf(fUbi) === -1)        return false;
                 if (fDep   && dep.indexOf(fDep) === -1)         return false;
-                if (fEq    && eq.indexOf(fEq)  === -1)          return false;
+                if (fTipo  && tipo !== fTipo)                   return false;
                 return true;
             });
 
@@ -205,8 +211,8 @@ String compania = (String) session.getAttribute("compania");
                 tablaEquipos.column(5).search($(this).val()).draw();
             });
 
-            $('#filtroFechaDesde, #filtroFechaHasta').on('change', function(){ tablaEquipos.draw(); });
-            $('#filtroUbicacion, #filtroDepartamento, #filtroEquipo').on('input change', function(){ tablaEquipos.draw(); });
+            $('#filtroFechaDesde, #filtroFechaHasta, #filtroTipoEquipo').on('change', function(){ tablaEquipos.draw(); });
+            $('#filtroUbicacion, #filtroDepartamento').on('input change', function(){ tablaEquipos.draw(); });
 
             $('#btnLimpiarFiltros').on('click', function(){
                 $('#filtroEstado').val('');
@@ -214,41 +220,257 @@ String compania = (String) session.getAttribute("compania");
                 $('#filtroFechaHasta').val('');
                 $('#filtroUbicacion').val('');
                 $('#filtroDepartamento').val('');
-                $('#filtroEquipo').val('');
+                $('#filtroTipoEquipo').val('');
                 tablaEquipos.column(5).search('');
                 tablaEquipos.draw();
             });
 
-            // Export Excel/PDF: se crea una instancia invisible de Buttons
-            // ligada a la tabla. Al click en los botones custom se dispara
-            // el trigger correspondiente. Se excluyen las columnas Img (7)
-            // y Acciones (9) porque no aportan al reporte. Se exporta lo
-            // filtrado y ordenado actualmente (rows selector 'applied').
-            //
-            // La celda "Equipo" viene con <br> entre atributos -- para el
-            // export los pasamos a saltos de linea reales via customize.
-            var _exportCommon = {
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 8],
-                    rows: { search: 'applied' },
-                    format: {
-                        body: function(inner, row, column, node){
-                            if (inner == null) return '';
-                            // Reemplaza <br> por \n, quita el resto de HTML.
-                            var txt = String(inner).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
-                            // Colapsa espacios/newlines extra que dejan los <p> anidados.
-                            return txt.replace(/[ \t]+/g, ' ').replace(/\n[ \t]+/g, '\n').trim();
-                        }
+            // ===================================================================
+            //  EXPORT EXCEL / PDF
+            //  Se excluyen las columnas Img (7) y Acciones (9). El export
+            //  respeta filtros y orden actuales (rows: search='applied').
+            //  Encabezado profesional con empresa, usuario, fecha de corte,
+            //  fecha de generacion, cantidad de registros y filtros aplicados.
+            // ===================================================================
+
+            // Precarga del logo (PNG local, misma origen) a base64 para
+            // insertarlo en el PDF. Si falla la carga no se cae el export
+            // -- simplemente se omite el logo.
+            var _logoDataURL = null;
+            (function precargarLogo(){
+                var img = new Image();
+                img.onload = function(){
+                    try {
+                        var canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth || img.width;
+                        canvas.height = img.naturalHeight || img.height;
+                        canvas.getContext('2d').drawImage(img, 0, 0);
+                        _logoDataURL = canvas.toDataURL('image/png');
+                    } catch (e) { /* canvas tainted u otro -- se ignora */ }
+                };
+                img.src = '../assets/img/promanetlogo.png';
+            })();
+
+            function _fmt(v, fallback){ return (v != null && String(v).trim() !== '') ? String(v).trim() : (fallback || '-'); }
+
+            // Info de cabecera comun. Se arma en el momento del click porque
+            // depende del estado actual de la tabla y los filtros.
+            function armarInfoReporte(){
+                var totalFiltrados = tablaEquipos.rows({ search: 'applied' }).count();
+                var totalGeneral   = tablaEquipos.rows().count();
+                var ahora = new Date();
+                var fechaHoy = ahora.toLocaleString('es-EC', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                function isoAHumano(iso){
+                    if (!iso) return null;
+                    var p = iso.split('-');
+                    return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : iso;
+                }
+                return {
+                    empresa:        '<%=compania != null ? compania : ""%>',
+                    usuario:        '<%=nombre != null ? nombre : ""%> <%=apellidos != null ? apellidos : ""%>'.trim(),
+                    fechaGeneracion: fechaHoy,
+                    fechaCorte:     _fmt(isoAHumano($('#filtroFechaHasta').val()),
+                                         ahora.toLocaleDateString('es-EC', { day:'2-digit', month:'2-digit', year:'numeric' })),
+                    totalFiltrados: totalFiltrados,
+                    totalGeneral:   totalGeneral,
+                    fEstado:        _fmt($('#filtroEstado').val(), 'Todos'),
+                    fDesde:         _fmt(isoAHumano($('#filtroFechaDesde').val()), 'Sin limite'),
+                    fHasta:         _fmt(isoAHumano($('#filtroFechaHasta').val()), 'Sin limite'),
+                    fUbicacion:     _fmt($('#filtroUbicacion').val(), 'Todas'),
+                    fDepartamento:  _fmt($('#filtroDepartamento').val(), 'Todos'),
+                    fTipo:          _fmt($('#filtroTipoEquipo').val(), 'Todos')
+                };
+            }
+
+            // Opciones comunes para excel y pdf: mismas columnas y misma
+            // limpieza de HTML de las celdas (los <br> pasan a saltos de
+            // linea, se quitan tags residuales de los <p>).
+            var _exportOpts = {
+                columns: [0, 1, 2, 3, 4, 5, 6, 8],
+                rows: { search: 'applied' },
+                format: {
+                    body: function(inner){
+                        if (inner == null) return '';
+                        var txt = String(inner).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+                        return txt.replace(/[ \t]+/g, ' ').replace(/\n[ \t]+/g, '\n').trim();
                     }
                 }
             };
+
             var botones = new $.fn.dataTable.Buttons(tablaEquipos, {
                 buttons: [
-                    $.extend({ extend: 'excelHtml5', title: 'Inventario_Equipos' }, _exportCommon),
-                    $.extend({ extend: 'pdfHtml5',   title: 'Inventario de Equipos',
-                               orientation: 'landscape', pageSize: 'A4' }, _exportCommon)
+                    // --- EXCEL ---------------------------------------------------
+                    {
+                        extend: 'excelHtml5',
+                        title: 'Inventario de Equipos',
+                        filename: function(){
+                            return 'Inventario_Equipos_' + new Date().toISOString().slice(0,10);
+                        },
+                        exportOptions: _exportOpts,
+                        // messageTop se convierte en una fila arriba de la
+                        // tabla con toda la info del reporte. Multi-linea
+                        // separada por " | " para que quepa comodo.
+                        messageTop: function(){
+                            var i = armarInfoReporte();
+                            return 'Empresa: ' + i.empresa +
+                                '  |  Generado por: ' + i.usuario +
+                                '  |  Fecha de generacion: ' + i.fechaGeneracion +
+                                '  |  Fecha de corte: ' + i.fechaCorte +
+                                '  |  Registros exportados: ' + i.totalFiltrados + ' de ' + i.totalGeneral +
+                                '\nFiltros aplicados -> ' +
+                                'Estado: ' + i.fEstado +
+                                '  |  Compra: ' + i.fDesde + ' a ' + i.fHasta +
+                                '  |  Ubicacion: ' + i.fUbicacion +
+                                '  |  Departamento: ' + i.fDepartamento +
+                                '  |  Tipo: ' + i.fTipo;
+                        }
+                    },
+                    // --- PDF -----------------------------------------------------
+                    {
+                        extend: 'pdfHtml5',
+                        title: 'Inventario de Equipos',
+                        filename: function(){
+                            return 'Inventario_Equipos_' + new Date().toISOString().slice(0,10);
+                        },
+                        orientation: 'landscape',
+                        pageSize: 'A4',
+                        exportOptions: _exportOpts,
+                        customize: function(doc){
+                            var i = armarInfoReporte();
+
+                            // Estilos
+                            doc.defaultStyle.fontSize = 8;
+                            doc.styles.title = { fontSize: 16, bold: true, color: '#344767', alignment: 'left', margin: [0, 0, 0, 4] };
+                            doc.styles.tableHeader = { fontSize: 9, bold: true, color: 'white', fillColor: '#5e72e4', alignment: 'left' };
+                            doc.styles.metaKey = { fontSize: 8, bold: true, color: '#525f7f' };
+                            doc.styles.metaVal = { fontSize: 8, color: '#344767' };
+
+                            doc.pageMargins = [ 24, 40, 24, 40 ];
+
+                            // Se reemplaza todo el content por: encabezado + tabla
+                            // original (que quedo como content[1] tras el "title"
+                            // de DataTables). Buscamos la tabla en el content.
+                            var tabla = null, msg = null;
+                            for (var k = 0; k < doc.content.length; k++){
+                                if (doc.content[k].table) tabla = doc.content[k];
+                            }
+                            // Bloque encabezado: logo | titulo + meta
+                            var infoTable = {
+                                widths: ['auto', '*'],
+                                body: [
+                                    [
+                                        { text: 'Empresa:', style: 'metaKey' },
+                                        { text: i.empresa, style: 'metaVal' }
+                                    ],
+                                    [
+                                        { text: 'Generado por:', style: 'metaKey' },
+                                        { text: i.usuario, style: 'metaVal' }
+                                    ],
+                                    [
+                                        { text: 'Fecha de generacion:', style: 'metaKey' },
+                                        { text: i.fechaGeneracion, style: 'metaVal' }
+                                    ],
+                                    [
+                                        { text: 'Fecha de corte:', style: 'metaKey' },
+                                        { text: i.fechaCorte, style: 'metaVal' }
+                                    ],
+                                    [
+                                        { text: 'Registros:', style: 'metaKey' },
+                                        { text: i.totalFiltrados + ' de ' + i.totalGeneral, style: 'metaVal' }
+                                    ]
+                                ]
+                            };
+                            var filtrosTable = {
+                                widths: ['auto', '*'],
+                                body: [
+                                    [ { text: 'Estado:',        style: 'metaKey' }, { text: i.fEstado,       style: 'metaVal' } ],
+                                    [ { text: 'Compra desde:',  style: 'metaKey' }, { text: i.fDesde,        style: 'metaVal' } ],
+                                    [ { text: 'Compra hasta:',  style: 'metaKey' }, { text: i.fHasta,        style: 'metaVal' } ],
+                                    [ { text: 'Ubicacion:',     style: 'metaKey' }, { text: i.fUbicacion,    style: 'metaVal' } ],
+                                    [ { text: 'Departamento:',  style: 'metaKey' }, { text: i.fDepartamento, style: 'metaVal' } ],
+                                    [ { text: 'Tipo:',          style: 'metaKey' }, { text: i.fTipo,         style: 'metaVal' } ]
+                                ]
+                            };
+
+                            var encabezado = {
+                                columns: [
+                                    // Columna izquierda: logo + titulo
+                                    {
+                                        width: '35%',
+                                        stack: (_logoDataURL
+                                            ? [{ image: _logoDataURL, width: 110, margin: [0, 0, 0, 6] }]
+                                            : []
+                                        ).concat([
+                                            { text: 'Inventario de Equipos', style: 'title' },
+                                            { text: 'Reporte generado automaticamente por ProMaNet', fontSize: 8, color: '#8898aa' }
+                                        ])
+                                    },
+                                    // Columna centro: datos generales
+                                    {
+                                        width: '32%',
+                                        layout: 'noBorders',
+                                        table: infoTable
+                                    },
+                                    // Columna derecha: filtros aplicados
+                                    {
+                                        width: '33%',
+                                        stack: [
+                                            { text: 'Filtros aplicados', style: 'metaKey', margin: [0, 0, 0, 2] },
+                                            { layout: 'noBorders', table: filtrosTable }
+                                        ]
+                                    }
+                                ],
+                                columnGap: 12,
+                                margin: [0, 0, 0, 12]
+                            };
+
+                            // Linea divisoria
+                            var linea = {
+                                canvas: [{ type: 'line', x1: 0, y1: 0, x2: 780, y2: 0, lineWidth: 0.5, lineColor: '#e9ecef' }],
+                                margin: [0, 0, 0, 8]
+                            };
+
+                            var nuevoContent = [ encabezado, linea ];
+                            if (tabla) {
+                                // Header de la tabla con estilo lindo
+                                if (tabla.table && tabla.table.body && tabla.table.body.length > 0) {
+                                    tabla.table.body[0] = tabla.table.body[0].map(function(c){
+                                        return { text: (typeof c === 'object' ? c.text : c) || '', style: 'tableHeader' };
+                                    });
+                                    tabla.table.headerRows = 1;
+                                    tabla.table.widths = tabla.table.body[0].map(function(){ return '*'; });
+                                }
+                                tabla.layout = {
+                                    hLineWidth: function(i, node){ return (i === 0 || i === node.table.body.length || i === 1) ? 0.5 : 0.2; },
+                                    vLineWidth: function(){ return 0; },
+                                    hLineColor: function(){ return '#dee2e6'; },
+                                    fillColor:  function(rowIndex){ return rowIndex === 0 ? '#5e72e4' : (rowIndex % 2 === 0 ? '#f8f9fa' : null); },
+                                    paddingTop:    function(){ return 4; },
+                                    paddingBottom: function(){ return 4; },
+                                    paddingLeft:   function(){ return 6; },
+                                    paddingRight:  function(){ return 6; }
+                                };
+                                nuevoContent.push(tabla);
+                            }
+                            doc.content = nuevoContent;
+
+                            // Footer con numero de pagina
+                            doc.footer = function(currentPage, pageCount){
+                                return {
+                                    columns: [
+                                        { text: 'Inventario de Equipos - ProMaNet', alignment: 'left',  margin: [24, 8, 0, 0], fontSize: 7, color: '#8898aa' },
+                                        { text: 'Pagina ' + currentPage + ' de ' + pageCount, alignment: 'right', margin: [0, 8, 24, 0], fontSize: 7, color: '#8898aa' }
+                                    ]
+                                };
+                            };
+                        }
+                    }
                 ]
             });
+
             $('#btnExportarExcel').on('click', function(){ botones.container().find('.buttons-excel').trigger('click'); });
             $('#btnExportarPdf').on('click',   function(){ botones.container().find('.buttons-pdf').trigger('click'); });
         }, 500);
@@ -944,8 +1166,11 @@ String compania = (String) session.getAttribute("compania");
     </div>
     <div class="col-md-2">
         <div class="form-group mb-2">
-            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Equipo (marca / modelo)</label>
-            <input type="text" id="filtroEquipo" class="form-control form-control-sm" placeholder="Ej. ThinkPad">
+            <label class="form-control-label text-xxs font-weight-bold text-uppercase">Tipo de equipo</label>
+            <select id="filtroTipoEquipo" class="form-control form-control-sm">
+                <option value="">Todos</option>
+                <!-- Se popula por JS desde data-tipo de las filas -->
+            </select>
         </div>
     </div>
     <div class="col-md-12 d-flex justify-content-end" style="gap:8px;">
@@ -995,12 +1220,14 @@ String compania = (String) session.getAttribute("compania");
                                 String _depto = rs.getString(4) != null ? rs.getString(4) : "";
                                 String _marca = rs.getString(5) != null ? rs.getString(5) : "";
                                 String _modelo = rs.getString(6) != null ? rs.getString(6) : "";
+                                String _tipo = rs.getString(18) != null ? rs.getString(18) : "";
                                 String _fechaIso = rs.getString(23) != null ? rs.getString(23) : "";
                         %>
 
                         <tr data-fechaiso="<%=escAttr(_fechaIso)%>"
                             data-ubicacion="<%=escAttr(_ubic)%>"
                             data-departamento="<%=escAttr(_depto)%>"
+                            data-tipo="<%=escAttr(_tipo)%>"
                             data-equipo="<%=escAttr((_marca + " " + _modelo).trim())%>">
                     <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs.getString(1)%></p></td>
                     <td>
