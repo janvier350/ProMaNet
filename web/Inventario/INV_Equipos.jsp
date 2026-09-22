@@ -94,6 +94,14 @@ String compania = (String) session.getAttribute("compania");
         <script type="text/javascript" language="javascript" src="//code.jquery.com/jquery-1.12.4.js"></script>
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
         <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap.min.js"></script>
+        <!-- DataTables Buttons + backends para exportar a Excel y PDF.
+             Se cargan tal cual, sin build local. jszip es requerido por
+             el export Excel; pdfmake + vfs_fonts por el PDF. -->
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
         <script type="text/javascript" language="javascript" src="../resources/demo.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css">
 
@@ -164,8 +172,12 @@ String compania = (String) session.getAttribute("compania");
             function norm(s){ return (s || '').toString().toLowerCase().trim(); }
 
             $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData, counter){
-                if (settings.nTable.id !== 'example') return true;
-                var tr = tablaEquipos.row(dataIndex).node();
+                if (!settings || !settings.nTable || settings.nTable.id !== 'example') return true;
+                // settings.aoData[dataIndex].nTr es la referencia directa al
+                // <tr> que DataTables mantiene internamente -- mas confiable
+                // que tablaEquipos.row(...).node(), que puede devolver null
+                // durante el primer draw o al vuelo de la inicializacion.
+                var tr = settings.aoData && settings.aoData[dataIndex] ? settings.aoData[dataIndex].nTr : null;
                 if (!tr) return true;
 
                 var fDesde = $('#filtroFechaDesde').val();  // YYYY-MM-DD o vacio
@@ -206,6 +218,39 @@ String compania = (String) session.getAttribute("compania");
                 tablaEquipos.column(5).search('');
                 tablaEquipos.draw();
             });
+
+            // Export Excel/PDF: se crea una instancia invisible de Buttons
+            // ligada a la tabla. Al click en los botones custom se dispara
+            // el trigger correspondiente. Se excluyen las columnas Img (7)
+            // y Acciones (9) porque no aportan al reporte. Se exporta lo
+            // filtrado y ordenado actualmente (rows selector 'applied').
+            //
+            // La celda "Equipo" viene con <br> entre atributos -- para el
+            // export los pasamos a saltos de linea reales via customize.
+            var _exportCommon = {
+                exportOptions: {
+                    columns: [0, 1, 2, 3, 4, 5, 6, 8],
+                    rows: { search: 'applied' },
+                    format: {
+                        body: function(inner, row, column, node){
+                            if (inner == null) return '';
+                            // Reemplaza <br> por \n, quita el resto de HTML.
+                            var txt = String(inner).replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+                            // Colapsa espacios/newlines extra que dejan los <p> anidados.
+                            return txt.replace(/[ \t]+/g, ' ').replace(/\n[ \t]+/g, '\n').trim();
+                        }
+                    }
+                }
+            };
+            var botones = new $.fn.dataTable.Buttons(tablaEquipos, {
+                buttons: [
+                    $.extend({ extend: 'excelHtml5', title: 'Inventario_Equipos' }, _exportCommon),
+                    $.extend({ extend: 'pdfHtml5',   title: 'Inventario de Equipos',
+                               orientation: 'landscape', pageSize: 'A4' }, _exportCommon)
+                ]
+            });
+            $('#btnExportarExcel').on('click', function(){ botones.container().find('.buttons-excel').trigger('click'); });
+            $('#btnExportarPdf').on('click',   function(){ botones.container().find('.buttons-pdf').trigger('click'); });
         }, 500);
     });
 </script>
@@ -552,9 +597,9 @@ String compania = (String) session.getAttribute("compania");
     <!-- End Navbar -->
     <div class="container-fluid py-4">
       <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-12">
           <div class="row">
-            <div class="col-xl-6 mb-xl-0 mb-4">
+            <div class="col-xl-4 col-lg-5 mb-xl-0 mb-4">
               <div class="card bg-transparent shadow-xl">
                 <div class="overflow-hidden position-relative border-radius-xl" style="background-image: url('https://raw.githubusercontent.com/creativetimofficial/public-assets/master/argon-dashboard-pro/assets/img/card-visa.jpg');">
                   <span class="mask bg-gradient-dark"></span>
@@ -580,10 +625,8 @@ String compania = (String) session.getAttribute("compania");
                 </div>
               </div>
             </div>
-            <div class="col-xl-6">
+            <div class="col-xl-8 col-lg-7">
               <div class="row">
-                  
-                  
                 <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                   <div class="card btn mb-0" data-bs-toggle="modal" data-bs-target="#exampleModalSignUp">
                     <div class="card-header mx-4 p-3 text-center">
@@ -905,7 +948,13 @@ String compania = (String) session.getAttribute("compania");
             <input type="text" id="filtroEquipo" class="form-control form-control-sm" placeholder="Ej. ThinkPad">
         </div>
     </div>
-    <div class="col-md-12 text-end">
+    <div class="col-md-12 d-flex justify-content-end" style="gap:8px;">
+        <button type="button" id="btnExportarExcel" class="btn btn-outline-success btn-sm mb-0">
+            <i class="fa fa-file-excel-o me-1"></i> Exportar a Excel
+        </button>
+        <button type="button" id="btnExportarPdf" class="btn btn-outline-danger btn-sm mb-0">
+            <i class="fa fa-file-pdf-o me-1"></i> Exportar a PDF
+        </button>
         <button type="button" id="btnLimpiarFiltros" class="btn btn-outline-secondary btn-sm mb-0">
             <i class="fa fa-eraser me-1"></i> Limpiar filtros
         </button>
