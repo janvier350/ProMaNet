@@ -127,6 +127,28 @@ String compania = (String) session.getAttribute("compania");
                        '<"row align-items-center"<"col-md-5"i><"col-md-7"p>>',
             });
 
+            // Datalists (ubicaciones y departamentos) se arman leyendo
+            // los data-* de las filas ya renderizadas. Asi el filtro
+            // refleja lo que realmente hay en la lista sin necesidad de
+            // una segunda consulta al server ni orden especial en el JSP.
+            (function poblarDatalists(){
+                var ubis = {}, deps = {};
+                $('#example tbody tr').each(function(){
+                    var u = ($(this).attr('data-ubicacion') || '').trim();
+                    var d = ($(this).attr('data-departamento') || '').trim();
+                    if (u) ubis[u] = true;
+                    if (d) deps[d] = true;
+                });
+                var dlU = document.getElementById('dlUbicaciones');
+                var dlD = document.getElementById('dlDepartamentos');
+                Object.keys(ubis).sort().forEach(function(v){
+                    var o = document.createElement('option'); o.value = v; dlU.appendChild(o);
+                });
+                Object.keys(deps).sort().forEach(function(v){
+                    var o = document.createElement('option'); o.value = v; dlD.appendChild(o);
+                });
+            })();
+
             // Filtro personalizado global: se lee cada input al vuelo y se
             // decide por fila con $.fn.dataTable.ext.search. Los data-*
             // vienen del <tr> generado en el server.
@@ -867,22 +889,14 @@ String compania = (String) session.getAttribute("compania");
         <div class="form-group mb-2">
             <label class="form-control-label text-xxs font-weight-bold text-uppercase">Ubicacion</label>
             <input type="text" id="filtroUbicacion" class="form-control form-control-sm" list="dlUbicaciones" placeholder="Cualquiera">
-            <datalist id="dlUbicaciones">
-                <% for (String u : ubicacionesDistinct) { %>
-                <option value="<%=escAttr(u)%>">
-                <% } %>
-            </datalist>
+            <datalist id="dlUbicaciones"></datalist>
         </div>
     </div>
     <div class="col-md-2">
         <div class="form-group mb-2">
             <label class="form-control-label text-xxs font-weight-bold text-uppercase">Departamento</label>
             <input type="text" id="filtroDepartamento" class="form-control form-control-sm" list="dlDepartamentos" placeholder="Cualquiera">
-            <datalist id="dlDepartamentos">
-                <% for (String d : departamentosDistinct) { %>
-                <option value="<%=escAttr(d)%>">
-                <% } %>
-            </datalist>
+            <datalist id="dlDepartamentos"></datalist>
         </div>
     </div>
     <div class="col-md-2">
@@ -916,12 +930,6 @@ String compania = (String) session.getAttribute("compania");
                 </thead>
             <tbody>
                        <%
-                        // Sets para armar los datalists de ubicacion/departamento
-                        // con los valores que realmente aparecen en la lista, en vez
-                        // de hardcodear opciones (asi el filtro siempre refleja lo
-                        // que hay en BD y crece solo cuando se agregan oficinas).
-                        java.util.Set<String> ubicacionesDistinct = new java.util.TreeSet<>();
-                        java.util.Set<String> departamentosDistinct = new java.util.TreeSet<>();
                         try{
                             DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                             Connection cn = DriverManager.getConnection(url, user, pass);
@@ -939,8 +947,6 @@ String compania = (String) session.getAttribute("compania");
                                 String _marca = rs.getString(5) != null ? rs.getString(5) : "";
                                 String _modelo = rs.getString(6) != null ? rs.getString(6) : "";
                                 String _fechaIso = rs.getString(23) != null ? rs.getString(23) : "";
-                                if (!_ubic.trim().isEmpty()) ubicacionesDistinct.add(_ubic.trim());
-                                if (!_depto.trim().isEmpty()) departamentosDistinct.add(_depto.trim());
                         %>
 
                         <tr data-fechaiso="<%=escAttr(_fechaIso)%>"
