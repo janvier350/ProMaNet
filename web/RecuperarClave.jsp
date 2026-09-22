@@ -48,6 +48,34 @@
         if (local.length() <= 2) return local.charAt(0) + "***" + dominio;
         return local.charAt(0) + "***" + local.charAt(local.length() - 1) + dominio;
     }
+
+    // USUARIO.EMAIL puede tener uno o VARIOS correos separados por
+    // espacios, comas o punto y coma (ej. "a@x.com b@y.com c@z.com"
+    // -- caso real de gente con correo en varias empresas del grupo).
+    // Se parte por cualquiera de esos separadores, se descartan los
+    // que no tengan '@', y se devuelven solo los validos.
+    private static java.util.List<String> parsearEmails(String raw) {
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (raw == null) return out;
+        for (String parte : raw.split("[\\s,;]+")) {
+            String p = parte.trim();
+            if (p.length() >= 3 && p.indexOf('@') > 0 && p.indexOf('@') < p.length() - 1) {
+                out.add(p);
+            }
+        }
+        return out;
+    }
+
+    // Ofuscacion para el mensaje visible (varios correos separados por
+    // coma), reusando enmascararEmail() en cada uno.
+    private static String enmascararLista(java.util.List<String> correos) {
+        StringBuilder sb = new StringBuilder();
+        for (String c : correos) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(enmascararEmail(c));
+        }
+        return sb.toString();
+    }
 %>
 <%
     String metodo = request.getMethod();
@@ -71,14 +99,21 @@
             String usuarioLoginDb = null;
             String emailDb = null;
 
-            // Buscar por USUARIO o por EMAIL. UPPER en ambos lados para no
-            // depender del casing como se lo escribio.
+            // Buscar por USUARIO o por EMAIL. Se usa INSTR para el email
+            // porque USUARIO.EMAIL puede tener VARIOS correos separados
+            // por espacios (caso real: gente con correo en varias empresas
+            // del grupo). Con INSTR se matchea si el correo escrito aparece
+            // en cualquier parte de la cadena. Se rodea con espacios en
+            // ambos lados para evitar matches parciales (que "a@x.com"
+            // matchee "ba@x.commm").
             try (Connection cn = Servlets.Conexion.getConnection()) {
                 if (cn != null) {
                     try (PreparedStatement st = cn.prepareStatement(
                             "SELECT IDUSUARIO, NOMBRE, USUARIO, EMAIL " +
                             "FROM USUARIO " +
-                            "WHERE (UPPER(USUARIO) = UPPER(?) OR UPPER(EMAIL) = UPPER(?)) " +
+                            "WHERE (UPPER(USUARIO) = UPPER(?) " +
+                            "       OR INSTR(' ' || REPLACE(REPLACE(UPPER(EMAIL),',',' '),';',' ') || ' ', " +
+                            "                ' ' || UPPER(?) || ' ') > 0) " +
                             "  AND ESTADO = 'a'")) {
                         st.setString(1, idClean);
                         st.setString(2, idClean);
@@ -92,10 +127,11 @@
                         }
                     }
 
-                    // Solo se actualiza y se manda correo si:
-                    //   - Existe usuario activo
-                    //   - Tiene email valido
-                    if (idUsuarioDb != null && emailDb != null && emailDb.contains("@")) {
+                    // Se parte la cadena en correos individuales y se
+                    // envia a cada uno. Solo se actualiza la clave si al
+                    // menos hay un correo valido al que mandarla.
+                    java.util.List<String> destinos = parsearEmails(emailDb);
+                    if (idUsuarioDb != null && !destinos.isEmpty()) {
                         String claveNueva = generarClave();
 
                         try (PreparedStatement stU = cn.prepareStatement(
@@ -117,21 +153,31 @@
                             "Saludos cordiales,\n" +
                             "ProMaNet - Soporte";
 
-                        try {
-                            Servlets.Correo.enviar(emailDb.trim(),
-                                    "Recuperacion de clave - ProMaNet",
-                                    cuerpo);
-                            emailEnmascarado = enmascararEmail(emailDb);
-                        } catch (Exception eMail) {
-                            eMail.printStackTrace();
-                            // Si el correo fallo (SMTP caido, red, etc.) revertimos
-                            // la clave? No -- la nueva clave ya quedo. El admin puede
-                            // ver el usuario y mandarsela a mano. Pero se avisa el
-                            // error a soporte por log.
+                        // Se manda por separado a cada correo -- si uno
+                        // falla (dominio caido, buzon lleno) no bloquea
+                        // los otros. Se considera exito si al menos uno
+                        // salio bien.
+                        int enviadosOk = 0;
+                        java.util.List<String> enviadosOkLista = new java.util.ArrayList<>();
+                        for (String dest : destinos) {
+                            try {
+                                if (Servlets.Correo.enviar(dest,
+                                        "Recuperacion de clave - ProMaNet",
+                                        cuerpo)) {
+                                    enviadosOk++;
+                                    enviadosOkLista.add(dest);
+                                }
+                            } catch (Exception eMail) {
+                                eMail.printStackTrace();
+                            }
+                        }
+                        if (enviadosOk == 0) {
                             errorInterno = "smtp";
+                        } else {
+                            emailEnmascarado = enmascararLista(enviadosOkLista);
                         }
                     }
-                    // Si no existe, no tiene email, o algo salio raro:
+                    // Si no existe, no tiene email valido, o algo salio raro:
                     // igual mostramos el mensaje generico. No se le dice a
                     // quien esta escribiendo si el usuario existe o no.
                 }
@@ -182,7 +228,7 @@
                 <p class="text-sm text-secondary mb-0">
                     Si el usuario o correo que ingresaste corresponde a una cuenta activa
                     <% if (emailEnmascarado != null) { %>
-                        con correo <b><%=esc(emailEnmascarado)%></b>,
+                        con correo(s) <b><%=esc(emailEnmascarado)%></b>,
                     <% } %>
                     se envio un mensaje con la nueva clave. Revisa la bandeja de entrada
                     (y la carpeta de <i>spam</i>, por las dudas).
