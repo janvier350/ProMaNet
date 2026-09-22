@@ -513,18 +513,11 @@ String compania = (String) session.getAttribute("compania");
               <div class="row">
                   
                   
-                <div class="col-md-4">
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                   <div class="card btn mb-0" data-bs-toggle="modal" data-bs-target="#exampleModalSignUp">
                     <div class="card-header mx-4 p-3 text-center">
                       <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                          <!--<a href="../generarReporteGastosMes" ><i class="fas fa-calendar-alt opacity-10"></i></a>-->
-                       
                           <i class="fa fa-cog opacity-10"></i>
-                          <!--<p class="text-white mb-0 " >No disponible</p>-->
-                         
-                                  <!--<a href="../AutoGenMes" ><i class="fas fa-calendar-alt opacity-10"></i></a>-->
-                        
-                        
                       </div>
                     </div>
                     <div class="card-body pt-0 p-3 text-center">
@@ -535,13 +528,12 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                   </div>
                 </div>
-                    <!--mt-md-0 mt-4-->
-                <div class="col-md-4 ">
+
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                      <a href="../Inventario/INV_Inventario_por_Ejecutivo.jsp" >
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
                       <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                        <!--<i class="fab fa-calendar-alt opacity-10"></i>-->
                        <i class="fa fa-users  opacity-10"></i>
                       </div>
                     </div>
@@ -554,13 +546,12 @@ String compania = (String) session.getAttribute("compania");
                   </div>
                          </a>
                 </div>
-                    
-                    <div class="col-md-4 ">
+
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                      <a href="../Inventario/INV_Equipos_Asignados.jsp" >
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
                       <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                        <!--<i class="fab fa-calendar-alt opacity-10"></i>-->
                        <i class="fa fa-users  opacity-10"></i>
                       </div>
                     </div>
@@ -574,7 +565,7 @@ String compania = (String) session.getAttribute("compania");
                          </a>
                 </div>
 
-                    <div class="col-md-4 mt-md-4">
+                <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                      <a href="../Inventario/INV_Perifericos.jsp" >
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
