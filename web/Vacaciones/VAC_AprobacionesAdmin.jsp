@@ -178,7 +178,8 @@
                                             if (cn != null) {
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
-                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, j.NOMBRE||' '||j.APELLIDOS, s.ANTICIPADA " +
+                                                        "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, j.NOMBRE||' '||j.APELLIDOS, s.ANTICIPADA, " +
+                                                        "NVL(s.DIAS_HABILES_SOLICITADOS,0) " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_USUARIO_APRUEBA_JEFE = j.IDUSUARIO " +
                                                         "WHERE s.ESTADO = 'PENDIENTE_ADMIN' ORDER BY s.FECHA_APROBACION_JEFE ASC")) {
@@ -188,8 +189,9 @@
                                                             hay = true;
                                                             String idSol = rs.getString(1);
                                                             String solicitante = rs.getString(2);
-                                                            int diasSol = rs.getInt(5);
+                                                            double diasSol = rs.getDouble(5);
                                                             boolean esAnticipada = "S".equals(rs.getString(7));
+                                                            int diasHabSol = rs.getInt(8);
                                                     %>
                                                     <tr>
                                                         <td>
@@ -201,7 +203,10 @@
                                                         </td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(4)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=diasSol%></p></td>
+                                                        <td class="text-center">
+                                                            <p class="text-xs font-weight-bold mb-0"><%=diasHabSol%> h&aacute;biles</p>
+                                                            <p class="text-xxs text-muted mb-0"><%=String.format(java.util.Locale.US,"%.2f",diasSol)%> d&iacute;as descontar</p>
+                                                        </td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(6)%></p></td>
                                                         <td class="text-center">
                                                             <div class="d-flex justify-content-center gap-1">
@@ -209,7 +214,7 @@
                                                                     <i class="fa fa-print"></i>
                                                                 </a>
                                                                 <button type="button" class="btn btn-xs btn-outline-success py-1 btn-aprobar-admin"
-                                                                        data-id="<%=idSol%>" data-nombre="<%=solicitante%>" data-dias="<%=diasSol%>">
+                                                                        data-id="<%=idSol%>" data-nombre="<%=solicitante%>" data-habiles="<%=diasHabSol%>">
                                                                     <i class="fa fa-check"></i> Aprobar
                                                                 </button>
                                                                 <button type="button" class="btn btn-xs btn-outline-danger py-1 btn-rechazar-admin"
@@ -305,7 +310,7 @@
                                                         <td><p class="text-xs mb-0"><%=rsAll.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rsAll.getString(4)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rsAll.getString(5)%></p></td>
-                                                        <td class="text-center"><p class="text-xs mb-0"><%=rsAll.getInt(6)%></p></td>
+                                                        <td class="text-center"><p class="text-xs mb-0"><%=String.format(java.util.Locale.US,"%.2f",rsAll.getDouble(6))%></p></td>
                                                         <td class="text-center"><span class="badge badge-sm <%=badgeClaseAll%>"><%=badgeTextoAll%></span></td>
                                                         <td class="text-center">
                                                             <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=idSolAll%>" target="_blank">
@@ -377,7 +382,7 @@
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=rs3.getString(2)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs3.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs3.getString(4)%></p></td>
-                                                        <td class="text-center"><p class="text-xs mb-0"><%=aprobado3 ? String.valueOf(rs3.getInt(5)) : "-"%></p></td>
+                                                        <td class="text-center"><p class="text-xs mb-0"><%=aprobado3 ? String.format(java.util.Locale.US,"%.2f",rs3.getDouble(5)) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs3.getString(6)%></p></td>
                                                         <td class="text-center">
                                                             <% if (aprobado3) { %>
@@ -431,10 +436,15 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-sm mb-3">Solicitante: <strong id="aprobarNombreSolicitante"></strong></p>
-                    <div class="form-group mb-3">
-                        <label>Dias a aprobar</label>
-                        <input type="number" min="1" name="diasAprobados" id="aprobarDiasAprobados" class="form-control" required>
-                        <small class="text-muted">Por defecto, los mismos dias solicitados.</small>
+                    <div class="form-group mb-2">
+                        <label>D&iacute;as h&aacute;biles a aprobar (L-V)</label>
+                        <input type="number" min="1" step="1" name="diasHabilesAprobados" id="aprobarDiasHabilesAprobados" class="form-control" required>
+                        <small class="text-muted">Por defecto, los mismos d&iacute;as h&aacute;biles solicitados.</small>
+                    </div>
+                    <div class="alert alert-info py-2 mb-3" style="font-size:0.8rem;">
+                        <i class="fa fa-info-circle me-1"></i>
+                        Se descontar&aacute;n del saldo del empleado <strong id="aprobarEquivalente">-.-- d&iacute;as</strong>
+                        (h&aacute;biles &times; factor 1.3636 seg&uacute;n Art. 69 del C&oacute;digo del Trabajo).
                     </div>
                     <div class="form-group mb-0">
                         <label>Comentario (opcional)</label>
@@ -484,15 +494,30 @@
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 <script src="../assets/js/custom-sidenav-toggle.js"></script>
 <script>
+    // Factor de proporcionalidad para vacaciones fraccionadas
+    //   15 dias calendario / 11 dias habiles = 1.3636
+    // Ver docs/migracion/vac_dias_decimal.sql y VAC_CalculoDias.
+    var FACTOR_VAC = 15 / 11;
+    function equivalenteVAC(habiles){
+        return (Math.round(habiles * FACTOR_VAC * 100) / 100).toFixed(2);
+    }
+    function refrescarEquivalenteAprobar(){
+        var h = parseInt(document.getElementById('aprobarDiasHabilesAprobados').value, 10);
+        var txt = isNaN(h) || h <= 0 ? '-.-- dias' : equivalenteVAC(h) + ' dias';
+        document.getElementById('aprobarEquivalente').textContent = txt;
+    }
     document.querySelectorAll('.btn-aprobar-admin').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('aprobarIdSolicitud').value = this.getAttribute('data-id');
             document.getElementById('aprobarNombreSolicitante').textContent = this.getAttribute('data-nombre');
-            document.getElementById('aprobarDiasAprobados').value = this.getAttribute('data-dias');
-            document.getElementById('aprobarDiasAprobados').max = this.getAttribute('data-dias');
+            var habiles = this.getAttribute('data-habiles');
+            document.getElementById('aprobarDiasHabilesAprobados').value = habiles;
+            document.getElementById('aprobarDiasHabilesAprobados').max = habiles;
+            refrescarEquivalenteAprobar();
             new bootstrap.Modal(document.getElementById('modalAprobar')).show();
         });
     });
+    document.getElementById('aprobarDiasHabilesAprobados').addEventListener('input', refrescarEquivalenteAprobar);
     document.querySelectorAll('.btn-rechazar-admin').forEach(function (btn) {
         btn.addEventListener('click', function () {
             document.getElementById('rechazarAdminIdSolicitud').value = this.getAttribute('data-id');

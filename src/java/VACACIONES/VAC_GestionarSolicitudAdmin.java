@@ -44,7 +44,10 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
         String idSolicitud = request.getParameter("idSolicitud");
         String accion = request.getParameter("accion"); // APROBAR / RECHAZAR
         String comentario = request.getParameter("comentario");
-        String pDiasAprobados = request.getParameter("diasAprobados");
+        // Administracion ajusta DIAS HABILES aprobados (unidad natural
+        // para pensar "le doy 3 dias de vacaciones", no 4.09). Con el
+        // factor se calcula el equivalente que se guarda en DIAS_APROBADOS.
+        String pDiasHabilesAprobados = request.getParameter("diasHabilesAprobados");
 
         if (idSolicitud == null || accion == null
                 || (!"APROBAR".equals(accion) && !"RECHAZAR".equals(accion))) {
@@ -62,14 +65,14 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
             String estadoActual = null;
-            int diasSolicitados = 0;
+            int diasHabilesSolicitados = 0;
             try (PreparedStatement st = cn.prepareStatement(
-                    "SELECT ESTADO, DIAS_SOLICITADOS FROM VAC_SOLICITUD WHERE ID_SOLICITUD = ?")) {
+                    "SELECT ESTADO, NVL(DIAS_HABILES_SOLICITADOS,0) FROM VAC_SOLICITUD WHERE ID_SOLICITUD = ?")) {
                 st.setString(1, idSolicitud);
                 try (ResultSet rs = st.executeQuery()) {
                     if (rs.next()) {
                         estadoActual = rs.getString(1);
-                        diasSolicitados = rs.getInt(2);
+                        diasHabilesSolicitados = rs.getInt(2);
                     }
                 }
             }
@@ -93,26 +96,32 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
                 return;
             }
 
-            // APROBAR: por defecto se aprueban los mismos dias solicitados,
-            // pero Administracion puede ajustar el numero.
-            int diasAprobados = diasSolicitados;
+            // APROBAR: por defecto se aprueban los mismos DIAS HABILES
+            // solicitados, pero Administracion puede recortar el numero
+            // (nunca aumentarlo -- si quisiera dar mas, el empleado tiene
+            // que hacer otra solicitud). Se guarda tanto DIAS_HABILES_APROBADOS
+            // como su equivalente en DIAS_APROBADOS (habiles x 1.3636).
+            int diasHabilesAprobados = diasHabilesSolicitados;
             try {
-                if (pDiasAprobados != null && !pDiasAprobados.trim().isEmpty()) {
-                    diasAprobados = Integer.parseInt(pDiasAprobados.trim());
+                if (pDiasHabilesAprobados != null && !pDiasHabilesAprobados.trim().isEmpty()) {
+                    diasHabilesAprobados = Integer.parseInt(pDiasHabilesAprobados.trim());
                 }
             } catch (Exception ignore) {}
-            if (diasAprobados <= 0 || diasAprobados > diasSolicitados) {
-                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Los dias aprobados deben ser mayores a 0 y no superar los solicitados (" + diasSolicitados + ")");
+            if (diasHabilesAprobados <= 0 || diasHabilesAprobados > diasHabilesSolicitados) {
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Los dias habiles aprobados deben ser mayores a 0 y no superar los solicitados (" + diasHabilesSolicitados + ")");
                 return;
             }
+            java.math.BigDecimal diasAprobadosEq = VAC_CalculoDias.equivalentes(diasHabilesAprobados);
 
             try (PreparedStatement st = cn.prepareStatement(
                     "UPDATE VAC_SOLICITUD SET ESTADO = 'APROBADO', ID_USUARIO_APRUEBA_ADMIN = ?, " +
-                    "FECHA_APROBACION_ADMIN = SYSDATE, DIAS_APROBADOS = ?, COMENTARIO_ADMIN = ? WHERE ID_SOLICITUD = ?")) {
+                    "FECHA_APROBACION_ADMIN = SYSDATE, DIAS_APROBADOS = ?, DIAS_HABILES_APROBADOS = ?, " +
+                    "COMENTARIO_ADMIN = ? WHERE ID_SOLICITUD = ?")) {
                 st.setInt(1, miId);
-                st.setInt(2, diasAprobados);
-                st.setString(3, comentario);
-                st.setString(4, idSolicitud);
+                st.setBigDecimal(2, diasAprobadosEq);
+                st.setInt(3, diasHabilesAprobados);
+                st.setString(4, comentario);
+                st.setString(5, idSolicitud);
                 st.executeUpdate();
             }
 

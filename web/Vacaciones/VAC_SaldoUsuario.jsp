@@ -4,6 +4,9 @@
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.util.List"%>
 <%@page import="VACACIONES.VAC_CalculoSaldo"%>
+<%!
+    private static String fmt2(double v) { return String.format(java.util.Locale.US, "%.2f", v); }
+%>
 <%
     String cargo     = (String) session.getAttribute("cargo");
     String nombre    = (String) session.getAttribute("nombre");
@@ -188,7 +191,7 @@
                 <div class="card bg-gradient-success">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold text-white">Total disponible</p>
-                        <h4 class="mb-0 text-white"><%=saldo.totalDisponible%> dias</h4>
+                        <h4 class="mb-0 text-white"><%=fmt2(saldo.totalDisponible)%> dias</h4>
                         <p class="text-xs text-white mb-0"><%=saldo.periodos.size()%> periodo(s) cumplido(s)</p>
                     </div>
                 </div>
@@ -239,9 +242,9 @@
                                         <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.desde)%></p></td>
                                         <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.hasta)%></p></td>
                                         <td class="text-center"><p class="text-xs mb-0"><%=p.diasAcumulados%></p></td>
-                                        <td class="text-center"><p class="text-xs mb-0"><%=p.diasConsumidos%></p></td>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=fmt2(p.diasConsumidos)%></p></td>
                                         <td class="text-center">
-                                            <span class="badge badge-sm <%=p.diasDisponibles > 0 ? "bg-gradient-success" : "bg-gradient-secondary"%>"><%=p.diasDisponibles%></span>
+                                            <span class="badge badge-sm <%=p.diasDisponibles > 0 ? "bg-gradient-success" : "bg-gradient-secondary"%>"><%=fmt2(p.diasDisponibles)%></span>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -292,7 +295,7 @@
                                                     %>
                                                     <tr>
                                                         <td class="text-center"><p class="text-xs mb-0"><%=rs2.getString(2)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs2.getString(3)%></p></td>
+                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(rs2.getDouble(3))%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(4) != null ? rs2.getString(4) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(5) != null ? rs2.getString(5) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=obs != null ? obs : "-"%></p></td>
@@ -359,7 +362,7 @@
                     </div>
                     <div class="form-group mb-3">
                         <label>Dias gozados en ese periodo</label>
-                        <input type="number" min="1" max="30" step="1" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
+                        <input type="number" min="0.01" max="30" step="0.01" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
                         <small class="text-muted">El periodo 1-5 acumula 15 dias; desde el 6to año se suma 1 dia extra por año, hasta 30.</small>
                     </div>
                     <div class="row">

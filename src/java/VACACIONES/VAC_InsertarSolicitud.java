@@ -12,9 +12,9 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 // Registra una solicitud de vacaciones del propio usuario. Queda en
 // PENDIENTE_JEFE -- la aprobacion de jefe directo / Administracion /
@@ -88,7 +88,18 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             return;
         }
 
-        int diasSolicitados = (int) (ChronoUnit.DAYS.between(desde, hasta) + 1);
+        // Se cuentan los dias HABILES (L-V) dentro del rango pedido y se
+        // les aplica el factor de proporcionalidad 15/11 = 1.3636. Ese
+        // valor con dos decimales es lo que efectivamente se descuenta
+        // del saldo del periodo -- ver VAC_CalculoDias y el documento
+        // fuente del ministerio.
+        int diasHabiles = VAC_CalculoDias.contarDiasHabiles(desde, hasta);
+        if (diasHabiles == 0) {
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=El rango no contiene dias habiles (lunes a viernes)");
+            return;
+        }
+        BigDecimal diasEquivalentesBD = VAC_CalculoDias.equivalentes(diasHabiles);
+        double diasEquivalentes = diasEquivalentesBD.doubleValue();
         LocalDate reincorporacion = hasta.plusDays(1);
 
         Connection cn = null;
@@ -151,22 +162,24 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes fecha de ingreso configurada, contacta a Talento Humano");
                     return;
                 }
-                if (periodoAnticipo.diasDisponibles < diasSolicitados) {
+                if (periodoAnticipo.diasDisponibles + 0.005 < diasEquivalentes) {
                     cn.rollback();
-                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=El adelanto no puede superar los dias que ganarias en ese periodo (maximo: " + periodoAnticipo.diasDisponibles + " dias, solicitaste " + diasSolicitados + ")");
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=El adelanto no puede superar los dias que ganarias en ese periodo (maximo: " + String.format("%.2f", periodoAnticipo.diasDisponibles) + " dias equivalentes, solicitaste " + String.format("%.2f", diasEquivalentes) + " -- " + diasHabiles + " habil(es) x 1.3636)");
                     return;
                 }
                 periodoElegido = periodoAnticipo;
             } else {
                 VAC_CalculoSaldo.Saldo saldo = VAC_CalculoSaldo.calcular(cn, idUsuario);
-                int maxDisponibleUnPeriodo = 0;
+                double maxDisponibleUnPeriodo = 0.0;
                 for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
                     if (p.diasDisponibles > maxDisponibleUnPeriodo) maxDisponibleUnPeriodo = p.diasDisponibles;
-                    if (p.diasDisponibles >= diasSolicitados) { periodoElegido = p; break; }
+                    // + 0.005 de tolerancia para que 6.815 no rechace un
+                    // saldo de 6.82 por diferencia de redondeo.
+                    if (p.diasDisponibles + 0.005 >= diasEquivalentes) { periodoElegido = p; break; }
                 }
                 if (periodoElegido == null) {
                     cn.rollback();
-                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + maxDisponibleUnPeriodo + " dias, solicitaste " + diasSolicitados + "). Si es un adelanto acordado con Administracion, marca la casilla de solicitud anticipada.");
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + String.format("%.2f", maxDisponibleUnPeriodo) + " dias equivalentes, solicitaste " + String.format("%.2f", diasEquivalentes) + " -- " + diasHabiles + " habil(es) x 1.3636). Si es un adelanto acordado con Administracion, marca la casilla de solicitud anticipada.");
                     return;
                 }
             }
@@ -180,9 +193,10 @@ public class VAC_InsertarSolicitud extends HttpServlet {
 
             try (PreparedStatement st = cn.prepareStatement(
                     "INSERT INTO VAC_SOLICITUD (ID_SOLICITUD, ID_USUARIO, ID_JEFE_DIRECTO, NUM_PERIODO, " +
-                    "FECHA_DESDE, FECHA_HASTA, FECHA_REINCORPORACION, DIAS_SOLICITADOS, ESTADO, " +
+                    "FECHA_DESDE, FECHA_HASTA, FECHA_REINCORPORACION, DIAS_SOLICITADOS, " +
+                    "DIAS_HABILES_SOLICITADOS, FACTOR_PROPORCIONALIDAD, ESTADO, " +
                     "ANTICIPADA, JUSTIFICACION_ANTICIPO) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE', ?, ?)")) {
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE', ?, ?)")) {
                 st.setInt(1, idNuevo);
                 st.setInt(2, idUsuario);
                 st.setInt(3, idJefe);
@@ -190,9 +204,11 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                 st.setDate(5, Date.valueOf(desde));
                 st.setDate(6, Date.valueOf(hasta));
                 st.setDate(7, Date.valueOf(reincorporacion));
-                st.setInt(8, diasSolicitados);
-                st.setString(9, anticipada ? "S" : "N");
-                if (anticipada) st.setString(10, justificacionAnticipo.trim()); else st.setNull(10, java.sql.Types.VARCHAR);
+                st.setBigDecimal(8, diasEquivalentesBD);
+                st.setInt(9, diasHabiles);
+                st.setBigDecimal(10, VAC_CalculoDias.FACTOR_PROPORCIONALIDAD);
+                st.setString(11, anticipada ? "S" : "N");
+                if (anticipada) st.setString(12, justificacionAnticipo.trim()); else st.setNull(12, java.sql.Types.VARCHAR);
                 st.executeUpdate();
             }
 

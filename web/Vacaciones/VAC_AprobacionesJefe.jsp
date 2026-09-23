@@ -179,7 +179,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY'), " +
                                                         "TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, " +
-                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), s.ANTICIPADA " +
+                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), s.ANTICIPADA, NVL(s.DIAS_HABILES_SOLICITADOS,0) " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "WHERE s.ID_JEFE_DIRECTO = ? AND s.ESTADO = 'PENDIENTE_JEFE' " +
                                                         "ORDER BY s.FECHA_SOLICITUD ASC")) {
@@ -203,7 +203,10 @@
                                                         <td><p class="text-xs mb-0"><%=rs.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(4)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(5)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rs.getInt(6)%></p></td>
+                                                        <td class="text-center">
+                                                            <p class="text-xs font-weight-bold mb-0"><%=rs.getInt(9)%> h&aacute;biles</p>
+                                                            <p class="text-xxs text-muted mb-0"><%=String.format(java.util.Locale.US,"%.2f",rs.getDouble(6))%> a descontar</p>
+                                                        </td>
                                                         <td><p class="text-xs mb-0"><%=rs.getString(7)%></p></td>
                                                         <td class="text-center">
                                                             <div class="d-flex justify-content-center gap-1">

@@ -3,6 +3,10 @@
 <%@page import="java.sql.PreparedStatement"%>
 <%@page import="java.sql.ResultSet"%>
 <%@page import="VACACIONES.VAC_CalculoSaldo"%>
+<%!
+    // Formatea un double a "X.XX" para mostrar dias equivalentes.
+    private static String fmt2(double v) { return String.format(java.util.Locale.US, "%.2f", v); }
+%>
 <%
     String cargo     = (String) session.getAttribute("cargo");
     String nombre    = (String) session.getAttribute("nombre");
@@ -211,7 +215,7 @@
                 <div class="card bg-gradient-success">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold text-white">Dias disponibles</p>
-                        <h4 class="mb-0 text-white"><%=saldo.totalDisponible%> dias</h4>
+                        <h4 class="mb-0 text-white"><%=fmt2(saldo.totalDisponible)%> dias</h4>
                         <% if (saldo.periodos.isEmpty()) { %>
                         <p class="text-xs text-white mb-0">Aun no cumples 1 año de trabajo</p>
                         <% } else { %>
@@ -264,9 +268,9 @@
                                         <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.desde)%></p></td>
                                         <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(p.hasta)%></p></td>
                                         <td class="text-center"><p class="text-xs mb-0"><%=p.diasAcumulados%></p></td>
-                                        <td class="text-center"><p class="text-xs mb-0"><%=p.diasConsumidos%></p></td>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=fmt2(p.diasConsumidos)%></p></td>
                                         <td class="text-center">
-                                            <span class="badge badge-sm <%=p.diasDisponibles > 0 ? "bg-gradient-success" : "bg-gradient-secondary"%>"><%=p.diasDisponibles%></span>
+                                            <span class="badge badge-sm <%=p.diasDisponibles > 0 ? "bg-gradient-success" : "bg-gradient-secondary"%>"><%=fmt2(p.diasDisponibles)%></span>
                                         </td>
                                     </tr>
                                     <% } %>
@@ -326,7 +330,7 @@
                                                         <td><p class="text-xs mb-0"><%=rsSol.getString(2)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rsSol.getString(3)%></p></td>
                                                         <td><p class="text-xs mb-0"><%=rsSol.getString(4)%></p></td>
-                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=rsSol.getInt(5)%></p></td>
+                                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(rsSol.getDouble(5))%></p></td>
                                                         <td>
                                                             <div class="d-flex align-items-center gap-1 flex-wrap">
                                                                 <span class="badge badge-sm bg-gradient-success" title="Solicitante"><i class="fa fa-check"></i> Solicitante</span>
@@ -456,6 +460,19 @@
             return new Date(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2]));
         }
 
+        // Factor de proporcionalidad Art. 69 CT: 15 calendario / 11 habiles.
+        var FACTOR_VAC = 15 / 11;
+        function contarDiasHabiles(desde, hasta){
+            var n = 0;
+            var d = new Date(desde);
+            while (d <= hasta) {
+                var dow = d.getDay();     // 0=domingo, 6=sabado
+                if (dow !== 0 && dow !== 6) n++;
+                d.setDate(d.getDate() + 1);
+            }
+            return n;
+        }
+
         function revisar() {
             var desde = parseFecha(inputDesde.value);
             var hasta = parseFecha(inputHasta.value);
@@ -465,9 +482,16 @@
 
             if (!desde || !hasta || hasta < desde) return;
 
-            var dias = Math.round((hasta - desde) / (1000 * 60 * 60 * 24)) + 1;
+            var diasCal = Math.round((hasta - desde) / (1000 * 60 * 60 * 24)) + 1;
+            var diasHab = contarDiasHabiles(desde, hasta);
+            var equivalente = (Math.round(diasHab * FACTOR_VAC * 100) / 100).toFixed(2);
+
             resumen.style.display = '';
-            resumen.textContent = 'Dias solicitados: ' + dias + ' (calendario, incluye fines de semana)';
+            resumen.innerHTML =
+                'Periodo: <b>' + diasCal + '</b> dia(s) calendario &middot; ' +
+                '<b>' + diasHab + '</b> h&aacute;bil(es) (L-V)<br>' +
+                '<i class="fa fa-info-circle me-1"></i> Se te descontar&aacute;n <b>' + equivalente + '</b> d&iacute;as del saldo ' +
+                '(' + diasHab + ' &times; 1.3636, factor Art. 69 CT: 15 calendario = 11 h&aacute;biles)';
 
             var diaSemanaHasta = hasta.getDay(); // 0=domingo ... 5=viernes, 6=sabado
             if (diaSemanaHasta === 5 || diaSemanaHasta === 6) {

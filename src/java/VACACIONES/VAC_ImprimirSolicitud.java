@@ -49,7 +49,10 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
-            int idUsuarioSolicitud = -1, idJefeDirecto = -1, numPeriodo = -1, diasSolicitados = 0, diasAprobados = 0;
+            int idUsuarioSolicitud = -1, idJefeDirecto = -1, numPeriodo = -1;
+            double diasSolicitados = 0.0, diasAprobados = 0.0;
+            int diasHabilesSolicitados = 0, diasHabilesAprobados = 0;
+            double factorProp = 0.0;
             String nombreSolicitante = "", cargoSolicitante = "", departamentoSolicitante = "";
             String fechaSolicitud = "", fechaDesde = "", fechaHasta = "", fechaReincorporacion = "";
             String estado = "";
@@ -70,7 +73,9 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     "j.NOMBRE||' '||j.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_JEFE,'DD/MM/YYYY'), " +
                     "a.NOMBRE||' '||a.APELLIDOS, TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), " +
                     "vc.CEDULA, s.COMENTARIO_JEFE, s.COMENTARIO_ADMIN, vc.EMPRESA_IESS, " +
-                    "s.ANTICIPADA, s.JUSTIFICACION_ANTICIPO " +
+                    "s.ANTICIPADA, s.JUSTIFICACION_ANTICIPO, " +
+                    "NVL(s.DIAS_HABILES_SOLICITADOS,0), NVL(s.DIAS_HABILES_APROBADOS,0), " +
+                    "NVL(s.FACTOR_PROPORCIONALIDAD,0) " +
                     "FROM VAC_SOLICITUD s " +
                     "JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                     "LEFT JOIN ROL r ON u.IDROL = r.IDROL " +
@@ -88,8 +93,8 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     idUsuarioSolicitud = rs.getInt(1);
                     idJefeDirecto = rs.getInt(2);
                     numPeriodo = rs.getInt(3);
-                    diasSolicitados = rs.getInt(4);
-                    diasAprobados = rs.getInt(5);
+                    diasSolicitados = rs.getDouble(4);
+                    diasAprobados = rs.getDouble(5);
                     estado = rs.getString(6);
                     fechaSolicitud = rs.getString(7);
                     fechaDesde = rs.getString(8);
@@ -108,6 +113,9 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     empresaSolicitante = rs.getString(21);
                     anticipada = "S".equals(rs.getString(22));
                     justificacionAnticipo = rs.getString(23);
+                    diasHabilesSolicitados = rs.getInt(24);
+                    diasHabilesAprobados   = rs.getInt(25);
+                    factorProp             = rs.getDouble(26);
                 }
             }
 
@@ -120,7 +128,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
             // saldo "dias por gozar" actual de ese periodo, para el bloque
             // de aprobacion -- se recalcula en vivo, nunca se guarda estatico.
             String periodoDesde = "-", periodoHasta = "-";
-            int diasPorGozar = 0;
+            double diasPorGozar = 0.0;
             VAC_CalculoSaldo.Periodo periodoSolicitud = VAC_CalculoSaldo.obtenerPeriodo(cn, idUsuarioSolicitud, numPeriodo);
             if (periodoSolicitud != null) {
                 periodoDesde = new java.text.SimpleDateFormat("dd/MM/yyyy").format(periodoSolicitud.desde);
@@ -218,7 +226,11 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 out.println("<div class='col-md-4 campo'><label>Periodo de vacaciones - Hasta</label><div class='valor'>" + fechaHasta + "</div></div>");
                 out.println("<div class='col-md-4 campo'><label>Fecha de reincorporacion</label><div class='valor'>" + fechaReincorporacion + "</div></div>");
                 out.println("</div><div class='row'>");
-                out.println("<div class='col-md-6 campo'><label>Numero de dias que solicita</label><div class='valor'>" + diasSolicitados + " dias</div></div>");
+                String fmtEqSol = String.format(java.util.Locale.US, "%.2f", diasSolicitados);
+                String fmtFactor = String.format(java.util.Locale.US, "%.4f", factorProp > 0 ? factorProp : 15.0/11.0);
+                out.println("<div class='col-md-6 campo'><label>Dias solicitados</label><div class='valor'>"
+                        + diasHabilesSolicitados + " habil(es) &times; " + fmtFactor + " = <b>" + fmtEqSol + "</b> dias a descontar del saldo"
+                        + "</div><small class='text-muted' style='font-size:9pt;'>Factor Art. 69 CT: 15 calendario / 11 habiles</small></div>");
                 out.println("<div class='col-md-6 campo'><label>Periodo de vacaciones al que corresponde</label><div class='valor'>DEL " + periodoDesde + " - " + periodoHasta + "</div></div>");
                 out.println("</div>");
                 if (rechazadoJefe) {
@@ -259,8 +271,11 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                     out.println("<div class='campo'><label>Motivo del rechazo</label><div class='valor'>" + comentarioAdmin + "</div></div>");
                 }
                 out.println("<div class='row'>");
-                out.println("<div class='col-md-4 campo'><label>Numero de dias aprobados</label><div class='valor'>" + (aprobado ? diasAprobados + " dias" : "-") + "</div></div>");
-                out.println("<div class='col-md-4 campo'><label>Dias por gozar (saldo)</label><div class='valor'>" + (aprobado ? diasPorGozar + " dias" : "-") + "</div></div>");
+                String fmtEqApr = String.format(java.util.Locale.US, "%.2f", diasAprobados);
+                String fmtSaldo = String.format(java.util.Locale.US, "%.2f", diasPorGozar);
+                out.println("<div class='col-md-4 campo'><label>Dias aprobados</label><div class='valor'>"
+                        + (aprobado ? diasHabilesAprobados + " habil(es) = <b>" + fmtEqApr + "</b> descontados" : "-") + "</div></div>");
+                out.println("<div class='col-md-4 campo'><label>Dias por gozar (saldo)</label><div class='valor'>" + (aprobado ? fmtSaldo + " dias" : "-") + "</div></div>");
                 out.println("<div class='col-md-4 campo'><label>Fecha de aprobacion</label><div class='valor'>" + (fechaAprobacionAdmin != null ? fechaAprobacionAdmin : "-") + "</div></div>");
                 out.println("</div>");
                 out.println("<div class='firma-section text-center'>");

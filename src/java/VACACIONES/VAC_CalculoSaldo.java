@@ -27,23 +27,27 @@ import java.util.List;
 // reservados desde que se solicitan, no solo cuando ya se aprobaron,
 // para que dos solicitudes del mismo periodo no puedan pisarse entre
 // si mientras la primera sigue en tramite.
+//
+// Los conteos se manejan con dos decimales -- factor de
+// proporcionalidad 1.3636 (VAC_CalculoDias) -- para reflejar
+// solicitudes fraccionadas como "1.36" o "6.82" dias descontados.
 public class VAC_CalculoSaldo {
 
     public static class Periodo {
-        public int numero;
-        public Date desde;
-        public Date hasta;
-        public int diasAcumulados;
-        public int diasConsumidos;
-        public int diasDisponibles;
+        public int    numero;
+        public Date   desde;
+        public Date   hasta;
+        public int    diasAcumulados;
+        public double diasConsumidos;
+        public double diasDisponibles;
     }
 
     public static class Saldo {
-        public Date fechaIngreso;
-        public boolean configurado;
-        public double antiguedadAnios;
+        public Date          fechaIngreso;
+        public boolean       configurado;
+        public double        antiguedadAnios;
         public List<Periodo> periodos = new ArrayList<>();
-        public int totalDisponible;
+        public double        totalDisponible;
     }
 
     // IMPORTANTE: Codigo del Trabajo Ecuador, Art. 69 -- 15 dias por año;
@@ -53,6 +57,12 @@ public class VAC_CalculoSaldo {
     // supera los cinco años), sin superar los 30 dias totales.
     private static int diasAcumuladosPorPeriodo(int numero) {
         return numero <= 5 ? 15 : Math.min(30, 15 + (numero - 5));
+    }
+
+    // Redondea a 2 decimales para que los totales del UI no arrastren
+    // errores de suma binaria de double (0.1 + 0.2 = 0.30000000000004).
+    private static double redondear2(double v) {
+        return Math.round(v * 100.0) / 100.0;
     }
 
     // Arma un periodo (acumulados, consumidos, disponibles) para
@@ -66,17 +76,17 @@ public class VAC_CalculoSaldo {
         p.hasta = Date.valueOf(ingreso.plusYears(numero).minusDays(1));
         p.diasAcumulados = diasAcumuladosPorPeriodo(numero);
 
-        int diasHistoricos = 0;
+        double diasHistoricos = 0;
         try (PreparedStatement st = cn.prepareStatement(
                 "SELECT NVL(SUM(DIAS_GOZADOS),0) FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? AND NUM_PERIODO = ?")) {
             st.setInt(1, idUsuario);
             st.setInt(2, numero);
             try (ResultSet rs = st.executeQuery()) {
-                if (rs.next()) diasHistoricos = rs.getInt(1);
+                if (rs.next()) diasHistoricos = rs.getDouble(1);
             }
         }
 
-        int diasSolicitudes = 0;
+        double diasSolicitudes = 0;
         try (PreparedStatement st = cn.prepareStatement(
                 "SELECT NVL(SUM(CASE WHEN ESTADO IN ('APROBADO','RECIBIDO') THEN NVL(DIAS_APROBADOS,DIAS_SOLICITADOS) " +
                 "ELSE DIAS_SOLICITADOS END),0) FROM VAC_SOLICITUD " +
@@ -85,12 +95,12 @@ public class VAC_CalculoSaldo {
             st.setInt(1, idUsuario);
             st.setInt(2, numero);
             try (ResultSet rs = st.executeQuery()) {
-                if (rs.next()) diasSolicitudes = rs.getInt(1);
+                if (rs.next()) diasSolicitudes = rs.getDouble(1);
             }
         }
 
-        p.diasConsumidos = diasHistoricos + diasSolicitudes;
-        p.diasDisponibles = Math.max(0, p.diasAcumulados - p.diasConsumidos);
+        p.diasConsumidos  = redondear2(diasHistoricos + diasSolicitudes);
+        p.diasDisponibles = redondear2(Math.max(0.0, p.diasAcumulados - p.diasConsumidos));
         return p;
     }
 
@@ -119,16 +129,18 @@ public class VAC_CalculoSaldo {
         saldo.antiguedadAnios = ChronoUnit.DAYS.between(ingreso, hoy) / 365.25;
 
         int numero = 1;
+        double acumDisp = 0.0;
         while (true) {
             LocalDate cumpleAnio = ingreso.plusYears(numero); // dia en que el periodo queda disponible
             if (cumpleAnio.isAfter(hoy)) break; // periodo aun no cumplido, no acumula todavia
 
             Periodo p = construirPeriodo(cn, idUsuario, ingreso, numero);
             saldo.periodos.add(p);
-            saldo.totalDisponible += p.diasDisponibles;
+            acumDisp += p.diasDisponibles;
 
             numero++;
         }
+        saldo.totalDisponible = redondear2(acumDisp);
 
         return saldo;
     }

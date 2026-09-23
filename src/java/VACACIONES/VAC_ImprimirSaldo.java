@@ -84,9 +84,10 @@ public class VAC_ImprimirSaldo extends HttpServlet {
                 try (ResultSet rs = st.executeQuery()) {
                     while (rs.next()) {
                         totalAjustes++;
+                        String diasGozadosFmt = String.format(java.util.Locale.US, "%.2f", rs.getDouble(2));
                         filasAjustes.append("<tr>")
                                 .append("<td class='text-center'>").append(rs.getString(1)).append("</td>")
-                                .append("<td class='text-center'>").append(rs.getString(2)).append("</td>")
+                                .append("<td class='text-center'>").append(diasGozadosFmt).append("</td>")
                                 .append("<td>").append(rs.getString(3) != null ? rs.getString(3) : "-").append("</td>")
                                 .append("<td>").append(rs.getString(4) != null ? rs.getString(4) : "-").append("</td>")
                                 .append("<td>").append(esc(rs.getString(5))).append("</td>")
@@ -141,7 +142,7 @@ public class VAC_ImprimirSaldo extends HttpServlet {
                 if (saldo.configurado) {
                     out.println("<div class='col-4 campo'><label>Fecha de ingreso</label><div class='valor'>" + new SimpleDateFormat("dd/MM/yyyy").format(saldo.fechaIngreso) + "</div></div>");
                     out.println("<div class='col-4 campo'><label>Antiguedad</label><div class='valor'>" + String.format("%.1f años", saldo.antiguedadAnios) + "</div></div>");
-                    out.println("<div class='col-4 campo'><label>Dias disponibles hoy</label><div class='valor'>" + saldo.totalDisponible + " dias</div></div>");
+                    out.println("<div class='col-4 campo'><label>Dias disponibles hoy</label><div class='valor'>" + String.format(java.util.Locale.US, "%.2f", saldo.totalDisponible) + " dias</div></div>");
                 }
                 out.println("</div>");
 
@@ -154,8 +155,9 @@ public class VAC_ImprimirSaldo extends HttpServlet {
                     SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy");
                     for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
                         out.println("<tr><td class='text-center'>" + p.numero + "</td><td>" + fmt.format(p.desde) + "</td><td>" + fmt.format(p.hasta) +
-                                "</td><td class='text-center'>" + p.diasAcumulados + "</td><td class='text-center'>" + p.diasConsumidos +
-                                "</td><td class='text-center'>" + p.diasDisponibles + "</td></tr>");
+                                "</td><td class='text-center'>" + p.diasAcumulados +
+                                "</td><td class='text-center'>" + String.format(java.util.Locale.US, "%.2f", p.diasConsumidos) +
+                                "</td><td class='text-center'>" + String.format(java.util.Locale.US, "%.2f", p.diasDisponibles) + "</td></tr>");
                     }
                 }
                 out.println("</tbody></table>");
