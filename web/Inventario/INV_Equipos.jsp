@@ -940,8 +940,8 @@ String compania = (String) session.getAttribute("compania");
                 <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
                   <div class="card btn mb-0" data-bs-toggle="modal" data-bs-target="#exampleModalSignUp">
                     <div class="card-header mx-4 p-3 text-center">
-                      <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                          <i class="fa fa-cog opacity-10"></i>
+                      <div class="icon icon-shape icon-lg bg-gradient-success shadow text-center border-radius-lg">
+                          <i class="fas fa-plus text-white" style="font-size:1.5rem;line-height:2.5rem;"></i>
                       </div>
                     </div>
                     <div class="card-body pt-0 p-3 text-center">
@@ -958,7 +958,7 @@ String compania = (String) session.getAttribute("compania");
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
                       <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                       <i class="fa fa-users  opacity-10"></i>
+                       <i class="fas fa-list-ul text-white" style="font-size:1.5rem;line-height:2.5rem;"></i>
                       </div>
                     </div>
                     <div class="card-body pt-0 p-3 text-center">
@@ -975,8 +975,8 @@ String compania = (String) session.getAttribute("compania");
                      <a href="../Inventario/INV_Equipos_Asignados.jsp" >
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
-                      <div class="icon icon-shape icon-lg bg-gradient-primary shadow text-center border-radius-lg">
-                       <i class="fa fa-users  opacity-10"></i>
+                      <div class="icon icon-shape icon-lg bg-gradient-warning shadow text-center border-radius-lg">
+                       <i class="fas fa-user-check text-white" style="font-size:1.5rem;line-height:2.5rem;"></i>
                       </div>
                     </div>
                     <div class="card-body pt-0 p-3 text-center">
@@ -994,7 +994,7 @@ String compania = (String) session.getAttribute("compania");
                   <div class="card">
                     <div class="card-header mx-4 p-3 text-center">
                       <div class="icon icon-shape icon-lg bg-gradient-info shadow text-center border-radius-lg">
-                       <i class="fa fa-keyboard-o opacity-10"></i>
+                       <i class="fas fa-keyboard text-white" style="font-size:1.5rem;line-height:2.5rem;"></i>
                       </div>
                     </div>
                     <div class="card-body pt-0 p-3 text-center">
