@@ -13,7 +13,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 
 // Registra una solicitud de vacaciones del propio usuario. Queda en
@@ -73,20 +72,14 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             return;
         }
 
-        // IMPORTANTE: si el regreso (fecha hasta) cae viernes o sabado, el
-        // fin de semana queda "gratis" fuera del descuento -- se obliga a
-        // extender hasta el domingo. Confirmado por el usuario para
-        // viernes; se aplica el mismo criterio a sabado por el mismo
-        // motivo (dejaria el domingo suelto).
-        DayOfWeek diaHasta = hasta.getDayOfWeek();
-        if (diaHasta == DayOfWeek.FRIDAY || diaHasta == DayOfWeek.SATURDAY) {
-            LocalDate domingoSugerido = hasta.with(java.time.temporal.TemporalAdjusters.next(DayOfWeek.SUNDAY));
-            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error="
-                    + "No puedes terminar el periodo en " + (diaHasta == DayOfWeek.FRIDAY ? "viernes" : "sabado")
-                    + ": debes incluir el fin de semana completo. Extiende la fecha hasta al domingo "
-                    + domingoSugerido.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            return;
-        }
+        // NOTA: antes se bloqueaba terminar en viernes o sabado porque bajo
+        // el conteo de dias calendario el fin de semana quedaba "gratis"
+        // (te ibas 3 dias reales pero solo se te descontaba 1). Con el
+        // factor de proporcionalidad 1.3636 esa evasion ya no existe --
+        // cada dia habil paga su parte proporcional del sabado y domingo:
+        // 11 viernes al año = 15.00 dias, el maximo del periodo. Por eso
+        // la restriccion se elimina y el empleado puede tomarse solo un
+        // viernes sin obligarse a incluir el fin de semana.
 
         // Se cuentan los dias HABILES (L-V) dentro del rango pedido y se
         // les aplica el factor de proporcionalidad 15/11 = 1.3636. Ese

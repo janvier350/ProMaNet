@@ -405,11 +405,6 @@
                         </div>
                     </div>
                     <div id="solResumen" class="alert alert-secondary py-2 px-3 mb-2" style="display:none;"></div>
-                    <div id="solAvisoFinde" class="alert alert-warning py-2 px-3 mb-0" style="display:none;">
-                        <i class="fa fa-exclamation-triangle me-1"></i>
-                        El regreso no puede caer viernes ni sabado: debes incluir el fin de semana completo.
-                        Ajusta la fecha hasta a un domingo o posterior.
-                    </div>
                     <div class="form-check mt-3">
                         <input class="form-check-input" type="checkbox" name="anticipada" id="solAnticipada" value="on">
                         <label class="form-check-label text-sm" for="solAnticipada">
@@ -441,7 +436,6 @@
         var inputDesde = document.getElementById('solFechaDesde');
         var inputHasta = document.getElementById('solFechaHasta');
         var resumen = document.getElementById('solResumen');
-        var avisoFinde = document.getElementById('solAvisoFinde');
         var btnEnviar = document.getElementById('btnEnviarSolicitud');
         var chkAnticipada = document.getElementById('solAnticipada');
         var justificacionWrap = document.getElementById('solJustificacionWrap');
@@ -477,7 +471,6 @@
             var desde = parseFecha(inputDesde.value);
             var hasta = parseFecha(inputHasta.value);
             resumen.style.display = 'none';
-            avisoFinde.style.display = 'none';
             btnEnviar.disabled = false;
 
             if (!desde || !hasta || hasta < desde) return;
@@ -487,17 +480,19 @@
             var equivalente = (Math.round(diasHab * FACTOR_VAC * 100) / 100).toFixed(2);
 
             resumen.style.display = '';
+            if (diasHab === 0) {
+                resumen.innerHTML =
+                    '<i class="fa fa-exclamation-triangle me-1"></i> ' +
+                    'El rango no contiene d&iacute;as h&aacute;biles (L-V). ' +
+                    'Elige al menos un d&iacute;a laborable.';
+                btnEnviar.disabled = true;
+                return;
+            }
             resumen.innerHTML =
                 'Periodo: <b>' + diasCal + '</b> dia(s) calendario &middot; ' +
                 '<b>' + diasHab + '</b> h&aacute;bil(es) (L-V)<br>' +
                 '<i class="fa fa-info-circle me-1"></i> Se te descontar&aacute;n <b>' + equivalente + '</b> d&iacute;as del saldo ' +
                 '(' + diasHab + ' &times; 1.3636, factor Art. 69 CT: 15 calendario = 11 h&aacute;biles)';
-
-            var diaSemanaHasta = hasta.getDay(); // 0=domingo ... 5=viernes, 6=sabado
-            if (diaSemanaHasta === 5 || diaSemanaHasta === 6) {
-                avisoFinde.style.display = '';
-                btnEnviar.disabled = true;
-            }
         }
 
         inputDesde.addEventListener('change', revisar);
