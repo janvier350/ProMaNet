@@ -6,7 +6,7 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
-<%@page contentType="text/html" 
+<%@page contentType="text/html"
         import=" java.util.Date"
 %>
 <%@page import="java.sql.ResultSet"%>
@@ -14,6 +14,17 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import=" java.util.Date" %>
+<%@page import="java.net.URLEncoder"%>
+<%!
+    // URL-encode defensivo para armar links: el texto del soporte es
+    // libre y puede traer %, &, #, +, acentos, etc. -- sin encodear,
+    // "iva 15%" rompe la URL con InvalidParameterException y Tomcat
+    // responde 400 (The hexadecimal encoding is invalid).
+    private static String urlEnc(String s) {
+        if (s == null) return "";
+        try { return URLEncoder.encode(s, "UTF-8"); } catch (Exception e) { return ""; }
+    }
+%>
 <!DOCTYPE html>
 <%
 String compania = (String) session.getAttribute("compania");
@@ -447,7 +458,7 @@ String compania = (String) session.getAttribute("compania");
                          </td>-->
                   <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                       <td class="align-middle">
-                        <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= rsa.getString(8)%>&fecha=<%= rsa.getString(1)%>&soporte=<%= rsa.getString(5)%>&prioridad=<%= rsa.getString(6)%>&estado=<%= rsa.getString(7)%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
+                        <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= urlEnc(rsa.getString(8))%>&fecha=<%= urlEnc(rsa.getString(1))%>&soporte=<%= urlEnc(rsa.getString(5))%>&prioridad=<%= urlEnc(rsa.getString(6))%>&estado=<%= urlEnc(rsa.getString(7))%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
                       </td>
                       <%}%>
 <!--                      <td class="align-middle">

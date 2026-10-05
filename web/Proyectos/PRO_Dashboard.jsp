@@ -13,6 +13,16 @@
 <%@page import="java.sql.Connection"%>
 <%@page import="java.sql.DriverManager"%>
 <%@page import=" java.util.Date" %>
+<%@page import="java.net.URLEncoder"%>
+<%!
+    // URL-encode defensivo para armar links a SOP_EditarSolicitudes:
+    // el texto del soporte es libre y puede traer %, &, #, +, etc.
+    // Sin encodear, "iva 15%" rompe la URL con InvalidParameterException.
+    private static String urlEnc(String s) {
+        if (s == null) return "";
+        try { return URLEncoder.encode(s, "UTF-8"); } catch (Exception e) { return ""; }
+    }
+%>
 <!DOCTYPE html>
 <%
 String compania = (String) session.getAttribute("compania");
@@ -1278,7 +1288,7 @@ String compania = (String) session.getAttribute("compania");
                                                     </div>
                                                 </td>
                                                 <td class="align-middle">
-                                                    <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= rs4.getString(8)%>&fecha=<%= rs4.getString(1)%>&soporte=<%= rs4.getString(5)%>&prioridad=<%= rs4.getString(6)%>&estado=<%= rs4.getString(7)%>&apellidosUsuario=<%= rs4.getString(9)%>&nombresUsuario=<%= rs4.getString(10)%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
+                                                    <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= urlEnc(rs4.getString(8))%>&fecha=<%= urlEnc(rs4.getString(1))%>&soporte=<%= urlEnc(rs4.getString(5))%>&prioridad=<%= urlEnc(rs4.getString(6))%>&estado=<%= urlEnc(rs4.getString(7))%>&apellidosUsuario=<%= urlEnc(rs4.getString(9))%>&nombresUsuario=<%= urlEnc(rs4.getString(10))%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
                                                 </td>
                                             </tr>
 
