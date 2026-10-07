@@ -15,7 +15,11 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR"))) {
+    // Antes: cargo.equals("ADMINISTRACION") || cargo.equals("ADMINISTRADOR")
+    // -- hardcode legacy que dejaba fuera a cualquier otro cargo aunque
+    // tuviera permiso real. Se alinea con INV_Ingreso_Suministro2.jsp:21,
+    // que ya usa el permiso INVENTARIO_INGRESOS.
+    if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 

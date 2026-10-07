@@ -21,6 +21,35 @@
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
     private static String escAttr(String s) { return esc(s); }
+
+    // Convierte un User-Agent crudo en algo corto y util: "Windows 10 / Chrome"
+    // o "Android / Chrome Mobile", etc. Usa pattern-matching simple -- no
+    // pretende cubrir todos los casos, solo los mas comunes para la vista.
+    // El User-Agent crudo queda igual guardado en BD por si se necesita.
+    private static String resumirUserAgent(String ua) {
+        if (ua == null || ua.isEmpty()) return "-";
+        String so, br;
+        // OS
+        if (ua.contains("Windows NT 10"))      so = "Windows 10/11";
+        else if (ua.contains("Windows NT 6.3")) so = "Windows 8.1";
+        else if (ua.contains("Windows NT 6.1")) so = "Windows 7";
+        else if (ua.contains("Windows"))        so = "Windows";
+        else if (ua.contains("Android"))        so = "Android";
+        else if (ua.contains("iPhone") || ua.contains("iOS"))       so = "iPhone";
+        else if (ua.contains("iPad"))           so = "iPad";
+        else if (ua.contains("Mac OS X") || ua.contains("Macintosh")) so = "macOS";
+        else if (ua.contains("Linux"))          so = "Linux";
+        else                                    so = "Otro";
+        // Browser (orden importa: Edge antes que Chrome, etc.)
+        if (ua.contains("Edg/"))                br = "Edge";
+        else if (ua.contains("OPR/") || ua.contains("Opera")) br = "Opera";
+        else if (ua.contains("Firefox"))        br = "Firefox";
+        else if (ua.contains("Chrome") && ua.contains("Mobile")) br = "Chrome Mobile";
+        else if (ua.contains("Chrome"))         br = "Chrome";
+        else if (ua.contains("Safari"))         br = "Safari";
+        else                                    br = "Otro";
+        return so + " / " + br;
+    }
 %>
 <%
     String nombre    = (String) session.getAttribute("nombre");
@@ -347,6 +376,7 @@
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Descripcion</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">URL</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">IP</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dispositivo</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -357,7 +387,7 @@
             StringBuilder sql = new StringBuilder(
                 "SELECT * FROM (SELECT TO_CHAR(l.FECHA_HORA,'YYYY-MM-DD HH24:MI:SS') FH, " +
                 " NVL(u.NOMBRE || ' ' || u.APELLIDOS, l.USUARIO_LOGIN) NOM, " +
-                " l.USUARIO_LOGIN, l.MODULO, l.ACCION, l.DESCRIPCION, l.URL, l.IP " +
+                " l.USUARIO_LOGIN, l.MODULO, l.ACCION, l.DESCRIPCION, l.URL, l.IP, l.USER_AGENT " +
                 "FROM LOG_ACTIVIDAD l LEFT JOIN USUARIO u ON u.IDUSUARIO = l.ID_USUARIO " +
                 "WHERE 1 = 1 ");
             List<Object> params = new ArrayList<>();
@@ -401,6 +431,7 @@
                                 <td><p class="text-xs mb-0"><%=esc(rs.getString(6))%></p></td>
                                 <td><p class="text-xxs text-muted mb-0"><%=esc(rs.getString(7))%></p></td>
                                 <td><p class="text-xxs text-muted mb-0"><%=esc(rs.getString(8))%></p></td>
+                                <td><p class="text-xxs mb-0" title="<%=escAttr(rs.getString(9))%>"><%=esc(resumirUserAgent(rs.getString(9)))%></p></td>
                             </tr>
 <%
                     }
@@ -410,7 +441,7 @@
     } catch (Exception e) { e.printStackTrace(); }
     if (filas == 0) {
 %>
-                            <tr><td colspan="7" class="text-center text-muted py-4">Sin actividad registrada para los filtros aplicados.</td></tr>
+                            <tr><td colspan="8" class="text-center text-muted py-4">Sin actividad registrada para los filtros aplicados.</td></tr>
 <% } %>
                         </tbody>
                     </table>

@@ -90,10 +90,11 @@ public class LogActividad {
             String modulo = derivarModulo(uri);
             String accion = derivarAccion(request.getMethod(), uri);
             String ip = obtenerIp(request);
+            String userAgent = request.getHeader("User-Agent");
             Integer idUsuario = obtenerIdUsuario(session);
             String login = (String) session.getAttribute("usuario");
 
-            insertarAsync(idUsuario, login, modulo, accion, null, uri, ip);
+            insertarAsync(idUsuario, login, modulo, accion, null, uri, ip, userAgent);
         } catch (Exception ignore) {
             // nunca romper el flujo del usuario por un log
         }
@@ -105,11 +106,11 @@ public class LogActividad {
             if (session == null) return;
             Integer idUsuario = obtenerIdUsuario(session);
             String login = (String) session.getAttribute("usuario");
-            insertarAsync(idUsuario, login, modulo, accion, descripcion, null, null);
+            insertarAsync(idUsuario, login, modulo, accion, descripcion, null, null, null);
         } catch (Exception ignore) {}
     }
 
-    // Variante que acepta request para capturar IP y URL tambien.
+    // Variante que acepta request para capturar IP, URL y User-Agent tambien.
     public static void registrar(HttpServletRequest request, String modulo, String accion, String descripcion) {
         try {
             HttpSession session = request.getSession(false);
@@ -117,7 +118,8 @@ public class LogActividad {
             Integer idUsuario = obtenerIdUsuario(session);
             String login = (String) session.getAttribute("usuario");
             insertarAsync(idUsuario, login, modulo, accion, descripcion,
-                    request.getRequestURI(), obtenerIp(request));
+                    request.getRequestURI(), obtenerIp(request),
+                    request.getHeader("User-Agent"));
         } catch (Exception ignore) {}
     }
 
@@ -127,7 +129,8 @@ public class LogActividad {
     // al usuario.
     private static void insertarAsync(final Integer idUsuario, final String login,
                                       final String modulo, final String accion,
-                                      final String descripcion, final String url, final String ip) {
+                                      final String descripcion, final String url, final String ip,
+                                      final String userAgent) {
         POOL.submit(() -> {
             try (Connection cn = Servlets.Conexion.getConnection()) {
                 if (cn == null) return;
@@ -141,8 +144,8 @@ public class LogActividad {
                 }
                 try (PreparedStatement st = cn.prepareStatement(
                         "INSERT INTO LOG_ACTIVIDAD " +
-                        "(ID_LOG, FECHA_HORA, ID_USUARIO, USUARIO_LOGIN, MODULO, ACCION, DESCRIPCION, URL, IP) " +
-                        "VALUES (?, SYSDATE, ?, ?, ?, ?, ?, ?, ?)")) {
+                        "(ID_LOG, FECHA_HORA, ID_USUARIO, USUARIO_LOGIN, MODULO, ACCION, DESCRIPCION, URL, IP, USER_AGENT) " +
+                        "VALUES (?, SYSDATE, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                     st.setInt(1, idNuevo);
                     if (idUsuario == null) st.setNull(2, java.sql.Types.NUMERIC);
                     else                   st.setInt(2, idUsuario);
@@ -152,6 +155,7 @@ public class LogActividad {
                     st.setString(6, trunc(descripcion, 500));
                     st.setString(7, trunc(url, 300));
                     st.setString(8, trunc(ip, 45));
+                    st.setString(9, trunc(userAgent, 300));
                     st.executeUpdate();
                 }
             } catch (Exception e) {
