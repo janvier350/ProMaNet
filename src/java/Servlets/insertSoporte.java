@@ -80,11 +80,13 @@ sql ="INSERT INTO SOP_SOPORTE_CAB  VALUES ("+secuencia(secuenciaCab)+","+idUsuar
                         DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
                         Connection cn2 = DriverManager.getConnection(url, user, pass);
                         PreparedStatement st2 = cn2.prepareStatement(sql);
-                        ResultSet rs2 = st2.executeQuery(); 
+                        ResultSet rs2 = st2.executeQuery();
                         cn2.commit();
                         rs2.close();
                         st2.close();
                         cn2.close();
+                        COMUN.LogActividad.registrar(request, "SOPORTES", "CREAR",
+                                "Creo ticket de soporte (prioridad " + prioridad + ")");
                     }catch(Exception e){
                          e.printStackTrace();
                     }

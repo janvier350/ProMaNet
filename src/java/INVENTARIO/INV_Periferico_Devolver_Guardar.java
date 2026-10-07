@@ -97,6 +97,8 @@ public class INV_Periferico_Devolver_Guardar extends HttpServlet {
             }
 
             cn.commit();
+            COMUN.LogActividad.registrar(request, "PERIFERICOS", "ACTUALIZAR",
+                    "Devolvio periferico #" + idPeriferico + " con nuevo estado " + nuevoEstado);
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ignore) {}
             e.printStackTrace();

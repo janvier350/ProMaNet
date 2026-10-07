@@ -114,6 +114,8 @@ public class MOV_InsertarSolicitud extends HttpServlet {
             }
 
             session.setAttribute("msg_exito", "Solicitud de movilizacion #" + idNuevo + " registrada. Pendiente de aprobacion.");
+            COMUN.LogActividad.registrar(request, "MOVILIZACION", "CREAR",
+                    "Solicito movilizacion para " + fecha + " (" + horaInicio + "-" + horaFin + ")");
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("msg_error", "Error al registrar la solicitud: " + e.getMessage());

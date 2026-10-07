@@ -92,6 +92,8 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
                     st.setString(3, idSolicitud);
                     st.executeUpdate();
                 }
+                COMUN.LogActividad.registrar(request, "VACACIONES", "RECHAZAR",
+                        "Administracion rechazo solicitud de vacaciones #" + idSolicitud);
                 response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?msj=Solicitud rechazada");
                 return;
             }
@@ -125,6 +127,9 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
                 st.executeUpdate();
             }
 
+            COMUN.LogActividad.registrar(request, "VACACIONES", "APROBAR",
+                    "Administracion aprobo solicitud de vacaciones #" + idSolicitud
+                            + " (" + diasHabilesAprobados + " habiles)");
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?msj=Solicitud aprobada");
         } catch (Exception e) {
             e.printStackTrace();

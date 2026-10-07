@@ -118,6 +118,9 @@ public class MOV_GestionarSolicitud extends HttpServlet {
 
             String msgAccion = "APROBAR".equals(accion) ? "aprobada" : "MOVILIZAR".equals(accion) ? "marcada como movilizada" : "rechazada";
             session.setAttribute("msg_exito", "Solicitud " + msgAccion + " correctamente.");
+            String accionLog = "APROBAR".equals(accion) ? "APROBAR" : "RECHAZAR".equals(accion) ? "RECHAZAR" : "ACTUALIZAR";
+            COMUN.LogActividad.registrar(request, "MOVILIZACION", accionLog,
+                    "Solicitud de movilizacion #" + idSolicitud + " " + msgAccion);
         } catch (Exception e) {
             e.printStackTrace();
             session.setAttribute("msg_error", "Error al procesar la solicitud: " + e.getMessage());

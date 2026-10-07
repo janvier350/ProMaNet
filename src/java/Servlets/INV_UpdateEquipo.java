@@ -128,6 +128,8 @@ public class INV_UpdateEquipo extends HttpServlet {
             cn.commit();
             st.close();
             cn.close();
+            COMUN.LogActividad.registrar(request, "INVENTARIO", "ACTUALIZAR",
+                    "Edito equipo #" + idInvEquipo + " (" + marca + " " + modelo + ", estado " + estado + ")");
         }catch(Exception e){
              e.printStackTrace();
         }

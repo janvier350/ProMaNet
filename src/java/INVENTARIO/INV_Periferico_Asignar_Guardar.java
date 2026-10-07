@@ -168,6 +168,9 @@ public class INV_Periferico_Asignar_Guardar extends HttpServlet {
             }
 
             cn.commit();
+            COMUN.LogActividad.registrar(request, "PERIFERICOS", "APROBAR",
+                    "Asigno periferico #" + idPeriferico + " a usuario #" + idUsuario
+                            + " (motivo " + codigoMotivo + ")");
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ignore) {}
             e.printStackTrace();

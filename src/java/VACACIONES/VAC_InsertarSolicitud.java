@@ -206,6 +206,10 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             }
 
             cn.commit();
+            COMUN.LogActividad.registrar(request, "VACACIONES", "CREAR",
+                    "Solicito vacaciones " + pFechaDesde + " a " + pFechaHasta
+                            + " (" + diasHabiles + " habiles = " + String.format("%.2f", diasEquivalentes) + " dias"
+                            + (anticipada ? ", ANTICIPADA" : "") + ")");
             String msjOk = anticipada
                     ? "Solicitud anticipada registrada, queda pendiente de aprobacion de tu jefe directo"
                     : "Solicitud registrada, queda pendiente de aprobacion de tu jefe directo";

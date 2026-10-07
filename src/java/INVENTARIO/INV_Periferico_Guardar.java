@@ -113,6 +113,8 @@ public class INV_Periferico_Guardar extends HttpServlet {
             }
 
             cn.commit();
+            COMUN.LogActividad.registrar(request, "PERIFERICOS", esEdicion ? "ACTUALIZAR" : "CREAR",
+                    (esEdicion ? "Edito periferico #" : "Registro nuevo periferico #") + idPeriferico);
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ignore) {}
             e.printStackTrace();

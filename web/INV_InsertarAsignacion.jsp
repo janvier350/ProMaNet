@@ -74,6 +74,8 @@
         }
 
         cn.commit();
+        COMUN.LogActividad.registrar(request, "INVENTARIO", "APROBAR",
+                "Asigno equipo #" + idInvEquipo + " a usuario #" + IDUSUARIO);
     } catch (Exception e) {
         if (cn != null) try { cn.rollback(); } catch (Exception ignore) {}
         e.printStackTrace();

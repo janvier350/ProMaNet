@@ -140,6 +140,8 @@ public class InsertNuevoEquipo extends HttpServlet {
             cn.commit();
 
             if (rowsAffected > 0) {
+                COMUN.LogActividad.registrar(request, "INVENTARIO", "CREAR",
+                        "Registro nuevo equipo: " + marca + " " + modelo + " (S/N " + serial + ")");
                 response.getWriter().println("Equipo Insertado Correctamente!!");
             } else {
                 response.getWriter().println("Error al insertar el equipo.");

@@ -125,6 +125,8 @@ public class AUD_InsertarAnticipo extends HttpServlet {
             }
 
             cn.commit();
+            COMUN.LogActividad.registrar(request, "ANTICIPOS", "CREAR",
+                    "Solicito anticipo por " + anticipo);
             response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_SolicitarAnticipo.jsp?msj=Solicitud registrada correctamente");
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}

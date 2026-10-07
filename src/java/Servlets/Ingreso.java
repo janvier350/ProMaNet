@@ -78,7 +78,12 @@ public class Ingreso extends HttpServlet {
                 session.setAttribute("passDB", Conexion.pass);
                 session.setAttribute("permisos", COMUN.PermisoHelper.cargarPermisos(Integer.parseInt(id.trim()), Integer.parseInt(idRol.trim()), departamento));
 
-                    
+                // Registrar login exitoso en LOG_ACTIVIDAD. Se hace aqui
+                // (una sola vez por sesion) para que el reporte de
+                // auditoria distinga "logins" de "vistas" (que las
+                // registra el filter global por request).
+                COMUN.LogActividad.registrar(request, "LOGIN", "LOGIN", "Inicio de sesion de " + nombre + " " + apellidos);
+
                 if(cargo.equals("ADMINISTRACION") ||cargo.equals("ASISTENTE") ||cargo.equals("ADMINISTRADOR")||cargo.equals("ANALISTA")|| cargo.equals("JEFE") || cargo.equals("CONTRALOR") || cargo.equals("PASANTE")){
                     response.sendRedirect("Proyectos/PRO_Dashboard.jsp");
 //                    response.sendRedirect("Home.jsp");

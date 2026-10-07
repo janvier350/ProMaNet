@@ -37,12 +37,15 @@ public class AUD_ProcesarPago extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            int filas = 0;
             try (PreparedStatement st = cn.prepareStatement(
                     "UPDATE AUD_ANTICIPOS SET ESTADO = 'PAGADO' " +
                     "WHERE TRUNC(FECHA_SOLICITUD, 'MM') = TRUNC(SYSDATE, 'MM') AND ESTADO = 'PENDIENTE'")) {
-                st.executeUpdate();
+                filas = st.executeUpdate();
             }
 
+            COMUN.LogActividad.registrar(request, "ANTICIPOS", "APROBAR",
+                    "Marco como PAGADOS " + filas + " anticipo(s) del mes en curso");
             response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Anticipos marcados como pagados");
         } catch (Exception e) {
             e.printStackTrace();

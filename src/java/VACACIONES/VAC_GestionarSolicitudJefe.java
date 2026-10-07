@@ -86,6 +86,9 @@ public class VAC_GestionarSolicitudJefe extends HttpServlet {
                 st.executeUpdate();
             }
 
+            COMUN.LogActividad.registrar(request, "VACACIONES",
+                    "APROBAR".equals(accion) ? "APROBAR" : "RECHAZAR",
+                    ("APROBAR".equals(accion) ? "Jefe aprobo " : "Jefe rechazo ") + "solicitud de vacaciones #" + idSolicitud);
             String msj = "APROBAR".equals(accion)
                     ? "Solicitud aprobada, queda pendiente de Administracion"
                     : "Solicitud rechazada";
