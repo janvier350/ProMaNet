@@ -117,6 +117,11 @@
     LinkedHashMap<String, Long> accionesPorDia = new LinkedHashMap<>();
     LinkedHashMap<String, Long> usoPorModulo = new LinkedHashMap<>();
     List<String[]> topUsuarios = new ArrayList<>();
+    // Uso por departamento ultimos 30 dias: departamento, total usuarios
+    // activos del depto, usuarios que usaron el sistema, acciones totales.
+    // Incluye departamentos SIN actividad para que el admin vea quien no
+    // esta usando el sistema.
+    List<String[]> usoPorDepto = new ArrayList<>();
 
     try (Connection cn = Servlets.Conexion.getConnection()) {
         if (cn != null) {
@@ -146,6 +151,32 @@
                  ResultSet rs = st.executeQuery()) {
                 while (rs.next()) topUsuarios.add(new String[]{rs.getString(1), String.valueOf(rs.getLong(2))});
             }
+
+            // Uso por departamento ultimos 30 dias (incluye deptos sin
+            // actividad). Un LEFT JOIN desde ADM_DEPARTAMENTO garantiza
+            // que aparezcan incluso los que tienen 0 acciones -- eso es
+            // justamente lo que queremos ver para detectar deptos que no
+            // estan aprovechando el sistema.
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT d.DEPARTAMENTO, " +
+                    " COUNT(DISTINCT u.IDUSUARIO) AS TOTAL_USUARIOS, " +
+                    " COUNT(DISTINCT l.ID_USUARIO) AS USUARIOS_ACTIVOS, " +
+                    " COUNT(l.ID_LOG) AS ACCIONES " +
+                    "FROM ADM_DEPARTAMENTO d " +
+                    "LEFT JOIN USUARIO u ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO AND UPPER(u.ESTADO) = 'A' " +
+                    "LEFT JOIN LOG_ACTIVIDAD l ON l.ID_USUARIO = u.IDUSUARIO AND l.FECHA_HORA >= SYSDATE - 30 " +
+                    "GROUP BY d.DEPARTAMENTO " +
+                    "ORDER BY ACCIONES DESC, TOTAL_USUARIOS DESC");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    usoPorDepto.add(new String[]{
+                        rs.getString(1),
+                        String.valueOf(rs.getLong(2)),
+                        String.valueOf(rs.getLong(3)),
+                        String.valueOf(rs.getLong(4))
+                    });
+                }
+            }
         }
     } catch (Exception e) { e.printStackTrace(); }
 
@@ -161,6 +192,12 @@
         if (sbModL.length() > 0) { sbModL.append(","); sbModV.append(","); }
         sbModL.append("\"").append(e.getKey()).append("\"");
         sbModV.append(e.getValue());
+    }
+    StringBuilder sbDepL = new StringBuilder(), sbDepV = new StringBuilder();
+    for (String[] d : usoPorDepto) {
+        if (sbDepL.length() > 0) { sbDepL.append(","); sbDepV.append(","); }
+        sbDepL.append("\"").append(d[0] != null ? d[0].replace("\"", "'") : "").append("\"");
+        sbDepV.append(d[3]);
     }
 %>
 <!DOCTYPE html>
@@ -289,6 +326,71 @@
                 <div class="card">
                     <div class="card-header pb-0"><h6>Uso por modulo (ultimos 30 dias)</h6></div>
                     <div class="card-body p-3"><canvas id="chartModulos" height="130"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uso por departamento: ayuda a ver que areas se apoyan mas en
+             el sistema y cuales todavia no lo adoptan. -->
+        <div class="row">
+            <div class="col-lg-5 mb-4">
+                <div class="card">
+                    <div class="card-header pb-0"><h6>Uso por departamento (ultimos 30 dias)</h6>
+                        <p class="text-xs text-secondary mb-0">Incluye departamentos con 0 acciones -- se ve de un vistazo quien no esta aprovechando el sistema.</p>
+                    </div>
+                    <div class="card-body p-3"><canvas id="chartDeptos" height="220"></canvas></div>
+                </div>
+            </div>
+            <div class="col-lg-7 mb-4">
+                <div class="card">
+                    <div class="card-header pb-0"><h6>Detalle por departamento</h6></div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive">
+                            <table class="table align-items-center mb-0">
+                                <thead><tr>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">Departamento</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Usuarios activos</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Adopcion</th>
+                                </tr></thead>
+                                <tbody>
+<%
+    if (usoPorDepto.isEmpty()) {
+%>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Sin datos todavia.</td></tr>
+<%
+    } else {
+        for (String[] d : usoPorDepto) {
+            long totalUsu = Long.parseLong(d[1]);
+            long usuAct   = Long.parseLong(d[2]);
+            long acciones = Long.parseLong(d[3]);
+            // Adopcion: usuarios activos / total usuarios del depto. Si el
+            // depto no tiene usuarios, mostramos "-".
+            String badgeClase, badgeTxt;
+            if (totalUsu == 0) {
+                badgeClase = "bg-gradient-secondary"; badgeTxt = "sin usuarios";
+            } else {
+                long pct = Math.round(100.0 * usuAct / totalUsu);
+                if (pct == 0)         { badgeClase = "bg-gradient-danger";    badgeTxt = "0% (inactivo)"; }
+                else if (pct < 50)    { badgeClase = "bg-gradient-warning";   badgeTxt = pct + "% bajo"; }
+                else if (pct < 100)   { badgeClase = "bg-gradient-info";      badgeTxt = pct + "% medio"; }
+                else                  { badgeClase = "bg-gradient-success";   badgeTxt = "100% todos"; }
+            }
+%>
+                                    <tr>
+                                        <td class="ps-3"><p class="text-xs font-weight-bold mb-0"><%=esc(d[0])%></p></td>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=usuAct%> / <%=totalUsu%></p></td>
+                                        <td class="text-center"><span class="badge badge-sm bg-gradient-primary"><%=acciones%></span></td>
+                                        <td class="text-center"><span class="badge badge-sm <%=badgeClase%>"><%=badgeTxt%></span></td>
+                                    </tr>
+<%
+        }
+    }
+%>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -488,6 +590,21 @@
                     label: 'Acciones',
                     data: [<%=sbModV.toString()%>],
                     backgroundColor: ['#5e72e4','#2dce89','#fb6340','#11cdef','#f5365c','#8898aa','#ffd600','#6610f2','#20c997','#e83e8c']
+                }]
+            },
+            options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+        });
+
+        // Departamentos (mismo estilo que modulos para consistencia visual).
+        var ctxD = document.getElementById('chartDeptos').getContext('2d');
+        new Chart(ctxD, {
+            type: 'bar',
+            data: {
+                labels: [<%=sbDepL.toString()%>],
+                datasets: [{
+                    label: 'Acciones',
+                    data: [<%=sbDepV.toString()%>],
+                    backgroundColor: '#5e72e4'
                 }]
             },
             options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
