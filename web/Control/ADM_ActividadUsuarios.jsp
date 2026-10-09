@@ -50,6 +50,37 @@
         else                                    br = "Otro";
         return so + " / " + br;
     }
+
+    // Detecta el tipo de dispositivo a partir del User-Agent. Mismo
+    // criterio que usa HealthSchedule: Tablet antes que Celular (porque
+    // los User-Agent de tablet casi siempre incluyen tambien "Mobile"
+    // en Android), y Celular antes que Computadora.
+    private static String detectarDispositivo(String ua) {
+        if (ua == null || ua.isEmpty()) return "Otro";
+        // Tablets: iPad siempre, Android sin "Mobile" tambien (los
+        // telefonos Android traen "Mobile", las tablets no).
+        if (ua.contains("iPad")) return "Tablet";
+        if (ua.contains("Tablet")) return "Tablet";
+        if (ua.contains("Android") && !ua.contains("Mobile")) return "Tablet";
+        // Celulares
+        if (ua.contains("iPhone")) return "Celular";
+        if (ua.contains("Android") || ua.contains("Mobile")) return "Celular";
+        if (ua.contains("BlackBerry") || ua.contains("Opera Mini")) return "Celular";
+        // Computadoras
+        if (ua.contains("Windows") || ua.contains("Mac OS X") || ua.contains("Macintosh")
+                || ua.contains("Linux") || ua.contains("X11") || ua.contains("CrOS")) {
+            return "Computadora";
+        }
+        return "Otro";
+    }
+
+    // Icono FA segun dispositivo.
+    private static String iconoDispositivo(String disp) {
+        if ("Celular".equals(disp)) return "fas fa-mobile-alt";
+        if ("Tablet".equals(disp))  return "fas fa-tablet-alt";
+        if ("Computadora".equals(disp)) return "fas fa-desktop";
+        return "fas fa-question-circle";
+    }
 %>
 <%
     String nombre    = (String) session.getAttribute("nombre");
@@ -533,7 +564,17 @@
                                 <td><p class="text-xs mb-0"><%=esc(rs.getString(6))%></p></td>
                                 <td><p class="text-xxs text-muted mb-0"><%=esc(rs.getString(7))%></p></td>
                                 <td><p class="text-xxs text-muted mb-0"><%=esc(rs.getString(8))%></p></td>
-                                <td><p class="text-xxs mb-0" title="<%=escAttr(rs.getString(9))%>"><%=esc(resumirUserAgent(rs.getString(9)))%></p></td>
+                                <td>
+                                    <%
+                                        String uaCrudo = rs.getString(9);
+                                        String disp    = detectarDispositivo(uaCrudo);
+                                        String icono   = iconoDispositivo(disp);
+                                    %>
+                                    <p class="text-xs font-weight-bold mb-0" title="<%=escAttr(uaCrudo)%>">
+                                        <i class="<%=icono%> me-1 text-secondary"></i><%=esc(disp)%>
+                                    </p>
+                                    <p class="text-xxs text-muted mb-0"><%=esc(resumirUserAgent(uaCrudo))%></p>
+                                </td>
                             </tr>
 <%
                     }
