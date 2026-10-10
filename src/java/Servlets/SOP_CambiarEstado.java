@@ -84,9 +84,13 @@ public class SOP_CambiarEstado extends HttpServlet {
         try {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base");
+            cn.setAutoCommit(false);
             int idSolInt = Integer.parseInt(idSolicitud.trim());
 
             String descripcionLog;
+            String tipoIncidencia = null;      // para registrar en SOP_SOPORTE_INCIDENCIA
+            String descIncidencia = null;
+            String resIncidencia  = null;
             switch (accion) {
                 case "EN_PROGRESO": {
                     try (PreparedStatement st = cn.prepareStatement(
@@ -103,6 +107,10 @@ public class SOP_CambiarEstado extends HttpServlet {
                         st.executeUpdate();
                     }
                     descripcionLog = "Marco ticket #" + idSolicitud + " como EN PROGRESO";
+                    tipoIncidencia = "NOTA";
+                    descIncidencia = "Marcado como EN PROGRESO" +
+                            (comentario != null && !comentario.trim().isEmpty() ? ": " + comentario.trim() : "");
+                    resIncidencia  = "PENDIENTE";
                     break;
                 }
                 case "REASIGNAR": {
@@ -120,6 +128,10 @@ public class SOP_CambiarEstado extends HttpServlet {
                     }
                     descripcionLog = "Reasigno ticket #" + idSolicitud + " a usuario #" + idTecNuevo
                             + (comentario != null && !comentario.trim().isEmpty() ? " (" + comentario.trim() + ")" : "");
+                    tipoIncidencia = "REASIGNACION";
+                    descIncidencia = "Ticket reasignado a usuario #" + idTecNuevo +
+                            (comentario != null && !comentario.trim().isEmpty() ? ". Motivo: " + comentario.trim() : "");
+                    resIncidencia  = "PENDIENTE";
                     break;
                 }
                 case "SIN_SOLUCION": {
@@ -140,11 +152,45 @@ public class SOP_CambiarEstado extends HttpServlet {
                         st.executeUpdate();
                     }
                     descripcionLog = "Cerro ticket #" + idSolicitud + " sin solucion";
+                    tipoIncidencia = "CIERRE_SIN_SOLUCION";
+                    descIncidencia = comentario.trim();
+                    resIncidencia  = "FALLO";
                     break;
                 }
                 default:
                     throw new Exception("accion desconocida");
             }
+
+            // Registra la incidencia en el timeline. Si la tabla aun no
+            // existe (migracion 035 no corrida), se ignora el error -- lo
+            // principal (el cambio de estado) ya se hizo.
+            if (tipoIncidencia != null) {
+                try {
+                    int idInc = 1;
+                    try (PreparedStatement stSec = cn.prepareStatement(
+                            "SELECT NVL(MAX(ID_INCIDENCIA),0)+1 FROM SOP_SOPORTE_INCIDENCIA");
+                         java.sql.ResultSet rs = stSec.executeQuery()) {
+                        if (rs.next()) idInc = rs.getInt(1);
+                    }
+                    try (PreparedStatement st = cn.prepareStatement(
+                            "INSERT INTO SOP_SOPORTE_INCIDENCIA " +
+                            "(ID_INCIDENCIA, IDSOPORTE, FECHA_HORA, ID_USUARIO, USUARIO_LOGIN, TIPO, DESCRIPCION, RESULTADO) " +
+                            "VALUES (?, ?, SYSDATE, ?, ?, ?, ?, ?)")) {
+                        st.setInt(1, idInc);
+                        st.setInt(2, idSolInt);
+                        if (idYo == null) st.setNull(3, java.sql.Types.NUMERIC);
+                        else              st.setInt(3, idYo);
+                        st.setString(4, loginYo);
+                        st.setString(5, tipoIncidencia);
+                        st.setString(6, descIncidencia);
+                        st.setString(7, resIncidencia);
+                        st.executeUpdate();
+                    }
+                } catch (Exception incEx) {
+                    System.out.println("SOP_CambiarEstado: no se pudo registrar incidencia (ok si no se corrio el 035): " + incEx.getMessage());
+                }
+            }
+
             cn.commit();
             COMUN.LogActividad.registrar(request, "SOPORTES", "ACTUALIZAR", descripcionLog);
         } catch (Exception e) {

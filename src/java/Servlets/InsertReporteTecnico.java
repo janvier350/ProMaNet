@@ -57,6 +57,9 @@ public class InsertReporteTecnico extends HttpServlet {
             // de una sola vez sin pasar por EN_PROGRESO). Si ya estaba
             // seteada (porque alguien lo tomo antes y recien ahora lo
             // cierra), no se pisa.
+            cn.setAutoCommit(false);
+            int idSolInt = Integer.parseInt(idSolicitudTxt.trim());
+
             try (PreparedStatement st = cn.prepareStatement(
                     "UPDATE SOP_SOPORTE_CAB SET " +
                     "  REPORTE = ?, " +
@@ -70,9 +73,40 @@ public class InsertReporteTecnico extends HttpServlet {
                 st.setString(2, usuarioLogin);
                 if (idTecnicoAsignado == null) st.setNull(3, java.sql.Types.NUMERIC);
                 else                           st.setInt(3, idTecnicoAsignado);
-                st.setInt(4, Integer.parseInt(idSolicitudTxt.trim()));
+                st.setInt(4, idSolInt);
                 st.executeUpdate();
             }
+
+            // Tambien registra el cierre en el timeline de incidencias
+            // (SOP_SOPORTE_INCIDENCIA, fase 4) para que el historial de
+            // intentos + cierre quede en un solo lugar y la pantalla de
+            // Atender muestre todo seguido. Si la tabla todavia no existe
+            // en la base (no se corrio el 035), el catch se traga la
+            // excepcion y no revierte el cierre -- lo importante es que
+            // el ticket quede ATENDIDO.
+            try {
+                int idInc = 1;
+                try (PreparedStatement stSec = cn.prepareStatement(
+                        "SELECT NVL(MAX(ID_INCIDENCIA),0)+1 FROM SOP_SOPORTE_INCIDENCIA");
+                     java.sql.ResultSet rs = stSec.executeQuery()) {
+                    if (rs.next()) idInc = rs.getInt(1);
+                }
+                try (PreparedStatement st = cn.prepareStatement(
+                        "INSERT INTO SOP_SOPORTE_INCIDENCIA " +
+                        "(ID_INCIDENCIA, IDSOPORTE, FECHA_HORA, ID_USUARIO, USUARIO_LOGIN, TIPO, DESCRIPCION, RESULTADO) " +
+                        "VALUES (?, ?, SYSDATE, ?, ?, 'CIERRE', ?, 'OK')")) {
+                    st.setInt(1, idInc);
+                    st.setInt(2, idSolInt);
+                    if (idTecnicoAsignado == null) st.setNull(3, java.sql.Types.NUMERIC);
+                    else                           st.setInt(3, idTecnicoAsignado);
+                    st.setString(4, usuarioLogin);
+                    st.setString(5, reporte);
+                    st.executeUpdate();
+                }
+            } catch (Exception incEx) {
+                System.out.println("InsertReporteTecnico: no se pudo registrar incidencia CIERRE (ok si todavia no se corrio 035): " + incEx.getMessage());
+            }
+
             cn.commit();
 
             COMUN.LogActividad.registrar(request, "SOPORTES", "APROBAR",

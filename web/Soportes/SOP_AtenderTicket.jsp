@@ -86,6 +86,35 @@
         }
     } catch (Exception e) { e.printStackTrace(); }
 
+    // Timeline de incidencias (fase 4). Si la tabla SOP_SOPORTE_INCIDENCIA
+    // no existe todavia en la base, el catch deja la lista vacia y el
+    // bloque de UI simplemente no muestra el timeline. Asi la pantalla
+    // sigue funcionando aunque no se haya corrido el 035.
+    java.util.List<String[]> incidencias = new java.util.ArrayList<>();
+    try (Connection cn = Servlets.Conexion.getConnection()) {
+        if (cn != null) {
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT TO_CHAR(i.FECHA_HORA,'YYYY-MM-DD HH24:MI'), " +
+                    "       NVL(u.NOMBRE || ' ' || u.APELLIDOS, i.USUARIO_LOGIN), " +
+                    "       i.TIPO, i.DESCRIPCION, NVL(i.RESULTADO,'-') " +
+                    "FROM SOP_SOPORTE_INCIDENCIA i " +
+                    "LEFT JOIN USUARIO u ON u.IDUSUARIO = i.ID_USUARIO " +
+                    "WHERE i.IDSOPORTE = ? ORDER BY i.FECHA_HORA DESC")) {
+                st.setInt(1, Integer.parseInt(idSolicitud.trim()));
+                try (ResultSet rs = st.executeQuery()) {
+                    while (rs.next()) {
+                        incidencias.add(new String[]{
+                            rs.getString(1), rs.getString(2),
+                            rs.getString(3), rs.getString(4), rs.getString(5)
+                        });
+                    }
+                }
+            }
+        }
+    } catch (Exception e) {
+        // Tabla no existe aun -- se ignora, el timeline no se muestra.
+    }
+
     boolean abierto = "PENDIENTE".equals(estado) || "EN_PROGRESO".equals(estado) || "REASIGNADO".equals(estado);
     boolean cerrado = "ATENDIDO".equals(estado) || "CERRADO_SIN_SOLUCION".equals(estado);
 
@@ -230,10 +259,71 @@
                     </div>
                 </div>
 
+                <!-- Timeline de incidencias (fase 4) -->
+                <div class="card mb-4">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+                        <h6>Historial de atencion</h6>
+                        <% if (abierto && puedeAtender) { %>
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalIncidencia">
+                            <i class="fas fa-plus me-1"></i>Agregar nota
+                        </button>
+                        <% } %>
+                    </div>
+                    <div class="card-body p-3">
+                        <% if (incidencias.isEmpty()) { %>
+                        <p class="text-sm text-muted mb-0 text-center py-2">
+                            Sin incidencias registradas todavia.
+                            <% if (abierto && puedeAtender) { %><br>Usa <b>Agregar nota</b> para dejar constancia de cada intento o diagnostico.<% } %>
+                        </p>
+                        <% } else { %>
+                        <ul class="list-unstyled mb-0">
+                        <% for (String[] i : incidencias) {
+                            String tp = i[2];
+                            String color, icono;
+                            switch (tp == null ? "-" : tp) {
+                                case "DIAGNOSTICO":           color="info";      icono="fas fa-search";          break;
+                                case "INTENTO":               color="warning";   icono="fas fa-wrench";          break;
+                                case "ESCALAMIENTO":          color="secondary"; icono="fas fa-level-up-alt";    break;
+                                case "REASIGNACION":          color="secondary"; icono="fas fa-random";          break;
+                                case "CIERRE":                color="success";   icono="fas fa-check-circle";    break;
+                                case "CIERRE_SIN_SOLUCION":   color="dark";      icono="fas fa-ban";             break;
+                                case "REAPERTURA":            color="warning";   icono="fas fa-undo";            break;
+                                default:                      color="primary";   icono="fas fa-comment";         break;
+                            }
+                            String resBadge = "";
+                            if (i[4] != null && !"-".equals(i[4])) {
+                                String bg;
+                                switch (i[4]) { case "OK": bg="bg-gradient-success"; break;
+                                                case "FALLO": bg="bg-gradient-danger"; break;
+                                                case "PARCIAL": bg="bg-gradient-warning"; break;
+                                                default: bg="bg-gradient-secondary"; break; }
+                                resBadge = "<span class='badge badge-sm " + bg + " ms-1'>" + esc(i[4]) + "</span>";
+                            }
+                        %>
+                            <li class="mb-3 d-flex" style="border-left:3px solid var(--bs-<%=color%>); padding-left:12px;">
+                                <div class="me-2">
+                                    <i class="<%=icono%> text-<%=color%>" style="font-size:1.2rem;"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <p class="text-xs text-uppercase font-weight-bold mb-0 text-<%=color%>">
+                                            <%=esc(tp)%><%=resBadge%>
+                                        </p>
+                                        <small class="text-xxs text-secondary"><%=esc(i[0])%> &middot; <%=esc(i[1])%></small>
+                                    </div>
+                                    <p class="text-sm mb-0 mt-1" style="white-space:pre-wrap;"><%=esc(i[3])%></p>
+                                </div>
+                            </li>
+                        <% } %>
+                        </ul>
+                        <% } %>
+                    </div>
+                </div>
+
                 <% if (!reporte.isEmpty()) { %>
                 <div class="card mb-4">
                     <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-                        <h6>Reporte tecnico</h6>
+                        <h6>Reporte tecnico final</h6>
                         <% if (!fRep.isEmpty()) { %><small class="text-secondary">Registrado el <%=fRep%></small><% } %>
                     </div>
                     <div class="card-body p-3">
@@ -269,6 +359,56 @@
         </div>
     </div>
 </main>
+
+<!-- Modal agregar incidencia -->
+<% if (abierto && puedeAtender) { %>
+<div class="modal fade" id="modalIncidencia" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form method="post" action="../SOP_AgregarIncidencia">
+                <input type="hidden" name="idSolicitud" value="<%=esc(idSolicitud)%>">
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Agregar incidencia</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm text-secondary">Registra cada intento, diagnostico o nota del ticket. El estado pasa a <b>EN PROGRESO</b> automaticamente si todavia estaba pendiente.</p>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="text-xs font-weight-bold text-uppercase">Tipo</label>
+                            <select name="tipo" class="form-control" required>
+                                <option value="DIAGNOSTICO">Diagnostico (lo revise, encontre...)</option>
+                                <option value="INTENTO">Intento de solucion (probe hacer...)</option>
+                                <option value="NOTA">Nota / comentario</option>
+                                <option value="ESCALAMIENTO">Escalamiento (envie a proveedor / nivel 2)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label class="text-xs font-weight-bold text-uppercase">Resultado (opcional)</label>
+                            <select name="resultado" class="form-control">
+                                <option value="">-- Sin especificar --</option>
+                                <option value="OK">OK (funciono)</option>
+                                <option value="PARCIAL">Parcial (mejoro pero no se resolvio)</option>
+                                <option value="FALLO">Fallo (no funciono)</option>
+                                <option value="PENDIENTE">Pendiente (esperando respuesta)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="text-xs font-weight-bold text-uppercase">Descripcion</label>
+                        <textarea name="descripcion" class="form-control" rows="4" required maxlength="2000"
+                                  placeholder="Ej. Probe reinstalar el driver v2.5.1, el equipo sigue con el mismo error. Voy a probar con la version anterior."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn bg-gradient-primary btn-sm"><i class="fas fa-save me-1"></i>Registrar incidencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<% } %>
 
 <!-- Modal reasignar -->
 <% if (abierto && puedeReasignar) { %>
