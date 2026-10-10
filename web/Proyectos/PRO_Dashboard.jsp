@@ -312,6 +312,16 @@ String compania = (String) session.getAttribute("compania");
                             <span class="nav-link-text ms-1">Soportes Sistemas</span>
                         </a>
                         <%}%>
+                        <%-- "Crear ticket" visible para TODOS los usuarios logueados,
+                             incluso los que no tienen SOPORTES_ACCESO (ellos solo
+                             crean, no gestionan). Pensado para los que casi nunca
+                             crean uno y no se acuerdan como. --%>
+                        <a class="nav-link " href="../Soportes/SOP_NuevoTicket.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="ni ni-fat-add text-dark text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Crear ticket</span>
+                        </a>
                         <% if (COMUN.PermisoHelper.tiene(session, "AUDIT_VER_ACTIVIDAD")) { %>
                         <a class="nav-link " href="../Control/ADM_ActividadUsuarios.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

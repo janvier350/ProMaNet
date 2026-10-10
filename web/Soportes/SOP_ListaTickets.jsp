@@ -391,10 +391,10 @@
                                 <td><p class="text-xs mb-0"><%=esc(nz(tec,"-"))%></p></td>
                                 <td class="text-center" style="white-space:nowrap;">
                                     <% if (puedeAtender && abierto) { %>
-                                    <a href="SOP_EditarSolicitudes.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs bg-gradient-warning py-1 mb-0" title="Atender"><i class="fa fa-wrench"></i></a>
+                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs bg-gradient-warning py-1 mb-0" title="Atender"><i class="fa fa-wrench"></i></a>
                                     <% } %>
                                     <% if (!abierto) { %>
-                                    <a href="SOP_EditarSolicitudes.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs btn-outline-info py-1 mb-0" title="Ver"><i class="fa fa-eye"></i></a>
+                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs btn-outline-info py-1 mb-0" title="Ver"><i class="fa fa-eye"></i></a>
                                     <% } %>
                                     <% if (puedeEliminar && !"CANCELADO_USR".equals(est)) { %>
                                     <form method="post" action="../SOP_EliminarSolicitud" style="display:inline;"
