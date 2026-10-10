@@ -1232,7 +1232,7 @@ String compania = (String) session.getAttribute("compania");
                                     <% if((departamento.equals("TECNOLOGÍA") || COMUN.PermisoHelper.tiene(session, "SUPERADMIN_ACCESO_TOTAL")) && COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                                     <table class="table align-items-center ">
                                         <button type="#" class="btn btn-success"  href="">
-                                            <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp">
+                                            <a class="nav-link " href="../Soportes/SOP_ListaTickets.jsp">
                                                 <i class="fa fa-eye" aria-hidden="true">  </i>    ver todas las solicitudes </a>
                                         </button>
                                         <thead>

@@ -234,7 +234,7 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <span class="nav-link-text ms-1">Inventario</span>
                         </a>
-                        <a class="nav-link " href="../Soportes/SOP_ListaSolicitudes_ALL.jsp">
+                        <a class="nav-link " href="../Soportes/SOP_ListaTickets.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
                                 <i class="ni ni-collection text-dark text-sm opacity-10"></i>
                             </div>
