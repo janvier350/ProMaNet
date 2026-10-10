@@ -149,6 +149,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="g-sidenav-show bg-gray-100">
+<%@ include file="/_sidenav.jspf" %>
 <div class="min-height-300 bg-primary position-absolute w-100"></div>
 <main class="main-content position-relative border-radius-lg">
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl">

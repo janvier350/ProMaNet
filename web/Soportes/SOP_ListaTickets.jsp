@@ -183,6 +183,7 @@
 </style>
 </head>
 <body class="g-sidenav-show bg-gray-100">
+<%@ include file="/_sidenav.jspf" %>
 <div class="min-height-300 bg-primary position-absolute w-100"></div>
 <main class="main-content position-relative border-radius-lg">
     <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl">
@@ -391,16 +392,16 @@
                                 <td><p class="text-xs mb-0"><%=esc(nz(tec,"-"))%></p></td>
                                 <td class="text-center" style="white-space:nowrap;">
                                     <% if (puedeAtender && abierto) { %>
-                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs bg-gradient-warning py-1 mb-0" title="Atender"><i class="fa fa-wrench"></i></a>
+                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs bg-gradient-warning py-1 mb-0" title="Atender"><i class="fas fa-wrench"></i></a>
                                     <% } %>
                                     <% if (!abierto) { %>
-                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs btn-outline-info py-1 mb-0" title="Ver"><i class="fa fa-eye"></i></a>
+                                    <a href="SOP_AtenderTicket.jsp?idSolicitud=<%=idSop%>" class="btn btn-xs btn-outline-info py-1 mb-0" title="Ver"><i class="fas fa-eye"></i></a>
                                     <% } %>
                                     <% if (puedeEliminar && !"CANCELADO_USR".equals(est)) { %>
                                     <form method="post" action="../SOP_EliminarSolicitud" style="display:inline;"
                                           onsubmit="return confirm('Cancelar ticket #<%=idSop%>?');">
                                         <input type="hidden" name="idSolicitud" value="<%=idSop%>">
-                                        <button type="submit" class="btn btn-xs btn-outline-danger py-1 mb-0" title="Cancelar"><i class="fa fa-times"></i></button>
+                                        <button type="submit" class="btn btn-xs btn-outline-danger py-1 mb-0" title="Cancelar"><i class="fas fa-times"></i></button>
                                     </form>
                                     <% } %>
                                 </td>

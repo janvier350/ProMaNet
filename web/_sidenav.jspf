@@ -1,0 +1,145 @@
+<%--
+    Fragmento reutilizable del sidenav. Se incluye con
+      <%@ include file="/_sidenav.jspf" %>
+    en las pantallas nuevas (SOP_*, ADM_ActividadUsuarios, etc.) para
+    no repetir ~150 lineas en cada una.
+
+    Las pantallas viejas (INV_Equipos, PRO_Dashboard, etc.) mantienen
+    su copia inline -- no se tocan para no abrir frente de regresion.
+    Pero cualquier cosa nueva usa este include.
+
+    Requiere pageContext con "sidenav_active" opcional (nombre de la
+    seccion para marcar como active). Si no viene, no marca ninguna.
+--%>
+<%
+    String _sideActive = (String) request.getAttribute("sidenav_active");
+    if (_sideActive == null) _sideActive = "";
+
+    boolean _puedeSopAcceso    = COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO");
+    boolean _puedeSopVerPend   = COMUN.PermisoHelper.tiene(session, "SOPORTES_VER_PENDIENTES");
+    boolean _puedeSopVerAtend  = COMUN.PermisoHelper.tiene(session, "SOPORTES_VER_ATENDIDOS");
+    boolean _puedeSopVerHist   = COMUN.PermisoHelper.tiene(session, "SOPORTES_VER_HISTORIAL");
+    boolean _puedeSopVerMetr   = COMUN.PermisoHelper.tiene(session, "SOPORTES_VER_METRICAS");
+    boolean _puedeAudit        = COMUN.PermisoHelper.tiene(session, "AUDIT_VER_ACTIVIDAD");
+    boolean _puedeInvVer       = COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER");
+    boolean _puedeVacSol       = COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR");
+
+    String _basePath = request.getContextPath(); // /ProMaNet
+%>
+<aside class="sidenav bg-white navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-4" id="sidenav-main">
+    <div class="sidenav-header">
+        <i class="fas fa-times p-3 cursor-pointer text-secondary opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
+        <a class="navbar-brand m-0" href="<%=_basePath%>/Proyectos/PRO_Dashboard.jsp">
+            <img src="<%=_basePath%>/assets/img/promanetlogo.png" class="navbar-brand-img h-100" alt="main_logo">
+            <span class="ms-1 font-weight-bold">ProMaNet</span>
+        </a>
+    </div>
+    <hr class="horizontal dark mt-0">
+
+    <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
+        <ul class="navbar-nav">
+
+            <li class="nav-item">
+                <a class="nav-link <%= "dashboard".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Proyectos/PRO_Dashboard.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="ni ni-tv-2 text-primary text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Dashboard</span>
+                </a>
+            </li>
+
+            <%-- Tickets de soporte (todas las pantallas del modulo
+                 agrupadas visualmente). "Crear ticket" aparece para
+                 todos los usuarios (no requiere permiso). --%>
+            <li class="nav-item mt-3">
+                <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Tickets</h6>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= "sop_nuevo".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Soportes/SOP_NuevoTicket.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-plus-circle text-success text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Crear ticket</span>
+                </a>
+            </li>
+            <% if (_puedeSopAcceso) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "sop_dash".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Soportes/SOP_Dashboard.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-chart-pie text-primary text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Dashboard tickets</span>
+                </a>
+            </li>
+            <% } %>
+            <% if (_puedeSopVerPend || _puedeSopVerAtend || _puedeSopVerHist) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "sop_lista".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Soportes/SOP_ListaTickets.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-list text-info text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Lista de tickets</span>
+                </a>
+            </li>
+            <% } %>
+            <% if (_puedeSopVerMetr) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "sop_metr".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Soportes/SOP_Metricas.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-stopwatch text-warning text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Metricas</span>
+                </a>
+            </li>
+            <% } %>
+
+            <li class="nav-item mt-3">
+                <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Otros</h6>
+            </li>
+            <% if (_puedeInvVer) { %>
+            <li class="nav-item">
+                <a class="nav-link" href="<%=_basePath%>/Inventario/INV_Equipos.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-laptop text-dark text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Inventario</span>
+                </a>
+            </li>
+            <% } %>
+            <% if (_puedeVacSol) { %>
+            <li class="nav-item">
+                <a class="nav-link" href="<%=_basePath%>/Vacaciones/VAC_MiSaldo.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-umbrella-beach text-info text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Vacaciones</span>
+                </a>
+            </li>
+            <% } %>
+            <li class="nav-item">
+                <a class="nav-link" href="<%=_basePath%>/Proyectos/Perfil.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-user text-dark text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Perfil</span>
+                </a>
+            </li>
+            <% if (_puedeAudit) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "audit".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Control/ADM_ActividadUsuarios.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-user-shield text-dark text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Actividad usuarios</span>
+                </a>
+            </li>
+            <% } %>
+        </ul>
+    </div>
+
+    <div class="sidenav-footer mx-3">
+        <a href="<%=_basePath%>/cerrar.jsp" class="btn btn-dark btn-sm w-100 mb-3">
+            <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+        </a>
+    </div>
+</aside>
