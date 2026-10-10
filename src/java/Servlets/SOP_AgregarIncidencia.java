@@ -57,14 +57,17 @@ public class SOP_AgregarIncidencia extends HttpServlet {
         String loginYo = (String) session.getAttribute("usuario");
 
         Connection cn = null;
+        boolean incidenciaOk = false;
+        String errorEstado = null;
         try {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base");
-            cn.setAutoCommit(false);
 
             int idSolInt = Integer.parseInt(idSolicitud.trim());
 
-            // 1. Insert incidencia
+            // 1. Insert incidencia (operacion principal). Si esta falla
+            //    si redirigimos con error, porque sin incidencia no hay
+            //    nada que registrar.
             int idNuevo = 1;
             try (PreparedStatement stSec = cn.prepareStatement(
                     "SELECT NVL(MAX(ID_INCIDENCIA),0)+1 FROM SOP_SOPORTE_INCIDENCIA");
@@ -86,13 +89,15 @@ public class SOP_AgregarIncidencia extends HttpServlet {
                 else st.setString(7, resultado.trim());
                 st.executeUpdate();
             }
+            incidenciaOk = true;
 
-            // 2. Pasar a EN_PROGRESO si todavia estaba PENDIENTE o REASIGNADO
-            //    (no tiene sentido quedar ahi si ya se le esta trabajando).
-            //    Tambien asigna tecnico y fecha primera atencion si faltan.
-            //    Si el tipo es CIERRE o CIERRE_SIN_SOLUCION, no se toca el
-            //    estado -- eso lo maneja InsertReporteTecnico o
-            //    SOP_CambiarEstado.
+            // 2. Pasar a EN_PROGRESO si todavia estaba PENDIENTE o REASIGNADO.
+            //    En su propio try: si falla (ej. columna ESTADO muy chica
+            //    para "EN_PROGRESO" en una base vieja), el error se loguea
+            //    pero NO se revierte la incidencia -- la nota del tecnico
+            //    es lo mas valioso, lo preservamos aunque el estado no
+            //    cambie. El admin corre el 036 y en la proxima incidencia
+            //    ya pasa a EN_PROGRESO.
             if (!"CIERRE".equals(tipo) && !"CIERRE_SIN_SOLUCION".equals(tipo)) {
                 try (PreparedStatement st = cn.prepareStatement(
                         "UPDATE SOP_SOPORTE_CAB SET " +
@@ -106,6 +111,10 @@ public class SOP_AgregarIncidencia extends HttpServlet {
                     st.setString(2, loginYo);
                     st.setInt(3, idSolInt);
                     st.executeUpdate();
+                } catch (Exception upEx) {
+                    errorEstado = upEx.getMessage();
+                    System.out.println("SOP_AgregarIncidencia: incidencia guardada pero UPDATE de CAB fallo (" +
+                            errorEstado + "). Correr 036_sop_expandir_estado.sql si el error es ORA-12899.");
                 }
             }
 
@@ -113,17 +122,19 @@ public class SOP_AgregarIncidencia extends HttpServlet {
             COMUN.LogActividad.registrar(request, "SOPORTES", "ACTUALIZAR",
                     "Agrego incidencia (" + tipo + ") al ticket #" + idSolicitud);
         } catch (Exception e) {
-            if (cn != null) try { cn.rollback(); } catch (Exception ignore) {}
             e.printStackTrace();
-            response.sendRedirect("Soportes/SOP_AtenderTicket.jsp?idSolicitud=" + idSolicitud
-                    + "&error=Error al registrar incidencia");
-            return;
+            if (!incidenciaOk) {
+                response.sendRedirect("Soportes/SOP_AtenderTicket.jsp?idSolicitud=" + idSolicitud
+                        + "&error=Error al registrar incidencia: " + (e.getMessage() == null ? "" : e.getMessage().replaceAll("[\\r\\n]"," ").substring(0, Math.min(80, e.getMessage().length()))));
+                return;
+            }
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception ignore) {}
         }
 
-        response.sendRedirect("Soportes/SOP_AtenderTicket.jsp?idSolicitud=" + idSolicitud
-                + "&msj=Incidencia registrada");
+        String msj = "Incidencia registrada";
+        if (errorEstado != null) msj += " (nota: no se pudo cambiar estado del ticket, revisar logs)";
+        response.sendRedirect("Soportes/SOP_AtenderTicket.jsp?idSolicitud=" + idSolicitud + "&msj=" + msj);
     }
 
     @Override

@@ -68,14 +68,11 @@
 
     boolean esPrimeraCarga = request.getParameter("filtrar") == null;
     if (esPrimeraCarga) {
-        // Default inteligente segun permisos
-        if (puedeVerHistorial) {
-            // sin filtro de estado por default (ve todo)
-        } else if (puedeVerPendientes && !puedeVerAtendidos) {
-            fEstados = new String[]{"PENDIENTE","EN_PROGRESO","REASIGNADO"};
-        } else if (!puedeVerPendientes && puedeVerAtendidos) {
-            fEstados = new String[]{"ATENDIDO","CERRADO_SIN_SOLUCION"};
-        }
+        // Por default, al entrar siempre se muestran los ABIERTOS
+        // (PENDIENTE + EN_PROGRESO + REASIGNADO). Es lo mas util del
+        // dia a dia -- lo pendiente aparece arriba. Si el usuario
+        // quiere ver cerrados, destilda los checkboxes y marca otros.
+        fEstados = new String[]{"PENDIENTE","EN_PROGRESO","REASIGNADO"};
     }
 
     // ------- Query dinamico -------------------------------------------
@@ -167,6 +164,7 @@
 <link href="../assets/css/nucleo-icons.css" rel="stylesheet" />
 <link href="../assets/css/nucleo-svg.css" rel="stylesheet" />
 <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">

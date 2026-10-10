@@ -72,6 +72,7 @@
 <link href="../assets/css/nucleo-icons.css" rel="stylesheet">
 <link href="../assets/css/nucleo-svg.css" rel="stylesheet">
 <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link id="pagestyle" href="../assets/css/argon-dashboard.css?v=2.0.4" rel="stylesheet">
 <style>
     .card-prio { cursor: pointer; transition: all .15s; border: 2px solid transparent; }
