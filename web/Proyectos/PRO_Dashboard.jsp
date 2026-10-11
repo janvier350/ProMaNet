@@ -640,6 +640,36 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
+                    <%-- Tarjeta "Generar ticket para otro ejecutivo" -- misma funcionalidad
+                         que el bloque "Generar soporte" de Perfil.jsp, pero accesible
+                         como modal directo desde el dashboard para los que crean tickets
+                         por otros (CEOs, gerentes). Solo visible con SOPORTES_ATENDER. --%>
+                    <% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")) { %>
+                    <div class="col-xl-2 col-sm-6 mb-4">
+                        <div class="card" data-bs-toggle="modal" data-bs-target="#modalGenerarTicketOtro" style="cursor:pointer;">
+                            <div class="card-body p-3">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <div class="numbers">
+                                            <p class="text-sm mb-0 text-uppercase font-weight-bold">Generar</p>
+                                            <h5 class="font-weight-bolder">TICKET POR OTRO</h5>
+                                            <p class="mb-0">
+                                                <span class="text-warning text-sm font-weight-bolder">Para </span>
+                                                <b class="text-warning">ejecutivos que no crean sus tickets.</b>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        <div class="icon icon-shape bg-gradient-warning shadow text-center rounded-circle">
+                                            <i class="fas fa-user-plus text-lg opacity-10 text-white" style="line-height:3rem;" aria-hidden="true"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+
                     <% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
@@ -2030,6 +2060,71 @@ String compania = (String) session.getAttribute("compania");
         setInterval(verificarTiempo, 60000);
 
     </script>
+<%-- =========================================================
+     MODAL -- Generar ticket por otro ejecutivo
+     Reemplaza el bloque equivalente que esta en Perfil.jsp -- aqui
+     es un modal rapido para no tener que ir a Perfil cada vez.
+     Postea al servlet insertSoporteGenerado (ya corregido).
+     ========================================================= --%>
+<% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")) { %>
+<div class="modal fade" id="modalGenerarTicketOtro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form action="../insertSoporteGenerado" method="post" id="formGenTicketOtro">
+                <div class="modal-header bg-gradient-warning text-white">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Generar ticket en nombre de otro</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm text-secondary">Para generar un ticket a nombre de un ejecutivo que no suele crearlos (ej. gerencia). Se usa su equipo asignado activo automaticamente.</p>
+
+                    <div class="form-group mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase">Ejecutivo</label>
+                        <select name="idEjecutivo_soporteGenerado" class="form-control" required>
+                            <option value="">-- Elija un ejecutivo --</option>
+                            <%
+                                try (java.sql.Connection cnEx = Servlets.Conexion.getConnection()) {
+                                    if (cnEx != null) {
+                                        try (java.sql.PreparedStatement stEx = cnEx.prepareStatement(
+                                                "SELECT u.IDUSUARIO, u.NOMBRE || ' ' || u.APELLIDOS " +
+                                                "FROM USUARIO u " +
+                                                "WHERE UPPER(u.ESTADO) = 'A' " +
+                                                "  AND EXISTS (SELECT 1 FROM INV_ASIGNACION a WHERE a.IDUSUARIO = u.IDUSUARIO AND a.ESTADO = 'A') " +
+                                                "ORDER BY u.NOMBRE, u.APELLIDOS");
+                                             java.sql.ResultSet rsEx = stEx.executeQuery()) {
+                                            while (rsEx.next()) {
+                            %>
+                            <option value="<%=rsEx.getString(1)%>"><%=rsEx.getString(2)%></option>
+                            <% } } } } catch (Exception e) { e.printStackTrace(); } %>
+                        </select>
+                        <small class="text-xxs text-muted">Solo aparecen los que tienen al menos un equipo asignado.</small>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="text-xs font-weight-bold text-uppercase">Problema a reportar</label>
+                        <textarea name="soporteGenerado" class="form-control" rows="4" required maxlength="2000"
+                                  placeholder="Describe el problema que el ejecutivo esta reportando."></textarea>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label class="text-xs font-weight-bold text-uppercase">Prioridad</label>
+                        <select name="prioridad_soporteGenerado" class="form-control" required>
+                            <option value="Alta">Alta (no puede trabajar hasta que se resuelva)</option>
+                            <option value="Media" selected>Media (lo retrasa pero puede seguir con otras cosas)</option>
+                            <option value="Baja">Baja (mejora o consulta, no es urgente)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn bg-gradient-warning btn-sm text-white"><i class="fas fa-paper-plane me-1"></i>Generar ticket</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<% } %>
+
 </body>
 
 </html>

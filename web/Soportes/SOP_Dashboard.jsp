@@ -265,7 +265,7 @@
             <div class="col-lg-5 mb-4">
                 <div class="card">
                     <div class="card-header pb-0"><h6>Por prioridad (ultimos 90 dias)</h6></div>
-                    <div class="card-body p-3"><canvas id="chartPrio" height="130"></canvas></div>
+                    <div class="card-body p-3" style="max-height:320px;"><canvas id="chartPrio"></canvas></div>
                 </div>
             </div>
         </div>
@@ -352,7 +352,11 @@ $(document).ready(function(){
                 backgroundColor: ['#f5365c','#fb6340','#11cdef','#2dce89','#8898aa']
             }]
         },
-        options: { plugins: { legend: { position: 'bottom' } } }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
     });
 });
 </script>
