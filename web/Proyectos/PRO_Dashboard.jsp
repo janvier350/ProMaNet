@@ -627,7 +627,7 @@ String compania = (String) session.getAttribute("compania");
                     <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="../Proyectos/Perfil.jsp">
+                            <a href="../Soportes/SOP_NuevoTicket.jsp">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
@@ -683,25 +683,27 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <% } %>
 
-                    <% if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")) { %>
+                    <%-- Mis tickets: todos los usuarios consultan el estado de SUS tickets.
+                         El panel de gestion (staff) esta en "Soportes Sistemas" del menu lateral. --%>
+                    <% if (COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")) { %>
                     <div class="col-xl-2 col-sm-6 mb-4">
                         <div class="card">
-                            <a href="../Soportes/SOP_ListaSolicitudes.jsp">
+                            <a href="../Soportes/SOP_MisTickets.jsp">
                                 <div class="card-body p-3">
                                     <div class="row">
                                         <div class="col-8">
                                             <div class="numbers">
-                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Lista</p>
-                                                <h5 class="font-weight-bolder">SOPORTES</h5>
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Tickets</p>
+                                                <h5 class="font-weight-bolder">MIS TICKETS</h5>
                                                 <p class="mb-0">
                                                     <span class="text-success text-sm font-weight-bolder"><b>Consulte   </b></span>
-                                                    <b class="text-success ">sus soportes solicitados</b>
+                                                    <b class="text-success ">el estado de sus solicitudes</b>
                                                 </p>
                                             </div>
                                         </div>
                                         <div class="col-4 text-end">
                                             <div class="icon icon-shape bg-gradient-dark shadow-danger text-center rounded-circle">
-                                                <i class="ni ni-settings-gear-65 text-lg opacity-10" aria-hidden="true"></i>
+                                                <i class="fas fa-ticket-alt text-lg opacity-10 text-white" style="line-height:3rem;" aria-hidden="true"></i>
                                             </div>
                                         </div>
                                     </div>
