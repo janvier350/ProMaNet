@@ -581,7 +581,7 @@ String compania = (String) session.getAttribute("compania");
             <div class="container-fluid py-4">
                 <% String _msjTk = request.getParameter("msj"); if (_msjTk != null && !_msjTk.trim().isEmpty()) { %>
                 <div class="alert alert-success alert-dismissible fade show text-white" role="alert">
-                    <i class="fas fa-check-circle me-1"></i><%= _msjTk.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;") %>
+                    <i class="fas fa-check-circle me-1"></i><%= _msjTk.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;") %> <a href="../Soportes/SOP_MisTickets.jsp" class="text-white text-decoration-underline ms-2">Ver mis tickets</a>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                 </div>
                 <% } %>
