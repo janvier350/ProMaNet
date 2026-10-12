@@ -458,7 +458,7 @@ String compania = (String) session.getAttribute("compania");
                          </td>-->
                   <% if(COMUN.PermisoHelper.tiene(session, "SOPORTES_ACCESO")){%>
                       <td class="align-middle">
-                        <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= urlEnc(rsa.getString(8))%>&fecha=<%= urlEnc(rsa.getString(1))%>&soporte=<%= urlEnc(rsa.getString(5))%>&prioridad=<%= urlEnc(rsa.getString(6))%>&estado=<%= urlEnc(rsa.getString(7))%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
+                        <a href="../Soportes/SOP_AtenderTicket.jsp?idSolicitud=<%= urlEnc(rsa.getString(8))%>" class="btn btn-sm btn-warning mb-0 d-none d-lg-block "> Atender</a>
                       </td>
                       <%}%>
 <!--                      <td class="align-middle">

@@ -464,7 +464,7 @@ String compania = (String) session.getAttribute("compania");
                          </td>-->
                  
                       <td class="align-middle">
-                        <a href ="../Soportes/SOP_EditarSolicitudes.jsp?idSolicitud=<%= urlEnc(rsa.getString(8))%>&fecha=<%= urlEnc(rsa.getString(1))%>&soporte=<%= urlEnc(rsa.getString(5))%>&prioridad=<%= urlEnc(rsa.getString(6))%>&estado=<%= urlEnc(rsa.getString(7))%>" class="btn btn-sm btn-info mb-0 d-none d-lg-block "> Editar</a>
+                        <a href="../Soportes/SOP_AtenderTicket.jsp?idSolicitud=<%= urlEnc(rsa.getString(8))%>" class="btn btn-sm btn-info mb-0 d-none d-lg-block "> Editar</a>
                       </td>
                       <td class="align-middle">
                         <a href ="../SOP_EliminarSolicitud?idSolicitud=<%= rsa.getString(8)%>" class="btn btn-sm btn-danger mb-0 d-none d-lg-block "> Eliminar</a>
