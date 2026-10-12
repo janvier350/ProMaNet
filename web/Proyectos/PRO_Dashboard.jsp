@@ -579,6 +579,12 @@ String compania = (String) session.getAttribute("compania");
             </div>
 
             <div class="container-fluid py-4">
+                <% String _msjTk = request.getParameter("msj"); if (_msjTk != null && !_msjTk.trim().isEmpty()) { %>
+                <div class="alert alert-success alert-dismissible fade show text-white" role="alert">
+                    <i class="fas fa-check-circle me-1"></i><%= _msjTk.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;").replace("\"","&quot;") %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+                <% } %>
                 <div class="row">
 
                     <% if ((COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")||COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")||COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")||COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")||cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA"))) { %>
@@ -652,7 +658,7 @@ String compania = (String) session.getAttribute("compania");
                                     <div class="col-8">
                                         <div class="numbers">
                                             <p class="text-sm mb-0 text-uppercase font-weight-bold">Generar</p>
-                                            <h5 class="font-weight-bolder">TICKET POR OTRO</h5>
+                                            <h5 class="font-weight-bolder">GENERAR TICKET</h5>
                                             <p class="mb-0">
                                                 <span class="text-warning text-sm font-weight-bolder">Para </span>
                                                 <b class="text-warning">ejecutivos que no crean sus tickets.</b>

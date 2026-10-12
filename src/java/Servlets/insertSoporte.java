@@ -106,7 +106,8 @@ public class insertSoporte extends HttpServlet {
             try { if (cn != null) cn.close(); } catch (Exception ignore) {}
         }
 
-        response.sendRedirect("Soportes/SOP_ListaTickets.jsp?msj=Ticket #" + idNuevo + " creado");
+        response.sendRedirect("Proyectos/PRO_Dashboard.jsp?msj="
+                + java.net.URLEncoder.encode("Ticket #" + idNuevo + " creado", "UTF-8"));
     }
 
     @Override
