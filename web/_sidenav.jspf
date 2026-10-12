@@ -33,9 +33,10 @@
      ese script. Estilo similar al toggler nativo pero posicionado
      en top-right (fijo) para que este siempre a mano. --%>
 <a href="javascript:;" id="iconNavbarSidenav" class="position-fixed"
-   style="top:14px; right:14px; z-index:1060;
+   style="top:22px; right:24px; z-index:1060;
           background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);
-          border-radius:8px; padding:8px 11px; cursor:pointer; text-decoration:none;"
+          border-radius:8px; padding:6px 9px; cursor:pointer; text-decoration:none;
+          line-height:0;"
    title="Mostrar/ocultar menu lateral">
     <div class="sidenav-toggler-inner">
         <i class="sidenav-toggler-line bg-white" style="display:block;width:22px;height:2px;background:#fff;margin:3px 0;"></i>
@@ -45,6 +46,23 @@
 </a>
 
 <style>
+    /* El boton hamburguesa es fijo arriba a la derecha: se reserva ese
+       espacio en el navbar de la pagina para que no tape el nombre
+       del usuario (u otros elementos alineados a la derecha). */
+    @media (min-width: 576px) {
+        .main-content > .navbar-main > .container-fluid { padding-right: 4.5rem !important; }
+    }
+    /* Centrado de los iconos dentro de las bolitas de color de las
+       tarjetas (icon-shape): flex en vez de depender del line-height. */
+    .icon-shape {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-shape > i {
+        line-height: 1 !important;
+        display: block;
+    }
     /* Alineacion vertical consistente de los iconos del sidenav
        dentro de su cajita gris. Argon no siempre centra bien el
        glyph de FontAwesome y queda flotando arriba o abajo. */
