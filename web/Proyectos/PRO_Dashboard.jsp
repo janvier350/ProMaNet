@@ -322,6 +322,13 @@ String compania = (String) session.getAttribute("compania");
                             </div>
                             <span class="nav-link-text ms-1">Crear ticket</span>
                         </a>
+                        <%-- "Mis tickets": estado e historial de los tickets del propio usuario --%>
+                        <a class="nav-link " href="../Soportes/SOP_MisTickets.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-ticket-alt text-dark text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Mis tickets</span>
+                        </a>
                         <% if (COMUN.PermisoHelper.tiene(session, "AUDIT_VER_ACTIVIDAD")) { %>
                         <a class="nav-link " href="../Control/ADM_ActividadUsuarios.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
