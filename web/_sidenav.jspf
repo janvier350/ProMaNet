@@ -52,6 +52,15 @@
     @media (min-width: 576px) {
         .main-content > .navbar-main > .container-fluid { padding-right: 4.5rem !important; }
     }
+    /* Desplazamiento del contenido a la derecha del menu. Argon usa el
+       selector hermano ADYACENTE (.sidenav + .main-content), pero en las
+       pantallas nuevas hay un <div class="min-height-300"> (el fondo azul)
+       entre el <aside> y el <main>, y entonces la regla no aplica y el
+       menu tapa la pagina. Con "~" (hermano general) funciona igual. */
+    @media (min-width: 1200px) {
+        .g-sidenav-show .sidenav.fixed-start ~ .main-content { margin-left: 17.125rem; }
+        body.sidenav-oculto-desktop .sidenav.fixed-start ~ .main-content { margin-left: 0 !important; }
+    }
     /* Centrado de los iconos dentro de las bolitas de color de las
        tarjetas (icon-shape): flex en vez de depender del line-height. */
     .icon-shape {
