@@ -187,6 +187,16 @@
                 </a>
             </li>
             <% } %>
+            <% if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "manuales".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Manuales/MAN_Indice.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-book-open text-success text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Manuales</span>
+                </a>
+            </li>
+            <% } %>
             <li class="nav-item">
                 <a class="nav-link" href="<%=_basePath%>/Proyectos/Perfil.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

@@ -221,6 +221,16 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
+                    <% if (tieneAudAcceso || tieneAudGestionar) { %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Manuales/MAN_Indice.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="fas fa-book-open text-success text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Manuales</span>
+                        </a>
+                    </li>
+                    <% } %>
                     <%
                         // Ser jefe directo de alguien es un dato (no un permiso): se
                         // calcula antes para decidir si el jefe ve un solo enlace
