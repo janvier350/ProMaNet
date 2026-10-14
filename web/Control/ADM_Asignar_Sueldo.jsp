@@ -334,6 +334,14 @@ String compania = (String) session.getAttribute("compania");
             </nav>
             <!-- End Navbar -->
             <div class="container-fluid py-4">
+                <% String _msj = request.getParameter("msj"); String _err = request.getParameter("error");
+                   if (_msj != null && !_msj.trim().isEmpty()) { %>
+                <div class="alert alert-success alert-dismissible fade show text-white" role="alert"><%= _msj.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button></div>
+                <% } if (_err != null && !_err.trim().isEmpty()) { %>
+                <div class="alert alert-danger alert-dismissible fade show text-white" role="alert"><%= _err.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") %>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button></div>
+                <% } %>
                 <div class="row">
                     <div class="col-12">
                         <div class="card mb-4">
@@ -477,11 +485,11 @@ String compania = (String) session.getAttribute("compania");
                                         <div class="modal-body p-0">
                                             <div class="card card-plain">
                                                 <div class="card-header pb-0 text-left">
-                                                    <h3 class="font-weight-bolder text-primary text-gradient">Ingresar sueldo</h3>
+                                                    <h3 class="font-weight-bolder text-primary text-gradient" id="tituloModalSueldo">Ingresar sueldo</h3>
                                                     <!--<p class="mb-0">Ingresar datos</p>-->
                                                 </div>
                                                 <div class="card-body pb-3">
-                                                    <form role="form text-left" action="../ADM_Asignar_Sueldo">
+                                                    <form role="form text-left" action="../ADM_Asignar_Sueldo" method="post">
 
                                                         <div> 
 
@@ -496,7 +504,7 @@ String compania = (String) session.getAttribute("compania");
                                                             <label>Sueldo</label>
 
                                                             <div class="input-group mb-3">
-                                                                <input type="number" class="form-control" placeholder="" aria-label="Password" aria-describedby="password-addon" id="sueldo" name ="sueldo" required="true">
+                                                                <input type="number" class="form-control" placeholder="" aria-label="Password" aria-describedby="password-addon" id="sueldo" name ="sueldo" required="true" step="0.01" min="0">
                                                             </div>
 
 
@@ -590,7 +598,14 @@ String compania = (String) session.getAttribute("compania");
 
                                                 </td>
                                                 <td>
-
+                                                    <% if (cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")) { %>
+                                                    <button type="button" class="btn btn-sm btn-outline-warning mb-0"
+                                                            data-id="<%= rsa5.getString(1)%>" data-apellido="<%= rsa5.getString(3)%>" data-nombre="<%= rsa5.getString(2)%>"
+                                                            data-sueldo="<%= rsa5.getString(4)%>" data-editar="1"
+                                                            data-bs-toggle="modal" data-bs-target="#exampleModalSignUp2">
+                                                        <i class="fa fa-pencil"></i> Editar sueldo
+                                                    </button>
+                                                    <% } %>
                                                 </td>
 
                                             </tr>
@@ -757,6 +772,11 @@ String compania = (String) session.getAttribute("compania");
                 modalBodyInput.value = recipientId;
 
                 inputNombre.value = nombre + " " + apellido;
+
+                // Modo edicion (boton "Editar sueldo"): precarga el sueldo actual.
+                const esEdicion = button.getAttribute('data-editar') === '1';
+                exampleModal.querySelector('#tituloModalSueldo').textContent = esEdicion ? 'Editar sueldo' : 'Ingresar sueldo';
+                exampleModal.querySelector('#sueldo').value = esEdicion ? button.getAttribute('data-sueldo') : '';
             });
         </script>
         <!-- Github buttons -->

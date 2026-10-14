@@ -71,6 +71,9 @@ public class AUD_AsignarSueldo extends HttpServlet {
                 }
             }
 
+            COMUN.LogActividad.registrar(request, "ANTICIPOS", "EDITAR",
+                    "Asigno/edito el sueldo del usuario #" + idEjecutivo + " (Auditoria): $"
+                    + String.format(java.util.Locale.US, "%.2f", sueldo));
             response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Sueldo actualizado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
