@@ -135,7 +135,7 @@
                             <li>Pulse <span class="btn-demo"><i class="fa fa-plus"></i> Nueva solicitud</span>.</li>
                             <li>Escriba el monto (maximo el 50% de su sueldo; la pantalla le muestra el tope) y pulse <span class="btn-demo">Solicitar</span>.</li>
                             <li>Queda en estado <span class="badge badge-sm bg-gradient-warning">PENDIENTE</span>.</li>
-                            <li>Si se equivoco de monto, pida al gestor que lo corrija (paso 4).</li>
+                            <li>Si se equivoco de monto, pulse el lapiz <i class="fa fa-pencil"></i> de su solicitud en <b>Mis solicitudes</b> y corrijalo (mientras siga PENDIENTE y no venza el plazo).</li>
                         </ul>
                     </div>
 
@@ -193,7 +193,7 @@
                                 <tbody>
                                     <tr><td><i>No tienes un sueldo asignado</i></td><td>Falta el paso 1. Avise al gestor.</td></tr>
                                     <tr><td><i>El plazo ya vencio</i></td><td>Paso 2: el gestor define o corrige la fecha de corte.</td></tr>
-                                    <tr><td><i>Ya tienes una solicitud pendiente</i></td><td>Espere a que se pague la actual (o pida corregirla).</td></tr>
+                                    <tr><td><i>Ya tienes una solicitud pendiente</i></td><td>Espere a que se pague la actual, o corrijala con el lapiz.</td></tr>
                                     <tr><td><i>El monto excede el 50%</i></td><td>Baje el monto al tope mostrado.</td></tr>
                                     <tr><td><i>El anticipo ya fue pagado</i></td><td>Ya no se edita; registre uno nuevo el mes siguiente.</td></tr>
                                     <tr><td><i>No se puede editar: ya hay pagados</i></td><td>La fecha de corte de ese mes quedo cerrada.</td></tr>

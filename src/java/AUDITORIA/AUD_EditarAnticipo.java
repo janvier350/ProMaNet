@@ -12,6 +12,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+// Editar el monto de una solicitud PENDIENTE de Anticipos Auditoria.
+// Pueden hacerlo:
+//  - el gestor (ANTICIPOS_AUD_GESTIONAR), sobre cualquier solicitud;
+//  - el propio ejecutivo (ANTICIPOS_AUD_ACCESO), solo sobre SUS solicitudes.
+// En ambos casos aplican las mismas reglas: plazo vigente, anticipo no
+// pagado y tope del 50% del sueldo registrado en la solicitud.
 @WebServlet(name = "AUD_EditarAnticipo", urlPatterns = {"/AUD_EditarAnticipo"})
 public class AUD_EditarAnticipo extends HttpServlet {
 
@@ -24,21 +30,32 @@ public class AUD_EditarAnticipo extends HttpServlet {
             response.sendRedirect("sesionExpirada.jsp");
             return;
         }
-        if (!PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")) {
+        boolean esGestor = PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR");
+        boolean esEjecutivo = PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO");
+        if (!esGestor && !esEjecutivo) {
             response.sendRedirect("sesionInvalida.jsp");
             return;
         }
+        int miId = -1;
+        try { miId = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
+
+        // A que pantalla volver: la del ejecutivo si edito desde "Mis
+        // solicitudes"; si no, el panel de gestion.
+        String volver = request.getContextPath() + (
+                "mis".equals(request.getParameter("volver")) && esEjecutivo
+                ? "/Auditoria/AUD_SolicitarAnticipo.jsp"
+                : (esGestor ? "/Auditoria/AUD_Dashboard.jsp" : "/Auditoria/AUD_SolicitarAnticipo.jsp"));
 
         String idAnticipo = request.getParameter("idAnticipo");
         double nuevoMonto;
         try {
             nuevoMonto = Double.parseDouble(request.getParameter("anticipo"));
         } catch (Exception e) {
-            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Monto invalido");
+            response.sendRedirect(volver + "?error=Monto invalido");
             return;
         }
         if (idAnticipo == null || nuevoMonto <= 0) {
-            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Datos incompletos");
+            response.sendRedirect(volver + "?error=Datos incompletos");
             return;
         }
 
@@ -63,7 +80,7 @@ public class AUD_EditarAnticipo extends HttpServlet {
                         cH.set(java.util.Calendar.SECOND, 0);
                         cH.set(java.util.Calendar.MILLISECOND, 0);
                         if (cH.getTime().after(fechaCorte)) {
-                            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El plazo para editar anticipos ya vencio");
+                            response.sendRedirect(volver + "?error=El plazo para editar anticipos ya vencio");
                             return;
                         }
                     }
@@ -73,17 +90,21 @@ public class AUD_EditarAnticipo extends HttpServlet {
             // Un anticipo PAGADO no se puede editar -- la UI oculta el
             // boton pero esto bloquea intentos directos por URL.
             double sueldoActual = 0;
+            int duenio = -1;
             try (PreparedStatement stCheck = cn.prepareStatement(
-                    "SELECT SUELDO, ESTADO FROM AUD_ANTICIPOS WHERE ID_AUD_ANTICIPO = ?")) {
+                    "SELECT SUELDO, ESTADO, ID_USUARIO FROM AUD_ANTICIPOS WHERE ID_AUD_ANTICIPO = ?")) {
                 stCheck.setString(1, idAnticipo);
                 try (ResultSet rsCheck = stCheck.executeQuery()) {
-                    if (!rsCheck.next()) {
-                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Solicitud no encontrada");
+                    // Un ejecutivo (no gestor) solo puede tocar sus propias
+                    // solicitudes; las ajenas se tratan como inexistentes.
+                    if (!rsCheck.next() || (!esGestor && rsCheck.getInt(3) != miId)) {
+                        response.sendRedirect(volver + "?error=Solicitud no encontrada");
                         return;
                     }
+                    duenio = rsCheck.getInt(3);
                     sueldoActual = rsCheck.getDouble(1);
                     if ("PAGADO".equalsIgnoreCase(rsCheck.getString(2))) {
-                        response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=No se puede editar: el anticipo ya fue pagado");
+                        response.sendRedirect(volver + "?error=No se puede editar: el anticipo ya fue pagado");
                         return;
                     }
                 }
@@ -91,7 +112,7 @@ public class AUD_EditarAnticipo extends HttpServlet {
 
             double limite = sueldoActual * 0.50;
             if (nuevoMonto > limite) {
-                response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=El monto excede el 50% del sueldo ($" + limite + ")");
+                response.sendRedirect(volver + "?error=El monto excede el 50% del sueldo ($" + limite + ")");
                 return;
             }
 
@@ -102,10 +123,14 @@ public class AUD_EditarAnticipo extends HttpServlet {
                 st.executeUpdate();
             }
 
-            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Anticipo actualizado correctamente");
+            COMUN.LogActividad.registrar(request, "ANTICIPOS", "EDITAR",
+                    "Edito el monto de la solicitud #" + idAnticipo + " (usuario #" + duenio + ") a $"
+                    + String.format(java.util.Locale.US, "%.2f", nuevoMonto));
+
+            response.sendRedirect(volver + "?msj=Anticipo actualizado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?error=Error al actualizar");
+            response.sendRedirect(volver + "?error=Error al actualizar");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }

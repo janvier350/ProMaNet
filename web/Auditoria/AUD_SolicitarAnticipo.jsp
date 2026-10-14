@@ -368,6 +368,7 @@
         <div class="modal-content">
             <form action="../AUD_EditarAnticipo" method="post">
                 <input type="hidden" name="idAnticipo" id="editIdAnticipo">
+                <input type="hidden" name="volver" value="mis">
                 <div class="modal-header" style="background:#6c757d;">
                     <h5 class="modal-title text-white"><i class="fa fa-pencil me-2"></i>Editar Solicitud</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
