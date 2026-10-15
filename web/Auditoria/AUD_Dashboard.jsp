@@ -360,7 +360,10 @@
                                         try (Connection cn3 = Servlets.Conexion.getConnection()) {
                                             if (cn3 != null) {
                                                 try (PreparedStatement st3 = cn3.prepareStatement(
-                                                        "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, NVL(u.SUELDO,0) " +
+                                                        "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, NVL(u.SUELDO,0), d.DEPARTAMENTO, " +
+                                                        // 1 = pertenece por su departamento; 0 = solo por concesion individual
+                                                        "       CASE WHEN EXISTS (SELECT 1 FROM APP_DEPARTAMENTO_PERMISO dp JOIN APP_PERMISO p ON p.ID_PERMISO = dp.ID_PERMISO " +
+                                                        "          WHERE p.CODIGO = 'ANTICIPOS_AUD_ACCESO' AND dp.TIPO = 'G' AND UPPER(dp.DEPARTAMENTO) = UPPER(d.DEPARTAMENTO)) THEN 1 ELSE 0 END " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
                                                         "WHERE u.ESTADO = 'a' " +
@@ -382,7 +385,14 @@
                                                             String sueldoE = rs3.getString(3);
                                                     %>
                                                     <tr>
-                                                        <td><p class="text-xs font-weight-bold mb-0"><%=nombreE%></p></td>
+                                                        <td>
+                                                            <p class="text-xs font-weight-bold mb-0"><%=nombreE%></p>
+                                                            <% if (rs3.getInt(5) == 0) { %>
+                                                            <p class="text-xxs text-warning mb-0" title="No pertenece a Auditoria por su departamento: tiene el acceso por una concesion individual (APP_USUARIO_PERMISO).">
+                                                                <i class="fa fa-user-tag"></i> Concesion individual &middot; Depto: <%=rs3.getString(4) == null ? "-" : rs3.getString(4)%>
+                                                            </p>
+                                                            <% } %>
+                                                        </td>
                                                         <td><p class="text-xs mb-0">$ <%=sueldoE%></p></td>
                                                         <td class="text-center">
                                                             <div class="d-flex justify-content-center gap-1">
