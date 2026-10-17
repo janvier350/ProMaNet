@@ -179,7 +179,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), " +
                                                         "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, j.NOMBRE||' '||j.APELLIDOS, s.ANTICIPADA, " +
-                                                        "NVL(s.DIAS_HABILES_SOLICITADOS,0) " +
+                                                        "NVL(s.DIAS_HABILES_SOLICITADOS,0), s.RETROACTIVA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_USUARIO_APRUEBA_JEFE = j.IDUSUARIO " +
                                                         "WHERE s.ESTADO = 'PENDIENTE_ADMIN' ORDER BY s.FECHA_APROBACION_JEFE ASC")) {
@@ -192,12 +192,16 @@
                                                             double diasSol = rs.getDouble(5);
                                                             boolean esAnticipada = "S".equals(rs.getString(7));
                                                             int diasHabSol = rs.getInt(8);
+                                                            boolean esRetro = "S".equals(rs.getString(9));
                                                     %>
                                                     <tr>
                                                         <td>
                                                             <p class="text-xs font-weight-bold mb-0"><%=solicitante%>
                                                             <% if (esAnticipada) { %>
                                                             <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            <% if (esRetro) { %>
+                                                            <span class="badge badge-sm bg-gradient-info ms-1">Ya gozadas</span>
                                                             <% } %>
                                                             </p>
                                                         </td>
@@ -272,7 +276,7 @@
                                                 try (PreparedStatement stAll = cnAll.prepareStatement(
                                                         "SELECT * FROM (SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, j.NOMBRE||' '||j.APELLIDOS, " +
                                                         "TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), " +
-                                                        "s.DIAS_SOLICITADOS, s.ESTADO, s.ANTICIPADA " +
+                                                        "s.DIAS_SOLICITADOS, s.ESTADO, s.ANTICIPADA, s.RETROACTIVA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_JEFE_DIRECTO = j.IDUSUARIO " +
                                                         "ORDER BY s.FECHA_SOLICITUD DESC) WHERE ROWNUM <= 100")) {
@@ -283,6 +287,7 @@
                                                             String idSolAll = rsAll.getString(1);
                                                             String estadoAll = rsAll.getString(7);
                                                             boolean anticipadaAll = "S".equals(rsAll.getString(8));
+                                                            boolean retroAll = "S".equals(rsAll.getString(9));
                                                             String badgeClaseAll;
                                                             String badgeTextoAll;
                                                             if ("APROBADO".equals(estadoAll) || "RECIBIDO".equals(estadoAll)) {
@@ -304,6 +309,9 @@
                                                             <p class="text-xs font-weight-bold mb-0"><%=rsAll.getString(2)%>
                                                             <% if (anticipadaAll) { %>
                                                             <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            <% if (retroAll) { %>
+                                                            <span class="badge badge-sm bg-gradient-info ms-1">Ya gozadas</span>
                                                             <% } %>
                                                             </p>
                                                         </td>

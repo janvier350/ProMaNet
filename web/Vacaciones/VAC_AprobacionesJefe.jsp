@@ -179,7 +179,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT s.ID_SOLICITUD, u.NOMBRE||' '||u.APELLIDOS, TO_CHAR(s.FECHA_SOLICITUD,'DD/MM/YYYY'), " +
                                                         "TO_CHAR(s.FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_SOLICITADOS, " +
-                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), s.ANTICIPADA, NVL(s.DIAS_HABILES_SOLICITADOS,0) " +
+                                                        "TO_CHAR(s.FECHA_REINCORPORACION,'DD/MM/YYYY'), s.ANTICIPADA, NVL(s.DIAS_HABILES_SOLICITADOS,0), s.RETROACTIVA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "WHERE s.ID_JEFE_DIRECTO = ? AND s.ESTADO = 'PENDIENTE_JEFE' " +
                                                         "ORDER BY s.FECHA_SOLICITUD ASC")) {
@@ -191,12 +191,16 @@
                                                             String idSol = rs.getString(1);
                                                             String solicitante = rs.getString(2);
                                                             boolean esAnticipada = "S".equals(rs.getString(8));
+                                                            boolean esRetro = "S".equals(rs.getString(10));
                                                     %>
                                                     <tr>
                                                         <td>
                                                             <p class="text-xs font-weight-bold mb-0"><%=solicitante%>
                                                             <% if (esAnticipada) { %>
                                                             <span class="badge badge-sm bg-gradient-warning ms-1">Anticipada</span>
+                                                            <% } %>
+                                                            <% if (esRetro) { %>
+                                                            <span class="badge badge-sm bg-gradient-info ms-1">Ya gozadas</span>
                                                             <% } %>
                                                             </p>
                                                         </td>

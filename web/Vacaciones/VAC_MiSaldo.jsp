@@ -45,6 +45,16 @@
         }
     } catch (Exception exJefe) { exJefe.printStackTrace(); }
 
+    // Ventana abierta por Administracion para registrar vacaciones ya
+    // gozadas (fechas pasadas). null = modo normal.
+    String retroLimite = null;
+    try (Connection cnRetro = Servlets.Conexion.getConnection()) {
+        if (cnRetro != null) {
+            java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro);
+            if (lim != null) retroLimite = new java.text.SimpleDateFormat("dd/MM/yyyy").format(lim);
+        }
+    } catch (Exception exRetro) { exRetro.printStackTrace(); }
+
     String msj = request.getParameter("msj");
     String error = request.getParameter("error");
 %>
@@ -231,6 +241,9 @@
                         <button type="button" class="btn btn-outline-primary btn-sm mb-0" data-bs-toggle="modal" data-bs-target="#modalSolicitar">
                             <i class="fa fa-plus me-1"></i> Nueva solicitud
                         </button>
+                        <% if (retroLimite != null) { %>
+                        <p class="text-xs text-info mb-0 mt-1"><i class="fa fa-history me-1"></i>Habilitado registrar vacaciones ya gozadas hasta el <%=retroLimite%>.</p>
+                        <% } %>
                         <% if (saldo.totalDisponible <= 0) { %>
                         <p class="text-xs text-muted mb-0 mt-1">No tienes dias disponibles -- si es un adelanto acordado con Administracion, marca "solicitud anticipada" al solicitar.</p>
                         <% } %>
@@ -404,6 +417,13 @@
                             <input type="date" name="fechaHasta" id="solFechaHasta" class="form-control" required>
                         </div>
                     </div>
+                    <% if (retroLimite != null) { %>
+                    <div class="alert alert-info py-2 px-3 mb-2 text-sm">
+                        <i class="fa fa-history me-1"></i>
+                        Esta habilitado el registro de <b>vacaciones ya gozadas</b> hasta el <b><%=retroLimite%></b>.
+                        Para ellas, ambas fechas deben ser anteriores a hoy. Pasada esa fecha solo se aceptan fechas desde hoy.
+                    </div>
+                    <% } %>
                     <div id="solResumen" class="alert alert-secondary py-2 px-3 mb-2" style="display:none;"></div>
                     <div class="form-check mt-3">
                         <input class="form-check-input" type="checkbox" name="anticipada" id="solAnticipada" value="on">

@@ -67,10 +67,10 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=La fecha hasta no puede ser anterior a la fecha desde");
             return;
         }
-        if (desde.isBefore(LocalDate.now())) {
-            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No puedes solicitar vacaciones con fecha desde en el pasado");
-            return;
-        }
+        // Fecha desde en el pasado: solo si Administracion abrio la ventana
+        // de registro de vacaciones ya gozadas (se verifica contra la base
+        // mas abajo, ya con la conexion abierta).
+        boolean retroactiva = desde.isBefore(LocalDate.now());
 
         // NOTA: antes se bloqueaba terminar en viernes o sabado porque bajo
         // el conteo de dias calendario el fin de semana quedaba "gratis"
@@ -100,6 +100,24 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
             cn.setAutoCommit(false);
+
+            if (retroactiva) {
+                if (!VAC_RetroHelper.habilitada(cn)) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No puedes solicitar vacaciones con fecha desde en el pasado");
+                    return;
+                }
+                if (anticipada) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=Una solicitud de vacaciones ya gozadas no puede ser anticipada");
+                    return;
+                }
+                if (!hasta.isBefore(LocalDate.now())) {
+                    cn.rollback();
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=Para registrar vacaciones ya gozadas, ambas fechas deben ser anteriores a hoy");
+                    return;
+                }
+            }
 
             // 1. Jefe directo asignado.
             Integer idJefe = null;
@@ -188,8 +206,8 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                     "INSERT INTO VAC_SOLICITUD (ID_SOLICITUD, ID_USUARIO, ID_JEFE_DIRECTO, NUM_PERIODO, " +
                     "FECHA_DESDE, FECHA_HASTA, FECHA_REINCORPORACION, DIAS_SOLICITADOS, " +
                     "DIAS_HABILES_SOLICITADOS, FACTOR_PROPORCIONALIDAD, ESTADO, " +
-                    "ANTICIPADA, JUSTIFICACION_ANTICIPO) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE', ?, ?)")) {
+                    "ANTICIPADA, JUSTIFICACION_ANTICIPO, RETROACTIVA) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE_JEFE', ?, ?, ?)")) {
                 st.setInt(1, idNuevo);
                 st.setInt(2, idUsuario);
                 st.setInt(3, idJefe);
@@ -202,6 +220,7 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                 st.setBigDecimal(10, VAC_CalculoDias.FACTOR_PROPORCIONALIDAD);
                 st.setString(11, anticipada ? "S" : "N");
                 if (anticipada) st.setString(12, justificacionAnticipo.trim()); else st.setNull(12, java.sql.Types.VARCHAR);
+                st.setString(13, retroactiva ? "S" : "N");
                 st.executeUpdate();
             }
 
@@ -209,10 +228,12 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             COMUN.LogActividad.registrar(request, "VACACIONES", "CREAR",
                     "Solicito vacaciones " + pFechaDesde + " a " + pFechaHasta
                             + " (" + diasHabiles + " habiles = " + String.format("%.2f", diasEquivalentes) + " dias"
-                            + (anticipada ? ", ANTICIPADA" : "") + ")");
+                            + (anticipada ? ", ANTICIPADA" : "") + (retroactiva ? ", YA GOZADAS (RETROACTIVA)" : "") + ")");
             String msjOk = anticipada
                     ? "Solicitud anticipada registrada, queda pendiente de aprobacion de tu jefe directo"
-                    : "Solicitud registrada, queda pendiente de aprobacion de tu jefe directo";
+                    : (retroactiva
+                        ? "Vacaciones ya gozadas registradas, quedan pendientes de aprobacion de tu jefe directo"
+                        : "Solicitud registrada, queda pendiente de aprobacion de tu jefe directo");
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?msj=" + msjOk);
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}

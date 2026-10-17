@@ -15,6 +15,29 @@
     if (!puedeConfigurar && !puedeGestionar) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
+
+    // Estado de la ventana "registro de vacaciones ya gozadas".
+    String retroLimite = null, retroLimiteIso = null, retroAbrio = null;
+    String retroDefaultIso = java.time.LocalDate.now().plusDays(7).toString();
+    String retroMaxIso = java.time.LocalDate.now().plusDays(30).toString();
+    String retroHoyIso = java.time.LocalDate.now().toString();
+    try (java.sql.Connection cnRetro = Servlets.Conexion.getConnection()) {
+        if (cnRetro != null) {
+            java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro);
+            if (lim != null) {
+                retroLimite = new java.text.SimpleDateFormat("dd/MM/yyyy").format(lim);
+                try (java.sql.PreparedStatement stR = cnRetro.prepareStatement(
+                        "SELECT u.NOMBRE||' '||u.APELLIDOS FROM (SELECT ID_USUARIO_ABRE FROM VAC_RETRO_VENTANA " +
+                        "WHERE ACTIVA = 'S' ORDER BY ID_VENTANA DESC) v LEFT JOIN USUARIO u ON u.IDUSUARIO = v.ID_USUARIO_ABRE " +
+                        "WHERE ROWNUM = 1");
+                     java.sql.ResultSet rsR = stR.executeQuery()) {
+                    if (rsR.next()) retroAbrio = rsR.getString(1);
+                }
+            }
+        }
+    } catch (Exception exRetro) { exRetro.printStackTrace(); }
+    String msjDash = request.getParameter("msj");
+    String errDash = request.getParameter("error");
 %>
 <!DOCTYPE html>
 <html lang="es">
@@ -188,6 +211,31 @@
                 </div>
             </div>
             <% } %>
+
+            <%-- Ventana para registrar vacaciones ya gozadas: habilita temporalmente a los
+                 usuarios a solicitar fechas pasadas; se cierra con el boton o al vencer la fecha limite. --%>
+            <div class="col-xl-3 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body p-3">
+                        <p class="text-sm mb-0 text-uppercase font-weight-bold">Vacaciones ya gozadas</p>
+                        <% if (retroLimite != null) { %>
+                        <h5 class="font-weight-bolder mb-1"><span class="badge bg-gradient-success">HABILITADO</span></h5>
+                        <p class="text-xs mb-2">Los usuarios pueden registrar fechas pasadas hasta el <b><%=retroLimite%></b><%= retroAbrio != null ? " (abierto por " + retroAbrio + ")" : "" %>.</p>
+                        <form action="../VAC_RetroactivasToggle" method="post" class="d-inline"
+                              onsubmit="return confirm('Volver al modo normal? Los usuarios ya no podran registrar fechas pasadas.');">
+                            <input type="hidden" name="accion" value="CERRAR">
+                            <button type="submit" class="btn btn-sm btn-outline-danger mb-0"><i class="fa fa-lock me-1"></i> Volver al modo normal</button>
+                        </form>
+                        <% } else { %>
+                        <h5 class="font-weight-bolder mb-1"><span class="badge bg-gradient-secondary">MODO NORMAL</span></h5>
+                        <p class="text-xs mb-2">Los usuarios solo pueden solicitar desde hoy en adelante.</p>
+                        <button type="button" class="btn btn-sm btn-outline-warning mb-0" data-bs-toggle="modal" data-bs-target="#modalRetro">
+                            <i class="fa fa-unlock me-1"></i> Habilitar fechas pasadas
+                        </button>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -203,6 +251,39 @@
         </div>
     </footer>
 </main>
+
+<%-- Modal: habilitar el registro de vacaciones ya gozadas --%>
+<div class="modal fade" id="modalRetro" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form action="../VAC_RetroactivasToggle" method="post">
+                <input type="hidden" name="accion" value="ABRIR">
+                <div class="modal-header" style="background:#f0ad4e;">
+                    <h5 class="modal-title text-white"><i class="fa fa-unlock me-2"></i>Habilitar vacaciones ya gozadas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm">Mientras este habilitado, todos los usuarios podran solicitar vacaciones con fechas
+                        <b>completamente pasadas</b>. Siguen el flujo normal de aprobacion (jefe y administracion) y se
+                        marcan como &quot;Ya gozadas&quot;. Vuelve solo al modo normal al vencer la fecha limite.</p>
+                    <div class="form-group mb-3">
+                        <label>Habilitado hasta (maximo 30 dias)</label>
+                        <input type="date" name="fechaLimite" class="form-control" value="<%=retroDefaultIso%>"
+                               min="<%=retroHoyIso%>" max="<%=retroMaxIso%>" required>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>Motivo (opcional)</label>
+                        <input type="text" name="motivo" class="form-control" maxlength="300" placeholder="Ej: ponerse al dia con vacaciones 2026">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning btn-sm"><i class="fa fa-unlock me-1"></i>Habilitar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script src="../assets/js/core/popper.min.js"></script>
 <script src="../assets/js/core/bootstrap.min.js"></script>
