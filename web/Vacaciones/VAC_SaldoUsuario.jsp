@@ -188,11 +188,14 @@
                 </div>
             </div>
             <div class="col-md-4 mb-4">
-                <div class="card bg-gradient-success">
+                <div class="card <%= saldo.saldoNeto < 0 ? "bg-gradient-warning" : "bg-gradient-success" %>">
                     <div class="card-body">
                         <p class="text-sm mb-1 text-uppercase font-weight-bold text-white">Total disponible</p>
-                        <h4 class="mb-0 text-white"><%=fmt2(saldo.totalDisponible)%> dias</h4>
+                        <h4 class="mb-0 text-white"><%=fmt2(saldo.saldoNeto)%> dias</h4>
                         <p class="text-xs text-white mb-0"><%=saldo.periodos.size()%> periodo(s) cumplido(s)</p>
+                        <% if (saldo.diasAdelantados > 0) { %>
+                        <p class="text-xs text-white mb-0">Incluye <%=fmt2(saldo.diasAdelantados)%> dias adelantados (periodo <%=saldo.periodoAdelanto.numero%>)</p>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -233,7 +236,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (saldo.periodos.isEmpty()) { %>
+                                    <% if (saldo.periodos.isEmpty() && saldo.periodoAdelanto == null) { %>
                                     <tr><td colspan="6" class="text-center text-muted py-4">Todavia no cumple 1 año de trabajo -- sin periodos acumulados.</td></tr>
                                     <% } %>
                                     <% for (VAC_CalculoSaldo.Periodo p : saldo.periodos) { %>
@@ -246,6 +249,17 @@
                                         <td class="text-center">
                                             <span class="badge badge-sm <%=p.diasDisponibles > 0 ? "bg-gradient-success" : "bg-gradient-secondary"%>"><%=fmt2(p.diasDisponibles)%></span>
                                         </td>
+                                    </tr>
+                                    <% } %>
+                                    <% if (saldo.periodoAdelanto != null) { VAC_CalculoSaldo.Periodo pa = saldo.periodoAdelanto; %>
+                                    <tr>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=pa.numero%></p>
+                                            <span class="badge badge-sm bg-gradient-warning" title="Periodo todavia no cumplido: estos dias se adelantaron y se descuentan de los que ganara">Adelanto</span></td>
+                                        <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(pa.desde)%></p></td>
+                                        <td><p class="text-xs mb-0"><%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(pa.hasta)%></p></td>
+                                        <td class="text-center"><p class="text-xs text-muted mb-0">(<%=pa.diasAcumulados%> al cumplirse)</p></td>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=fmt2(pa.diasConsumidos)%></p></td>
+                                        <td class="text-center"><span class="badge badge-sm bg-gradient-warning">-<%=fmt2(pa.diasConsumidos)%></span></td>
                                     </tr>
                                     <% } %>
                                 </tbody>

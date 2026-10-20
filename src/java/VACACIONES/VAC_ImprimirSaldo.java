@@ -142,22 +142,29 @@ public class VAC_ImprimirSaldo extends HttpServlet {
                 if (saldo.configurado) {
                     out.println("<div class='col-4 campo'><label>Fecha de ingreso</label><div class='valor'>" + new SimpleDateFormat("dd/MM/yyyy").format(saldo.fechaIngreso) + "</div></div>");
                     out.println("<div class='col-4 campo'><label>Antiguedad</label><div class='valor'>" + String.format("%.1f años", saldo.antiguedadAnios) + "</div></div>");
-                    out.println("<div class='col-4 campo'><label>Dias disponibles hoy</label><div class='valor'>" + String.format(java.util.Locale.US, "%.2f", saldo.totalDisponible) + " dias</div></div>");
+                    out.println("<div class='col-4 campo'><label>Dias disponibles hoy</label><div class='valor'>" + String.format(java.util.Locale.US, "%.2f", saldo.saldoNeto) + " dias</div></div>");
                 }
                 out.println("</div>");
 
                 out.println("<h6>Periodos acumulados</h6>");
                 out.println("<table><thead><tr><th class='text-center'>#</th><th>Desde</th><th>Hasta</th>" +
                         "<th class='text-center'>Acumulados</th><th class='text-center'>Gozados</th><th class='text-center'>Disponibles</th></tr></thead><tbody>");
-                if (saldo.periodos.isEmpty()) {
+                SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy");
+                if (saldo.periodos.isEmpty() && saldo.periodoAdelanto == null) {
                     out.println("<tr><td colspan='6' class='sin-datos'>Sin periodos acumulados todavia.</td></tr>");
                 } else {
-                    SimpleDateFormat fmt = new SimpleDateFormat("dd/MM/yyyy");
                     for (VAC_CalculoSaldo.Periodo p : saldo.periodos) {
                         out.println("<tr><td class='text-center'>" + p.numero + "</td><td>" + fmt.format(p.desde) + "</td><td>" + fmt.format(p.hasta) +
                                 "</td><td class='text-center'>" + p.diasAcumulados +
                                 "</td><td class='text-center'>" + String.format(java.util.Locale.US, "%.2f", p.diasConsumidos) +
                                 "</td><td class='text-center'>" + String.format(java.util.Locale.US, "%.2f", p.diasDisponibles) + "</td></tr>");
+                    }
+                    if (saldo.periodoAdelanto != null) {
+                        VAC_CalculoSaldo.Periodo pa = saldo.periodoAdelanto;
+                        out.println("<tr><td class='text-center'>" + pa.numero + " (adelanto)</td><td>" + fmt.format(pa.desde) + "</td><td>" + fmt.format(pa.hasta) +
+                                "</td><td class='text-center'>(" + pa.diasAcumulados + " al cumplirse)" +
+                                "</td><td class='text-center'>" + String.format(java.util.Locale.US, "%.2f", pa.diasConsumidos) +
+                                "</td><td class='text-center'>-" + String.format(java.util.Locale.US, "%.2f", pa.diasConsumidos) + "</td></tr>");
                     }
                 }
                 out.println("</tbody></table>");

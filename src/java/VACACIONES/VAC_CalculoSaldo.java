@@ -48,6 +48,13 @@ public class VAC_CalculoSaldo {
         public double        antiguedadAnios;
         public List<Periodo> periodos = new ArrayList<>();
         public double        totalDisponible;
+        // Dias ya consumidos (anticipados o ya gozados antes de ganarlos)
+        // contra el periodo SIGUIENTE, el que todavia no se cumple. null si
+        // no hay ninguno. Esos dias no estan en "periodos" (solo cumplidos)
+        // pero SI son una deuda del empleado: saldoNeto los resta.
+        public Periodo       periodoAdelanto;
+        public double        diasAdelantados;
+        public double        saldoNeto;   // totalDisponible - diasAdelantados (puede ser negativo)
     }
 
     // IMPORTANTE: Codigo del Trabajo Ecuador, Art. 69 -- 15 dias por año;
@@ -141,6 +148,17 @@ public class VAC_CalculoSaldo {
             numero++;
         }
         saldo.totalDisponible = redondear2(acumDisp);
+
+        // Consumo ya registrado contra el periodo que aun no se cumple
+        // (solicitudes anticipadas / vacaciones ya gozadas antes de ganarlas
+        // y ajustes historicos). El loop de arriba se detuvo justo en ese
+        // numero.
+        Periodo siguiente = construirPeriodo(cn, idUsuario, ingreso, numero);
+        if (siguiente.diasConsumidos > 0) {
+            saldo.periodoAdelanto = siguiente;
+            saldo.diasAdelantados = siguiente.diasConsumidos;
+        }
+        saldo.saldoNeto = redondear2(saldo.totalDisponible - saldo.diasAdelantados);
 
         return saldo;
     }
