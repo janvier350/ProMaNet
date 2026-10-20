@@ -107,11 +107,9 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No puedes solicitar vacaciones con fecha desde en el pasado");
                     return;
                 }
-                if (anticipada) {
-                    cn.rollback();
-                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=Una solicitud de vacaciones ya gozadas no puede ser anticipada");
-                    return;
-                }
+                // Se permite marcarla ANTICIPADA: es el caso de quien ya gozo
+                // dias antes de ganarlos (ej. menos de 1 año de antiguedad);
+                // se descuentan del siguiente periodo, igual que un adelanto.
                 if (!hasta.isBefore(LocalDate.now())) {
                     cn.rollback();
                     response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=Para registrar vacaciones ya gozadas, ambas fechas deben ser anteriores a hoy");
@@ -190,7 +188,7 @@ public class VAC_InsertarSolicitud extends HttpServlet {
                 }
                 if (periodoElegido == null) {
                     cn.rollback();
-                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + String.format("%.2f", maxDisponibleUnPeriodo) + " dias equivalentes, solicitaste " + String.format("%.2f", diasEquivalentes) + " -- " + diasHabiles + " habil(es) x 1.3636). Si es un adelanto acordado con Administracion, marca la casilla de solicitud anticipada.");
+                    response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No tienes suficientes dias disponibles en un solo periodo (maximo disponible: " + String.format("%.2f", maxDisponibleUnPeriodo) + " dias equivalentes, solicitaste " + String.format("%.2f", diasEquivalentes) + " -- " + diasHabiles + " habil(es) x 1.3636). Si ya gozaste esos dias antes de ganarlos (o es un adelanto acordado con Administracion), marca la casilla de solicitud anticipada.");
                     return;
                 }
             }

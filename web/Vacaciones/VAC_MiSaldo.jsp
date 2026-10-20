@@ -421,14 +421,14 @@
                     <div class="alert alert-info py-2 px-3 mb-2 text-sm">
                         <i class="fa fa-history me-1"></i>
                         Esta habilitado el registro de <b>vacaciones ya gozadas</b> hasta el <b><%=retroLimite%></b>.
-                        Para ellas, ambas fechas deben ser anteriores a hoy. Pasada esa fecha solo se aceptan fechas desde hoy.
+                        Para ellas, ambas fechas deben ser anteriores a hoy. Si todavia no tienes dias ganados (menos de 1 a&ntilde;o) o no te alcanzan, marca <b>solicitud anticipada</b> y explica el motivo. Pasada esa fecha solo se aceptan fechas desde hoy.
                     </div>
                     <% } %>
                     <div id="solResumen" class="alert alert-secondary py-2 px-3 mb-2" style="display:none;"></div>
                     <div class="form-check mt-3">
                         <input class="form-check-input" type="checkbox" name="anticipada" id="solAnticipada" value="on">
                         <label class="form-check-label text-sm" for="solAnticipada">
-                            Es una solicitud anticipada (adelanto acordado con Administracion, todavia no tengo el dia ganado)
+                            Es una solicitud anticipada (adelanto acordado con Administracion, o dias ya gozados antes de ganarlos)
                         </label>
                     </div>
                     <div id="solJustificacionWrap" class="form-group mt-2 mb-0" style="display:none;">
