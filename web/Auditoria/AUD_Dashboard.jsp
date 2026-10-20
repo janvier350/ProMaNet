@@ -98,7 +98,7 @@
             <li class="nav-item">
                 <a class="nav-link " href="AUD_SolicitarAnticipo.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                        <i class="fa fa-hand-holding-usd text-info text-sm opacity-10"></i>
+                        <i class="ni ni-money-coins text-info text-sm opacity-10"></i>
                     </div>
                     <span class="nav-link-text ms-1">Anticipos Auditoria</span>
                 </a>
@@ -107,7 +107,7 @@
             <li class="nav-item">
                 <a class="nav-link active" href="AUD_Dashboard.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                        <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                        <i class="ni ni-bullet-list-67 text-warning text-sm opacity-10"></i>
                     </div>
                     <span class="nav-link-text ms-1">Panel de Gestion</span>
                 </a>
@@ -115,7 +115,7 @@
             <li class="nav-item">
                 <a class="nav-link " href="../Manuales/MAN_AnticiposAuditoria.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                        <i class="fas fa-book-open text-success text-sm opacity-10"></i>
+                        <i class="ni ni-books text-success text-sm opacity-10"></i>
                     </div>
                     <span class="nav-link-text ms-1">Manual de uso</span>
                 </a>

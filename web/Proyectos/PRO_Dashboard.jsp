@@ -205,7 +205,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Auditoria/AUD_SolicitarAnticipo.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-hand-holding-usd text-info text-sm opacity-10"></i>
+                                <i class="ni ni-money-coins text-info text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Anticipos Auditoria</span>
                         </a>
@@ -215,7 +215,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Auditoria/AUD_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                                <i class="ni ni-bullet-list-67 text-warning text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Gestionar Anticipos Aud.</span>
                         </a>
@@ -225,7 +225,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Manuales/MAN_Indice.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-book-open text-success text-sm opacity-10"></i>
+                                <i class="ni ni-books text-success text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Manuales</span>
                         </a>
@@ -254,7 +254,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Vacaciones/VAC_MiPanel.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
+                                <i class="ni ni-umbrella-13 text-warning text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Vacaciones</span>
                         </a>
@@ -263,7 +263,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Vacaciones/VAC_MiSaldo.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-umbrella-beach text-warning text-sm opacity-10"></i>
+                                <i class="ni ni-umbrella-13 text-warning text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Mis Vacaciones</span>
                         </a>
@@ -273,7 +273,7 @@ String compania = (String) session.getAttribute("compania");
                     <li class="nav-item">
                         <a class="nav-link " href="../Vacaciones/VAC_Dashboard.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fa fa-tasks text-warning text-sm opacity-10"></i>
+                                <i class="ni ni-bullet-list-67 text-warning text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Administrar Vacaciones</span>
                         </a>
@@ -335,7 +335,7 @@ String compania = (String) session.getAttribute("compania");
                         <%-- "Mis tickets": estado e historial de los tickets del propio usuario --%>
                         <a class="nav-link " href="../Soportes/SOP_MisTickets.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
-                                <i class="fas fa-ticket-alt text-dark text-sm opacity-10"></i>
+                                <i class="ni ni-tag text-dark text-sm opacity-10"></i>
                             </div>
                             <span class="nav-link-text ms-1">Mis tickets</span>
                         </a>
