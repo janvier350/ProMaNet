@@ -45,6 +45,30 @@
         }
     } catch (Exception exJefe) { exJefe.printStackTrace(); }
 
+    // Vacaciones ya gozadas registradas por Administracion/RRHH (ajustes
+    // historicos). Solo lectura: el empleado ve lo que se le cargo y quien/cuando.
+    java.util.List<String[]> gozadas = new java.util.ArrayList<>();
+    double totalGozadas = 0;
+    try (Connection cnGoz = Servlets.Conexion.getConnection()) {
+        if (cnGoz != null) {
+            try (PreparedStatement stGoz = cnGoz.prepareStatement(
+                    "SELECT a.NUM_PERIODO, a.DIAS_GOZADOS, TO_CHAR(a.FECHA_DESDE,'DD/MM/YYYY'), " +
+                    "TO_CHAR(a.FECHA_HASTA,'DD/MM/YYYY'), a.OBSERVACIONES, " +
+                    "TO_CHAR(a.FECHA_REGISTRO,'DD/MM/YYYY'), r.NOMBRE||' '||r.APELLIDOS " +
+                    "FROM VAC_HISTORICO_AJUSTE a LEFT JOIN USUARIO r ON r.IDUSUARIO = a.ID_USUARIO_REGISTRA " +
+                    "WHERE a.ID_USUARIO = ? ORDER BY a.NUM_PERIODO, a.FECHA_DESDE, a.FECHA_REGISTRO")) {
+                stGoz.setInt(1, idUsuarioSesion);
+                try (ResultSet rsGoz = stGoz.executeQuery()) {
+                    while (rsGoz.next()) {
+                        gozadas.add(new String[]{rsGoz.getString(1), rsGoz.getString(2), rsGoz.getString(3),
+                            rsGoz.getString(4), rsGoz.getString(5), rsGoz.getString(6), rsGoz.getString(7)});
+                        totalGozadas += rsGoz.getDouble(2);
+                    }
+                }
+            }
+        }
+    } catch (Exception exGoz) { exGoz.printStackTrace(); }
+
     // Ventana abierta por Administracion para registrar vacaciones ya
     // gozadas (fechas pasadas). null = modo normal.
     String retroLimite = null;
@@ -305,6 +329,56 @@
                                         <td class="text-center"><p class="text-xs text-muted mb-0">(<%=pa.diasAcumulados%> al cumplirse)</p></td>
                                         <td class="text-center"><p class="text-xs mb-0"><%=fmt2(pa.diasConsumidos)%></p></td>
                                         <td class="text-center"><span class="badge badge-sm bg-gradient-warning">-<%=fmt2(pa.diasConsumidos)%></span></td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
+                        <h6 class="mb-0">Vacaciones gozadas registradas por Administracion</h6>
+                        <p class="text-xs text-secondary mb-0">Dias ya tomados que Talento Humano cargo a tu historial. Se descuentan de tu saldo.
+                            Si algo no coincide con tus registros, comunicate con Talento Humano.</p>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Periodo</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Observaciones</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Registrado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (gozadas.isEmpty()) { %>
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Aun no tienes vacaciones gozadas registradas.</td></tr>
+                                    <% } %>
+                                    <% for (String[] g : gozadas) { %>
+                                    <tr>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=g[0]%></p></td>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(Double.parseDouble(g[1]))%></p></td>
+                                        <td><p class="text-xs mb-0"><%=g[2] != null ? g[2] : "-"%></p></td>
+                                        <td><p class="text-xs mb-0"><%=g[3] != null ? g[3] : "-"%></p></td>
+                                        <td><p class="text-xs mb-0"><%=g[4] != null ? g[4].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") : "-"%></p></td>
+                                        <td><p class="text-xs mb-0"><%=g[5] != null ? g[5] : "-"%><%= g[6] != null ? " &middot; " + g[6].replace("&","&amp;").replace("<","&lt;") : "" %></p></td>
+                                    </tr>
+                                    <% } %>
+                                    <% if (!gozadas.isEmpty()) { %>
+                                    <tr>
+                                        <td class="text-end"><p class="text-xs font-weight-bold mb-0">Total</p></td>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(totalGozadas)%></p></td>
+                                        <td colspan="4"></td>
                                     </tr>
                                     <% } %>
                                 </tbody>
