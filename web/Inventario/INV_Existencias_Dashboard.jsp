@@ -114,6 +114,12 @@
                       .append("data-unidad=\"").append(unidadAttr).append("\" ")
                       .append("data-idunidad=\"").append(idUnidadProd).append("\">")
                       .append("<i class='fa fa-pencil'></i> Editar</button>")
+                      .append((puedeRegistrarIngreso && !ocultoProd && stock <= 0)
+                          ? "<button type='button' class='btn btn-xs btn-outline-success ml-1 btn-ajustar-stock' style='font-size:.73rem;padding:2px 8px;' "
+                            + "title='Agregar stock como ajuste (ej. producto que llego en cajas)' "
+                            + "data-id='" + idP + "' data-desc=\"" + descAttr + "\" data-stock='" + stock + "'>"
+                            + "<i class='fa fa-plus-circle'></i> Agregar stock</button>"
+                          : "")
                       .append(ocultoProd
                           ? "<button type='button' class='btn btn-xs btn-success ml-1' style='font-size:.73rem;padding:2px 8px;' onclick=\"cambiarEstadoProd(" + idP + ",'reactivar')\"><i class='fa fa-undo'></i> Reactivar</button>"
                           : "<button type='button' class='btn btn-xs btn-outline-secondary ml-1' style='font-size:.73rem;padding:2px 8px;' onclick=\"cambiarEstadoProd(" + idP + ",'ocultar')\"><i class='fa fa-eye-slash'></i> Ocultar</button>")
@@ -446,6 +452,57 @@
             </div>
         </div>
 
+        <%-- Ajustes de stock recientes (solo quien puede registrar ingresos) --%>
+        <% if (puedeRegistrarIngreso) { %>
+        <div class="card" id="ajustesRecientes">
+            <div class="card-header"><i class="fa fa-history mr-2 text-secondary"></i>Ajustes de stock recientes
+                <small class="text-muted">&mdash; ultimos 20</small></div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr>
+                            <th class="pl-3">Fecha</th><th>Producto</th><th class="text-center">Cantidad</th>
+                            <th class="text-center">Antes &rarr; Despues</th><th>Motivo</th><th>Registrado por</th>
+                        </tr></thead>
+                        <tbody>
+                        <%
+                            boolean hayAjustes = false;
+                            try (Connection cnAj = Servlets.Conexion.getConnection()) {
+                                if (cnAj != null) {
+                                    try (PreparedStatement stAj = cnAj.prepareStatement(
+                                            "SELECT * FROM (SELECT TO_CHAR(a.FECHA,'DD/MM/YYYY HH24:MI'), p.DESCRIPCION, a.CANTIDAD, " +
+                                            "a.EXISTENCIA_ANTERIOR, a.EXISTENCIA_NUEVA, a.MOTIVO, a.OBSERVACION, u.NOMBRE||' '||u.APELLIDOS " +
+                                            "FROM INV_SUMINISTRO_AJUSTE a LEFT JOIN INV_PRODUCTO p ON p.ID_PRODUCTO = a.ID_PRODUCTO " +
+                                            "LEFT JOIN USUARIO u ON u.IDUSUARIO = a.ID_USUARIO ORDER BY a.FECHA DESC, a.ID_AJUSTE DESC) WHERE ROWNUM <= 20");
+                                         ResultSet rsAj = stAj.executeQuery()) {
+                                        while (rsAj.next()) {
+                                            hayAjustes = true;
+                                            String obsAj = rsAj.getString(7);
+                        %>
+                        <tr>
+                            <td class="pl-3 small"><%=rsAj.getString(1)%></td>
+                            <td><%=rsAj.getString(2) != null ? rsAj.getString(2).replace("<","&lt;") : "-"%></td>
+                            <td class="text-center font-weight-bold text-success">+<%=rsAj.getString(3)%></td>
+                            <td class="text-center"><%=rsAj.getString(4)%> &rarr; <%=rsAj.getString(5)%></td>
+                            <td class="small"><%=rsAj.getString(6) != null ? rsAj.getString(6).replace("<","&lt;") : ""%><%= obsAj != null ? " <span class='text-muted'>&mdash; " + obsAj.replace("&","&amp;").replace("<","&lt;") + "</span>" : "" %></td>
+                            <td class="small"><%=rsAj.getString(8) != null ? rsAj.getString(8) : "-"%></td>
+                        </tr>
+                        <%
+                                        }
+                                    }
+                                }
+                            } catch (Exception exAj) { /* tabla aun no creada: se muestra vacio */ }
+                            if (!hayAjustes) {
+                        %>
+                        <tr><td colspan="6" class="text-center text-muted py-3">Aun no hay ajustes de stock registrados.</td></tr>
+                        <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
         <%-- Purchase alerts --%>
         <% if (filasAlertas.length() > 0) { %>
         <div class="card" id="alertasCompra">
@@ -524,6 +581,46 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save mr-1"></i>Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Agregar stock (ajuste) -->
+<div class="modal fade" id="modalAjustarStock" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<%=request.getContextPath()%>/INV_AjustarStock" method="post">
+                <div class="modal-header" style="background:#2e7d32;color:#fff;">
+                    <h5 class="modal-title"><i class="fa fa-plus-circle mr-2"></i>Agregar stock (ajuste)</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="idProducto" id="ajIdProducto">
+                    <p class="mb-2"><b id="ajProducto"></b><br>
+                        <small class="text-muted">Existencia actual: <b id="ajStockActual"></b></small></p>
+                    <div class="form-group">
+                        <label>Cantidad a agregar</label>
+                        <input type="number" name="cantidad" id="ajCantidad" class="form-control" min="1" max="100000" step="1" required>
+                        <small class="text-muted">Se SUMA a la existencia actual y queda registrado como ajuste.</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo</label>
+                        <select name="motivo" class="form-control" required>
+                            <option value="Producto en cajas / carga de stock">Producto en cajas / carga de stock</option>
+                            <option value="Correccion por conteo fisico">Correccion por conteo fisico</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label>Observacion (opcional)</label>
+                        <input type="text" name="observacion" class="form-control" maxlength="300" placeholder="Ej: 3 cajas x 24 unidades">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-save mr-1"></i>Registrar ajuste</button>
                 </div>
             </form>
         </div>
@@ -625,6 +722,16 @@ document.querySelectorAll('.btn-editar-prod').forEach(function(btn){
             }
         }
         $('#modalEditarProducto').modal('show');
+    });
+});
+
+document.querySelectorAll('.btn-ajustar-stock').forEach(function(btn){
+    btn.addEventListener('click', function(){
+        document.getElementById('ajIdProducto').value = this.getAttribute('data-id');
+        document.getElementById('ajProducto').textContent = this.getAttribute('data-desc');
+        document.getElementById('ajStockActual').textContent = this.getAttribute('data-stock');
+        document.getElementById('ajCantidad').value = '';
+        $('#modalAjustarStock').modal('show');
     });
 });
 
