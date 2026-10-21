@@ -55,6 +55,13 @@ public class VAC_CalculoSaldo {
         public Periodo       periodoAdelanto;
         public double        diasAdelantados;
         public double        saldoNeto;   // totalDisponible - diasAdelantados (puede ser negativo)
+        // Periodo en curso (el siguiente al ultimo cumplido) y lo que lleva
+        // ganado a hoy de forma PROPORCIONAL al tiempo transcurrido
+        // (acumulados x dias transcurridos / dias del periodo). Es solo
+        // informativo: no es saldo tomable hasta cumplir el periodo.
+        public Periodo       enCurso;
+        public double        proporcionalGanado;
+        public double        pctAvance;    // 0..100
     }
 
     // IMPORTANTE: Codigo del Trabajo Ecuador, Art. 69 -- 15 dias por año;
@@ -159,6 +166,12 @@ public class VAC_CalculoSaldo {
             saldo.diasAdelantados = siguiente.diasConsumidos;
         }
         saldo.saldoNeto = redondear2(saldo.totalDisponible - saldo.diasAdelantados);
+
+        saldo.enCurso = siguiente;
+        long duracion = Math.max(1, ChronoUnit.DAYS.between(siguiente.desde.toLocalDate(), siguiente.hasta.toLocalDate()) + 1);
+        long transcurridos = Math.max(0, Math.min(duracion, ChronoUnit.DAYS.between(siguiente.desde.toLocalDate(), hoy)));
+        saldo.pctAvance = redondear2(100.0 * transcurridos / duracion);
+        saldo.proporcionalGanado = redondear2(siguiente.diasAcumulados * (double) transcurridos / duracion);
 
         return saldo;
     }

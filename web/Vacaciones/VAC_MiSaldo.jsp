@@ -234,6 +234,12 @@
                         <% if (saldo.diasAdelantados > 0) { %>
                         <p class="text-xs text-white mb-0">Incluye <%=fmt2(saldo.diasAdelantados)%> dias adelantados (periodo <%=saldo.periodoAdelanto.numero%>)</p>
                         <% } %>
+                        <% if (saldo.enCurso != null) { VAC_CalculoSaldo.Periodo pc = saldo.enCurso; %>
+                        <hr class="horizontal light my-2">
+                        <p class="text-xs text-white mb-1">Ganado a hoy (proporcional): <b><%=fmt2(saldo.proporcionalGanado)%></b> de <%=pc.diasAcumulados%> dias &middot; periodo <%=pc.numero%></p>
+                        <div class="progress" style="height:6px;"><div class="progress-bar bg-white" style="width:<%=String.format(java.util.Locale.US, "%.1f", saldo.pctAvance)%>%;"></div></div>
+                        <p class="text-xxs text-white mb-0 mt-1" style="opacity:.85;">Referencia: se puede tomar al cumplir el a&ntilde;o (<%=new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date(pc.hasta.getTime() + 86400000L))%>); antes, solo como adelanto acordado.</p>
+                        <% } %>
                     </div>
                 </div>
             </div>
