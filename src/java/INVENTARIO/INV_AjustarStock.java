@@ -158,7 +158,14 @@ public class INV_AjustarStock extends HttpServlet {
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}
             e.printStackTrace();
-            session.setAttribute("msg_error", "No se pudo registrar el ajuste (verifica que el script ajuste_stock.sql este ejecutado).");
+            // Se incluye el codigo/mensaje de Oracle (ej. ORA-00942: la tabla de ajustes
+            // no existe porque falta ejecutar docs/inventario/ajuste_stock.sql).
+            String detalle = e.getMessage() == null ? e.getClass().getSimpleName()
+                    : e.getMessage().replaceAll("[\r\n]+", " ").trim();
+            if (detalle.length() > 160) detalle = detalle.substring(0, 160);
+            session.setAttribute("msg_error", "No se pudo registrar el ajuste. Detalle: " + detalle
+                    + (detalle.contains("ORA-00942") ? " (falta ejecutar el script docs/inventario/ajuste_stock.sql)" : "")
+                    + ". No se modifico ninguna existencia.");
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception ignore) {}
         }
