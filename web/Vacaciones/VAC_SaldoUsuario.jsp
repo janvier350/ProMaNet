@@ -280,6 +280,113 @@
             <div class="col-12">
                 <div class="card mb-4">
                     <div class="card-header pb-0">
+                        <h6 class="mb-0">Solicitudes de vacaciones del empleado</h6>
+                        <p class="text-xs text-secondary mb-0">Las que genero el propio usuario en el sistema (incluye anticipadas y ya gozadas). Las pendientes y aprobadas ya descuentan del saldo.</p>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Solicitud</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Periodo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Desde</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Hasta</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dias</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Tipo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Motivo del rechazo</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Imprimir</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <%
+                                        boolean haySolEmp = false;
+                                        try (Connection cnSolE = Servlets.Conexion.getConnection()) {
+                                            if (cnSolE != null) {
+                                                try (PreparedStatement stSolE = cnSolE.prepareStatement(
+                                                        "SELECT TO_CHAR(FECHA_SOLICITUD,'DD/MM/YYYY'), NUM_PERIODO, " +
+                                                        "TO_CHAR(FECHA_DESDE,'DD/MM/YYYY'), TO_CHAR(FECHA_HASTA,'DD/MM/YYYY'), " +
+                                                        "DIAS_SOLICITADOS, ESTADO, ID_SOLICITUD, COMENTARIO_JEFE, COMENTARIO_ADMIN, " +
+                                                        "ANTICIPADA, RETROACTIVA " +
+                                                        "FROM VAC_SOLICITUD WHERE ID_USUARIO = ? ORDER BY FECHA_SOLICITUD DESC")) {
+                                                    stSolE.setInt(1, Integer.parseInt(idEmpleado.trim()));
+                                                    try (ResultSet rsSolE = stSolE.executeQuery()) {
+                                                        while (rsSolE.next()) {
+                                                            haySolEmp = true;
+                                                            String estE = rsSolE.getString(6);
+                                                            boolean cancelE = "CANCELADO".equals(estE);
+                                                            boolean jefeRechE = "RECHAZADO_JEFE".equals(estE);
+                                                            boolean jefeOkE = !"PENDIENTE_JEFE".equals(estE) && !jefeRechE;
+                                                            boolean admOkE = "APROBADO".equals(estE) || "RECIBIDO".equals(estE);
+                                                            boolean admRechE = "RECHAZADO_ADMIN".equals(estE);
+                                                            String motivoE = jefeRechE ? rsSolE.getString(8) : (admRechE ? rsSolE.getString(9) : null);
+                                    %>
+                                    <tr>
+                                        <td><p class="text-xs mb-0"><%=rsSolE.getString(1)%></p></td>
+                                        <td class="text-center"><p class="text-xs mb-0"><%=rsSolE.getString(2)%></p></td>
+                                        <td><p class="text-xs mb-0"><%=rsSolE.getString(3)%></p></td>
+                                        <td><p class="text-xs mb-0"><%=rsSolE.getString(4)%></p></td>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(rsSolE.getDouble(5))%></p></td>
+                                        <td>
+                                            <% if ("S".equals(rsSolE.getString(10))) { %><span class="badge badge-sm bg-gradient-warning">Anticipada</span><% } %>
+                                            <% if ("S".equals(rsSolE.getString(11))) { %><span class="badge badge-sm bg-gradient-info">Ya gozadas</span><% } %>
+                                            <% if (!"S".equals(rsSolE.getString(10)) && !"S".equals(rsSolE.getString(11))) { %><span class="text-xs text-secondary">Normal</span><% } %>
+                                        </td>
+                                        <td>
+                                            <% if (cancelE) { %>
+                                            <span class="badge badge-sm bg-gradient-secondary">Cancelado</span>
+                                            <% } else { %>
+                                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                                <span class="badge badge-sm bg-gradient-success" title="Solicitante"><i class="fa fa-check"></i> Solicitante</span>
+                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
+                                                <% if (jefeRechE) { %>
+                                                <span class="badge badge-sm bg-gradient-danger" title="Jefe directo"><i class="fa fa-times"></i> Jefe</span>
+                                                <% } else if (jefeOkE) { %>
+                                                <span class="badge badge-sm bg-gradient-success" title="Jefe directo"><i class="fa fa-check"></i> Jefe</span>
+                                                <% } else { %>
+                                                <span class="badge badge-sm bg-gradient-warning" title="Jefe directo"><i class="fa fa-clock"></i> Jefe</span>
+                                                <% } %>
+                                                <i class="fa fa-arrow-right text-xs text-secondary"></i>
+                                                <% if (admRechE) { %>
+                                                <span class="badge badge-sm bg-gradient-danger" title="Administracion"><i class="fa fa-times"></i> Admin.</span>
+                                                <% } else if (admOkE) { %>
+                                                <span class="badge badge-sm bg-gradient-success" title="Administracion"><i class="fa fa-check"></i> Admin.</span>
+                                                <% } else if (jefeOkE) { %>
+                                                <span class="badge badge-sm bg-gradient-warning" title="Administracion"><i class="fa fa-clock"></i> Admin.</span>
+                                                <% } else { %>
+                                                <span class="badge badge-sm bg-gradient-secondary" title="Administracion"><i class="fa fa-circle"></i> Admin.</span>
+                                                <% } %>
+                                            </div>
+                                            <% } %>
+                                        </td>
+                                        <td><p class="text-xs mb-0"><%=motivoE != null ? motivoE.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") : "-"%></p></td>
+                                        <td class="text-center">
+                                            <a class="btn btn-xs btn-outline-info py-1" href="../VAC_ImprimirSolicitud?id=<%=rsSolE.getString(7)%>" target="_blank"><i class="fa fa-print"></i></a>
+                                        </td>
+                                    </tr>
+                                    <%
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } catch (Exception exSolE) { exSolE.printStackTrace(); }
+                                        if (!haySolEmp) {
+                                    %>
+                                    <tr><td colspan="9" class="text-center text-muted py-4">Este empleado no ha generado solicitudes de vacaciones.</td></tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0">
                         <h6>Ajustes historicos registrados</h6>
                         <p class="text-xs text-secondary mb-0">Consumo cargado manualmente (previo a este modulo).</p>
                     </div>
