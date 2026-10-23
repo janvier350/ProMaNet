@@ -50,6 +50,40 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
             return;
         }
 
+        // Metodo de calculo vigente: con fechas desde/hasta y calcAuto marcado,
+        // los dias descontados NO se toman del formulario sino que se calculan
+        // igual que en una solicitud: dias habiles (L-V) x 15/11 (1.3636),
+        // 2 decimales (ver VAC_CalculoDias). Sin fechas, o con el calculo
+        // manual, se usa el valor ingresado (historial previo sin fechas).
+        String base = request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado;
+        boolean tieneFechas = fechaDesde != null && !fechaDesde.trim().isEmpty()
+                && fechaHasta != null && !fechaHasta.trim().isEmpty();
+        if (tieneFechas) {
+            java.time.LocalDate d1, d2;
+            try {
+                d1 = java.time.LocalDate.parse(fechaDesde.trim());
+                d2 = java.time.LocalDate.parse(fechaHasta.trim());
+            } catch (Exception e) {
+                response.sendRedirect(base + "&error=Fechas invalidas");
+                return;
+            }
+            if (d2.isBefore(d1)) {
+                response.sendRedirect(base + "&error=La fecha hasta no puede ser anterior a la fecha desde");
+                return;
+            }
+            if ("on".equals(request.getParameter("calcAuto"))) {
+                int habiles = VAC_CalculoDias.contarDiasHabiles(d1, d2);
+                if (habiles == 0) {
+                    response.sendRedirect(base + "&error=El rango no contiene dias habiles (lunes a viernes). Desmarca el calculo automatico para ingresar los dias manualmente");
+                    return;
+                }
+                diasGozados = VAC_CalculoDias.equivalentes(habiles).toPlainString();
+            }
+        } else if ((fechaDesde != null && !fechaDesde.trim().isEmpty()) != (fechaHasta != null && !fechaHasta.trim().isEmpty())) {
+            response.sendRedirect(base + "&error=Indica ambas fechas (desde y hasta) o ninguna");
+            return;
+        }
+
         int idGestor = -1;
         try { idGestor = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
 
@@ -74,6 +108,8 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
                     st.setString(8, idEmpleado);
                     st.executeUpdate();
                 }
+                COMUN.LogActividad.registrar(request, "VACACIONES", "EDITAR",
+                        "Edito ajuste historico #" + idAjuste + " del usuario #" + idEmpleado + ": " + diasGozados + " dias (periodo " + numPeriodo + ")");
                 response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado + "&msj=Ajuste actualizado correctamente");
                 return;
             }
@@ -99,6 +135,8 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
                 st.executeUpdate();
             }
 
+            COMUN.LogActividad.registrar(request, "VACACIONES", "CREAR",
+                    "Registro ajuste historico del usuario #" + idEmpleado + ": " + diasGozados + " dias (periodo " + numPeriodo + ")");
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado + "&msj=Ajuste registrado correctamente");
         } catch (Exception e) {
             e.printStackTrace();

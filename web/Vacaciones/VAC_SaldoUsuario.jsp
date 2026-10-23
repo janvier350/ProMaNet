@@ -487,20 +487,27 @@
                         <label>Numero de periodo (1er año = 1, 2do año = 2, etc.)</label>
                         <input type="number" min="1" step="1" name="numPeriodo" id="ajusteNumPeriodo" class="form-control" required>
                     </div>
-                    <div class="form-group mb-3">
-                        <label>Dias gozados en ese periodo</label>
-                        <input type="number" min="0.01" max="30" step="0.01" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
-                        <small class="text-muted">El periodo 1-5 acumula 15 dias; desde el 6to año se suma 1 dia extra por año, hasta 30.</small>
-                    </div>
                     <div class="row">
                         <div class="col-6 form-group mb-3">
-                            <label>Fecha desde (opcional)</label>
+                            <label>Fecha desde</label>
                             <input type="date" name="fechaDesde" id="ajusteFechaDesde" class="form-control">
                         </div>
                         <div class="col-6 form-group mb-3">
-                            <label>Fecha hasta (opcional)</label>
+                            <label>Fecha hasta</label>
                             <input type="date" name="fechaHasta" id="ajusteFechaHasta" class="form-control">
                         </div>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="calcAuto" id="ajusteCalcAuto" value="on" checked>
+                        <label class="form-check-label text-sm" for="ajusteCalcAuto">
+                            Calcular los dias con las fechas (dias habiles L-V &times; 1.3636, igual que una solicitud)
+                        </label>
+                    </div>
+                    <div id="ajusteCalcInfo" class="alert alert-secondary py-2 px-3 mb-2 text-sm" style="display:none;"></div>
+                    <div class="form-group mb-3">
+                        <label>Dias gozados en ese periodo</label>
+                        <input type="number" min="0.01" max="30" step="0.01" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
+                        <small class="text-muted" id="ajusteDiasAyuda">Sin fechas, ingresa los dias manualmente. El periodo 1-5 acumula 15 dias; desde el 6to año se suma 1 dia extra por año, hasta 30.</small>
                     </div>
                     <div class="form-group mb-0">
                         <label>Observaciones (opcional)</label>
@@ -535,8 +542,49 @@
         document.getElementById('ajusteObservaciones').value = '';
     }
 
+    // --- Calculo automatico de dias del ajuste (mismo metodo que las solicitudes) ---
+    var FACTOR_AJ = 15 / 11;
+    function aj$(id) { return document.getElementById(id); }
+    function parseFechaAj(v) {
+        if (!v) return null;
+        var p = v.split('-');
+        return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    }
+    function habilesAj(desde, hasta) {
+        var n = 0, d = new Date(desde);
+        while (d <= hasta) { var w = d.getDay(); if (w !== 0 && w !== 6) n++; d.setDate(d.getDate() + 1); }
+        return n;
+    }
+    function equivAj(h) { return Math.round(h * FACTOR_AJ * 100) / 100; }
+    function recalcAjuste() {
+        var d1 = parseFechaAj(aj$('ajusteFechaDesde').value), d2 = parseFechaAj(aj$('ajusteFechaHasta').value);
+        var auto = aj$('ajusteCalcAuto').checked, info = aj$('ajusteCalcInfo'), dias = aj$('ajusteDiasGozados');
+        info.style.display = 'none';
+        dias.readOnly = false;
+        if (!auto || !d1 || !d2) return;
+        if (d2 < d1) { info.className = 'alert alert-danger py-2 px-3 mb-2 text-sm'; info.textContent = 'La fecha hasta no puede ser anterior a la fecha desde.'; info.style.display = ''; return; }
+        var hab = habilesAj(d1, d2);
+        info.style.display = '';
+        if (hab === 0) {
+            info.className = 'alert alert-warning py-2 px-3 mb-2 text-sm';
+            info.textContent = 'El rango no contiene dias habiles (L-V). Desmarca el calculo automatico para ingresar los dias manualmente.';
+            dias.value = '';
+            return;
+        }
+        var eq = equivAj(hab);
+        dias.value = eq.toFixed(2);
+        dias.readOnly = true;
+        info.className = 'alert alert-secondary py-2 px-3 mb-2 text-sm';
+        info.innerHTML = '<b>' + hab + '</b> dia(s) habil(es) &times; 1.3636 = <b>' + eq.toFixed(2) + '</b> dias que se descuentan del saldo.';
+    }
+    ['ajusteFechaDesde', 'ajusteFechaHasta', 'ajusteCalcAuto'].forEach(function (id) {
+        aj$(id).addEventListener('change', recalcAjuste);
+    });
+
     document.getElementById('btnNuevoAjuste').addEventListener('click', function () {
         limpiarFormAjuste();
+        aj$('ajusteCalcAuto').checked = true;
+        recalcAjuste();
         modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Registrar Ajuste Historico';
         modalAjuste.show();
     });
@@ -549,7 +597,13 @@
             document.getElementById('ajusteFechaDesde').value = this.getAttribute('data-fechadesde');
             document.getElementById('ajusteFechaHasta').value = this.getAttribute('data-fechahasta');
             document.getElementById('ajusteObservaciones').value = this.getAttribute('data-observaciones');
-            modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Editar Ajuste Historico';
+            // Registros antiguos (dias cargados a mano) se respetan: el calculo automatico
+        // solo se activa si coincide con lo guardado; el gestor puede marcarlo para recalcular.
+        var d1e = parseFechaAj(this.getAttribute('data-fechadesde')), d2e = parseFechaAj(this.getAttribute('data-fechahasta'));
+        var coincide = d1e && d2e && d2e >= d1e && Math.abs(equivAj(habilesAj(d1e, d2e)) - parseFloat(this.getAttribute('data-dias'))) < 0.006;
+        aj$('ajusteCalcAuto').checked = !!coincide;
+        recalcAjuste();
+        modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Editar Ajuste Historico';
             modalAjuste.show();
         });
     });
