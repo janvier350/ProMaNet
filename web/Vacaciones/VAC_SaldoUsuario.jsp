@@ -504,6 +504,17 @@
                         </label>
                     </div>
                     <div id="ajusteCalcInfo" class="alert alert-secondary py-2 px-3 mb-2 text-sm" style="display:none;"></div>
+                    <div class="form-group mb-2" id="ajusteUnidadWrap">
+                        <label class="d-block mb-1">Los dias que escribes son:</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="unidad" id="ajusteUnidadHab" value="HABILES" checked>
+                            <label class="form-check-label text-sm" for="ajusteUnidadHab">Dias habiles (se convierten &times; 1.3636)</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="unidad" id="ajusteUnidadEq" value="EQUIV">
+                            <label class="form-check-label text-sm" for="ajusteUnidadEq">Ya calculados (se guardan tal cual)</label>
+                        </div>
+                    </div>
                     <div class="form-group mb-3">
                         <label>Dias gozados en ese periodo</label>
                         <input type="number" min="0.01" max="30" step="0.01" name="diasGozados" id="ajusteDiasGozados" class="form-control" required>
@@ -561,7 +572,18 @@
         var auto = aj$('ajusteCalcAuto').checked, info = aj$('ajusteCalcInfo'), dias = aj$('ajusteDiasGozados');
         info.style.display = 'none';
         dias.readOnly = false;
-        if (!auto || !d1 || !d2) return;
+        var porFechas = auto && d1 && d2;
+        aj$('ajusteUnidadWrap').style.display = porFechas ? 'none' : '';
+        if (!porFechas) {
+            // Manual: si son dias habiles, muestra a cuanto equivalen (ej. 1 = 1.36).
+            var v = parseFloat(dias.value);
+            if (aj$('ajusteUnidadHab').checked && v > 0) {
+                info.className = 'alert alert-secondary py-2 px-3 mb-2 text-sm';
+                info.innerHTML = '<b>' + v + '</b> dia(s) habil(es) &times; 1.3636 = <b>' + equivAj(v).toFixed(2) + '</b> dias que se descuentan del saldo.';
+                info.style.display = '';
+            }
+            return;
+        }
         if (d2 < d1) { info.className = 'alert alert-danger py-2 px-3 mb-2 text-sm'; info.textContent = 'La fecha hasta no puede ser anterior a la fecha desde.'; info.style.display = ''; return; }
         var hab = habilesAj(d1, d2);
         info.style.display = '';
@@ -577,13 +599,15 @@
         info.className = 'alert alert-secondary py-2 px-3 mb-2 text-sm';
         info.innerHTML = '<b>' + hab + '</b> dia(s) habil(es) &times; 1.3636 = <b>' + eq.toFixed(2) + '</b> dias que se descuentan del saldo.';
     }
-    ['ajusteFechaDesde', 'ajusteFechaHasta', 'ajusteCalcAuto'].forEach(function (id) {
+    aj$('ajusteDiasGozados').addEventListener('input', recalcAjuste);
+    ['ajusteFechaDesde', 'ajusteFechaHasta', 'ajusteCalcAuto', 'ajusteUnidadHab', 'ajusteUnidadEq'].forEach(function (id) {
         aj$(id).addEventListener('change', recalcAjuste);
     });
 
     document.getElementById('btnNuevoAjuste').addEventListener('click', function () {
         limpiarFormAjuste();
         aj$('ajusteCalcAuto').checked = true;
+        aj$('ajusteUnidadHab').checked = true;
         recalcAjuste();
         modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Registrar Ajuste Historico';
         modalAjuste.show();
@@ -602,6 +626,7 @@
         var d1e = parseFechaAj(this.getAttribute('data-fechadesde')), d2e = parseFechaAj(this.getAttribute('data-fechahasta'));
         var coincide = d1e && d2e && d2e >= d1e && Math.abs(equivAj(habilesAj(d1e, d2e)) - parseFloat(this.getAttribute('data-dias'))) < 0.006;
         aj$('ajusteCalcAuto').checked = !!coincide;
+        aj$('ajusteUnidadEq').checked = true;
         recalcAjuste();
         modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Editar Ajuste Historico';
             modalAjuste.show();

@@ -84,6 +84,32 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
             return;
         }
 
+        // Sin calculo por fechas, el valor ingresado se interpreta segun "unidad":
+        //   HABILES -> son dias habiles tomados; se convierten x 15/11 (ej. 1 -> 1.36)
+        //   EQUIV   -> ya son dias equivalentes (historial calculado a mano); se guarda tal cual
+        // Si el formulario no envia unidad (version anterior) se asume EQUIV.
+        boolean calculadoPorFechas = tieneFechas && "on".equals(request.getParameter("calcAuto"));
+        if (!calculadoPorFechas && "HABILES".equals(request.getParameter("unidad"))) {
+            try {
+                java.math.BigDecimal habilesIng = new java.math.BigDecimal(diasGozados.trim());
+                if (habilesIng.signum() <= 0) throw new NumberFormatException();
+                diasGozados = habilesIng.multiply(VAC_CalculoDias.FACTOR_PROPORCIONALIDAD)
+                        .setScale(2, java.math.RoundingMode.HALF_UP).toPlainString();
+            } catch (Exception e) {
+                response.sendRedirect(base + "&error=Dias invalidos");
+                return;
+            }
+        }
+        try {
+            if (new java.math.BigDecimal(diasGozados.trim()).compareTo(new java.math.BigDecimal("30")) > 0) {
+                response.sendRedirect(base + "&error=Los dias del ajuste no pueden superar 30");
+                return;
+            }
+        } catch (Exception e) {
+            response.sendRedirect(base + "&error=Dias invalidos");
+            return;
+        }
+
         int idGestor = -1;
         try { idGestor = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
 
