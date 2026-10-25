@@ -124,14 +124,14 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
                         "FECHA_DESDE = TO_DATE(?, 'YYYY-MM-DD'), FECHA_HASTA = TO_DATE(?, 'YYYY-MM-DD'), " +
                         "OBSERVACIONES = ?, ID_USUARIO_REGISTRA = ?, FECHA_REGISTRO = SYSDATE " +
                         "WHERE ID_AJUSTE = ? AND ID_USUARIO = ?")) {
-                    st.setString(1, numPeriodo);
-                    st.setString(2, diasGozados);
+                    st.setInt(1, Integer.parseInt(numPeriodo.trim()));
+                    st.setBigDecimal(2, new java.math.BigDecimal(diasGozados.trim()));
                     if (fechaDesde != null && !fechaDesde.trim().isEmpty()) st.setString(3, fechaDesde); else st.setNull(3, java.sql.Types.DATE);
                     if (fechaHasta != null && !fechaHasta.trim().isEmpty()) st.setString(4, fechaHasta); else st.setNull(4, java.sql.Types.DATE);
                     st.setString(5, observaciones);
                     st.setInt(6, idGestor);
-                    st.setString(7, idAjuste);
-                    st.setString(8, idEmpleado);
+                    st.setInt(7, Integer.parseInt(idAjuste.trim()));
+                    st.setInt(8, Integer.parseInt(idEmpleado.trim()));
                     st.executeUpdate();
                 }
                 COMUN.LogActividad.registrar(request, "VACACIONES", "EDITAR",
@@ -151,9 +151,9 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
                     "FECHA_DESDE, FECHA_HASTA, OBSERVACIONES, ID_USUARIO_REGISTRA, FECHA_REGISTRO) " +
                     "VALUES (?, ?, ?, ?, TO_DATE(?, 'YYYY-MM-DD'), TO_DATE(?, 'YYYY-MM-DD'), ?, ?, SYSDATE)")) {
                 st.setInt(1, idNuevo);
-                st.setString(2, idEmpleado);
-                st.setString(3, numPeriodo);
-                st.setString(4, diasGozados);
+                st.setInt(2, Integer.parseInt(idEmpleado.trim()));
+                st.setInt(3, Integer.parseInt(numPeriodo.trim()));
+                st.setBigDecimal(4, new java.math.BigDecimal(diasGozados.trim()));
                 if (fechaDesde != null && !fechaDesde.trim().isEmpty()) st.setString(5, fechaDesde); else st.setNull(5, java.sql.Types.DATE);
                 if (fechaHasta != null && !fechaHasta.trim().isEmpty()) st.setString(6, fechaHasta); else st.setNull(6, java.sql.Types.DATE);
                 st.setString(7, observaciones);
@@ -166,7 +166,10 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado + "&msj=Ajuste registrado correctamente");
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado + "&error=Error al registrar el ajuste");
+            String det = e.getMessage() == null ? "" : e.getMessage().replaceAll("[\r\n]+", " ").trim();
+            if (det.length() > 120) det = det.substring(0, 120);
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado
+                    + "&error=" + java.net.URLEncoder.encode("Error al registrar el ajuste" + (det.isEmpty() ? "" : ": " + det), "UTF-8"));
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }
