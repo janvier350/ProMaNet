@@ -1,0 +1,92 @@
+<%--
+    Guia rapida reutilizable: panel plegable con los pasos de un flujo, cada
+    uno en una tarjeta numerada. Se incluye con
+        <%@ include file="/_guias/guia_xxx.jspf" %>
+    donde cada guia (web/_guias/guia_xxx.jspf) define los datos y llama a este
+    fragmento. Atributos de request que lee:
+      guiaId          (String)  identificador; recuerda por navegador si esta oculta
+      guiaTitulo      (String)  ej. "Como solicitar vacaciones"
+      guiaPasos       (List<String[]>) { titulo, rol, "1" si es paso del usuario / "0", descripcion, clase icono ni-* }
+      guiaActivo      (Integer, opcional) numero de paso (1..n) a resaltar
+      guiaNotas       (List<String>, opcional) lineas HTML bajo las tarjetas
+      guiaManualUrl   (String, opcional) enlace "Ver manual completo"
+      guiaSiempreVisible (Boolean, opcional) true = ignora el estado oculto guardado
+    Las variables llevan prefijo _gr para no chocar con las de la pagina.
+--%>
+<%
+    String _grId = String.valueOf(request.getAttribute("guiaId"));
+    String _grTitulo = String.valueOf(request.getAttribute("guiaTitulo"));
+    @SuppressWarnings("unchecked")
+    java.util.List<String[]> _grPasos = (java.util.List<String[]>) request.getAttribute("guiaPasos");
+    @SuppressWarnings("unchecked")
+    java.util.List<String> _grNotas = (java.util.List<String>) request.getAttribute("guiaNotas");
+    int _grActivo = request.getAttribute("guiaActivo") instanceof Integer ? (Integer) request.getAttribute("guiaActivo") : -1;
+    String _grManual = (String) request.getAttribute("guiaManualUrl");
+    boolean _grSiempre = Boolean.TRUE.equals(request.getAttribute("guiaSiempreVisible"));
+    if (_grPasos != null && !_grPasos.isEmpty()) {
+%>
+<style>
+    .gr-card .gr-title { font-size: .8rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: #344767; }
+    .gr-card .gr-toggle { font-size: .7rem; text-transform: uppercase; color: #8392ab; text-decoration: none; cursor: pointer; }
+    .gr-card .gr-toggle:hover { color: #344767; }
+    .gr-step { height: 100%; border: 1px solid #dfe3ea; border-radius: .5rem; background: #f1f3f6; padding: .65rem .8rem; }
+    .gr-step.gr-activo { border-color: #5e72e4; background: #f4f6ff; box-shadow: 0 0 0 1px #5e72e4 inset; }
+    .gr-num { display: inline-flex; align-items: center; justify-content: center; width: 1.45rem; height: 1.45rem;
+              border-radius: 50%; background: #6c757d; color: #fff; font-size: .72rem; font-weight: 700; margin-right: .35rem; }
+    .gr-step.gr-activo .gr-num { background: #5e72e4; }
+    .gr-step-titulo { font-weight: 700; font-size: .85rem; color: #344767; }
+    .gr-rol { font-size: .72rem; color: #5e72e4; margin: .2rem 0; }
+    .gr-rol .gr-tu { color: #2dce89; }
+    .gr-desc { font-size: .75rem; color: #67748e; line-height: 1.35; }
+    .gr-notas { font-size: .76rem; color: #67748e; }
+    .gr-notas p { margin-bottom: .25rem; }
+    @media print { .gr-toggle { display: none !important; } .gr-body { display: block !important; } }
+</style>
+<div class="card mb-4 gr-card" id="gr-<%=_grId%>">
+    <div class="card-body py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="gr-title mb-0"><i class="ni ni-compass-04 me-1"></i> Guia rapida: <%=_grTitulo%></h6>
+            <a href="javascript:;" class="gr-toggle" id="grToggle-<%=_grId%>">Mostrar / ocultar</a>
+        </div>
+        <div class="gr-body" id="grBody-<%=_grId%>">
+            <hr class="horizontal dark my-3">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-<%=Math.min(_grPasos.size(), 6)%> g-2">
+                <% int _grN = 0; for (String[] _grP : _grPasos) { _grN++; %>
+                <div class="col">
+                    <div class="gr-step <%= _grN == _grActivo ? "gr-activo" : "" %>">
+                        <div class="d-flex align-items-center">
+                            <span class="gr-num"><%=_grN%></span>
+                            <i class="ni <%=_grP[4]%> me-1 text-secondary"></i>
+                            <span class="gr-step-titulo"><%=_grP[0]%></span>
+                        </div>
+                        <div class="gr-rol"><%=_grP[1]%><% if ("1".equals(_grP[2])) { %> <span class="gr-tu">&middot; tu paso</span><% } %></div>
+                        <div class="gr-desc"><%=_grP[3]%></div>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+            <% if ((_grNotas != null && !_grNotas.isEmpty()) || _grManual != null) { %>
+            <div class="gr-notas mt-3">
+                <% if (_grNotas != null) for (String _grNota : _grNotas) { %><p><%=_grNota%></p><% } %>
+                <% if (_grManual != null) { %><p class="mb-0"><a href="<%=_grManual%>"><i class="ni ni-books me-1"></i>Ver el manual completo</a></p><% } %>
+            </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+<script>
+    (function () {
+        var id = '<%=_grId%>', body = document.getElementById('grBody-' + id), lnk = document.getElementById('grToggle-' + id);
+        if (!body || !lnk) return;
+        var key = 'guiaRapidaOculta_' + id, siempre = <%=_grSiempre%>;
+        function set(ocultar, guardar) {
+            body.style.display = ocultar ? 'none' : '';
+            if (guardar) { try { localStorage.setItem(key, ocultar ? '1' : '0'); } catch (e) {} }
+        }
+        var oculta = false;
+        if (!siempre) { try { oculta = localStorage.getItem(key) === '1'; } catch (e) {} }
+        set(oculta, false);
+        lnk.addEventListener('click', function () { set(body.style.display !== 'none', !siempre); });
+    })();
+</script>
+<% } %>

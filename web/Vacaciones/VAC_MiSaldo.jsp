@@ -147,6 +147,14 @@
                 </a>
             </li>
             <% } %>
+            <li class="nav-item">
+                <a class="nav-link " href="../Manuales/MAN_Vacaciones.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="ni ni-books text-success text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Manual de uso</span>
+                </a>
+            </li>
             <li class="nav-item mt-3">
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
             </li>
@@ -227,6 +235,32 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <% } %>
+
+        <%
+            // Paso de la guia en el que va el usuario segun su solicitud mas reciente en curso.
+            int _pasoActivo = 1;
+            try (Connection cnPaso = Servlets.Conexion.getConnection()) {
+                if (cnPaso != null) {
+                    try (PreparedStatement stPaso = cnPaso.prepareStatement(
+                            "SELECT ESTADO FROM (SELECT ESTADO FROM VAC_SOLICITUD WHERE ID_USUARIO = ? " +
+                            "AND ESTADO IN ('PENDIENTE_JEFE','PENDIENTE_ADMIN','APROBADO') ORDER BY FECHA_SOLICITUD DESC) WHERE ROWNUM = 1")) {
+                        stPaso.setInt(1, idUsuarioSesion);
+                        try (ResultSet rsPaso = stPaso.executeQuery()) {
+                            if (rsPaso.next()) {
+                                String ep = rsPaso.getString(1);
+                                _pasoActivo = "PENDIENTE_JEFE".equals(ep) ? 3 : ("PENDIENTE_ADMIN".equals(ep) ? 4 : 5);
+                            } else {
+                                _pasoActivo = saldo.totalDisponible > 0 ? 2 : 1;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception exPaso) { exPaso.printStackTrace(); }
+            request.setAttribute("guiaActivo", Integer.valueOf(_pasoActivo));
+            request.setAttribute("guiaManualUrl", "../Manuales/MAN_Vacaciones.jsp");
+        %>
+        <%@ include file="/_guias/guia_vacaciones.jspf" %>
+
         <% if (!saldo.configurado) { %>
         <div class="alert alert-warning">
             <i class="fa fa-exclamation-triangle me-2"></i>

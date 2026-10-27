@@ -187,7 +187,7 @@
                 </a>
             </li>
             <% } %>
-            <% if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")) { %>
+            <% if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
             <li class="nav-item">
                 <a class="nav-link <%= "manuales".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Manuales/MAN_Indice.jsp">
                     <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

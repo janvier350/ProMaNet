@@ -1,0 +1,30 @@
+<%--
+    Guia rapida de "Solicitar vacaciones" (orientada al solicitante).
+    Se usa en Vacaciones/VAC_MiSaldo.jsp y en Manuales/MAN_Vacaciones.jsp.
+    La pagina puede definir antes request.setAttribute("guiaActivo", n) para
+    resaltar el paso en que va el usuario.
+--%>
+<%
+    java.util.List<String[]> _gvPasos = new java.util.ArrayList<>();
+    _gvPasos.add(new String[]{"Revisa tu saldo", "Tu", "1",
+        "Mira &laquo;D&iacute;as disponibles&raquo; y lo ganado a hoy. Cada d&iacute;a h&aacute;bil descuenta 1.36 (factor 15/11).", "ni-chart-bar-32"});
+    _gvPasos.add(new String[]{"Solicita", "Tu", "1",
+        "&laquo;Nueva solicitud&raquo;: elige desde/hasta, revisa cu&aacute;ntos d&iacute;as se descuentan y env&iacute;a.", "ni-send"});
+    _gvPasos.add(new String[]{"Jefe directo", "Tu jefe directo", "0",
+        "Aprueba o rechaza. Si rechaza, ver&aacute;s el motivo en &laquo;Mis solicitudes&raquo;.", "ni-single-02"});
+    _gvPasos.add(new String[]{"Administraci&oacute;n", "Administraci&oacute;n / Talento Humano", "0",
+        "Aprobaci&oacute;n final. Tu solicitud pasa a &laquo;Aprobado&raquo;.", "ni-badge"});
+    _gvPasos.add(new String[]{"Imprime y entrega", "Tu", "1",
+        "Con el icono de impresora saca el documento, f&iacute;rmalo y ent&eacute;galo a Talento Humano.", "ni-single-copy-04"});
+    for (String[] _gvP : _gvPasos) { if ("Tu".equals(_gvP[1])) _gvP[1] = "T&uacute;"; }
+
+    java.util.List<String> _gvNotas = new java.util.ArrayList<>();
+    _gvNotas.add("<i class='ni ni-time-alarm me-1'></i><b>&iquest;A&uacute;n no tienes d&iacute;as ganados?</b> Marca &laquo;Solicitud anticipada&raquo; y escribe la justificaci&oacute;n (adelanto acordado con Administraci&oacute;n).");
+    _gvNotas.add("<i class='ni ni-bulb-61 me-1'></i><b>Vacaciones ya gozadas:</b> si Administraci&oacute;n habilit&oacute; el registro de fechas pasadas ver&aacute;s un aviso azul; usa &laquo;Nueva solicitud&raquo; con fechas anteriores a hoy.");
+
+    request.setAttribute("guiaId", "vacaciones");
+    request.setAttribute("guiaTitulo", "c&oacute;mo solicitar vacaciones");
+    request.setAttribute("guiaPasos", _gvPasos);
+    request.setAttribute("guiaNotas", _gvNotas);
+%>
+<%@ include file="/_guia_rapida.jspf" %>

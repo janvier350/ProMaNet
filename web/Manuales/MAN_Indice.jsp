@@ -19,6 +19,8 @@
     String[][] manuales = {
         {"Anticipos de Auditoria", "Del sueldo al anticipo pagado: asignar sueldo, fecha de corte, solicitud, pago y comprobante.",
          "MAN_AnticiposAuditoria.jsp", "fa-hand-holding-usd", "info", "ANTICIPOS_AUD_ACCESO|ANTICIPOS_AUD_GESTIONAR"},
+        {"Solicitud de vacaciones", "Para quien solicita: entender el saldo, pedir vacaciones, seguir la aprobacion, anticipadas y ya gozadas.",
+         "MAN_Vacaciones.jsp", "fa-umbrella-beach", "warning", "VACACIONES_SOLICITAR"},
     };
     List<String[]> visibles = new ArrayList<>();
     for (String[] m : manuales) {
