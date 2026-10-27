@@ -200,7 +200,6 @@
                                     <tr>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empleado</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Cedula</th>
-                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Compania</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empresa (IESS)</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Departamento</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Ingreso</th>
@@ -253,7 +252,6 @@
                                                     <tr>
                                                         <td><p class="text-xs font-weight-bold mb-0"><%=nombreE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=cedulaE != null ? cedulaE : "-"%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=companiaE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=empresaIessE != null ? empresaIessE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=deptoE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
