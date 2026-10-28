@@ -44,6 +44,11 @@ public class VAC_EliminarAjusteHistorico extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            if (esDePermiso(cn, idAjuste, idEmpleado)) {
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado
+                        + "&error=Este ajuste viene de un permiso: eliminalo desde la tabla de Permisos");
+                return;
+            }
             try (PreparedStatement st = cn.prepareStatement(
                     "DELETE FROM VAC_HISTORICO_AJUSTE WHERE ID_AJUSTE = ? AND ID_USUARIO = ?")) {
                 st.setString(1, idAjuste);
@@ -58,6 +63,21 @@ public class VAC_EliminarAjusteHistorico extends HttpServlet {
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception e2) {}
         }
+    }
+
+
+    // Un ajuste generado por un permiso (ID_PERMISO) se gestiona desde Permisos, no aqui.
+    // Si la columna aun no existe (script 042 sin ejecutar) la consulta falla y se ignora.
+    private static boolean esDePermiso(Connection cn, String idAjuste, String idEmpleado) {
+        try (PreparedStatement st = cn.prepareStatement(
+                "SELECT ID_PERMISO FROM VAC_HISTORICO_AJUSTE WHERE ID_AJUSTE = ? AND ID_USUARIO = ?")) {
+            st.setString(1, idAjuste);
+            st.setString(2, idEmpleado);
+            try (java.sql.ResultSet rs = st.executeQuery()) {
+                if (rs.next()) { rs.getInt(1); return !rs.wasNull(); }
+            }
+        } catch (Exception ignore) { }
+        return false;
     }
 
     @Override

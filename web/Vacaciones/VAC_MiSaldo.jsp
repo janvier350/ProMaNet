@@ -69,6 +69,30 @@
         }
     } catch (Exception exGoz) { exGoz.printStackTrace(); }
 
+    // Permisos por horas registrados por Talento Humano (VAC_PERMISO). Solo lectura.
+    // Si la tabla aun no existe, la seccion simplemente queda vacia.
+    java.util.List<String[]> permisosMios = new java.util.ArrayList<>();
+    double totalHorasPermisos = 0, totalDiasPermisos = 0;
+    try (Connection cnPerm = Servlets.Conexion.getConnection()) {
+        if (cnPerm != null) {
+            try (PreparedStatement stPerm = cnPerm.prepareStatement(
+                    "SELECT TO_CHAR(FECHA,'DD/MM/YYYY'), FECHA, HORAS, MOTIVO, DETALLE, DESCARGA_VACACIONES, NVL(DIAS_DESCARGADOS,0) " +
+                    "FROM VAC_PERMISO WHERE ID_USUARIO = ? ORDER BY FECHA DESC, ID_PERMISO DESC")) {
+                stPerm.setInt(1, idUsuarioSesion);
+                try (ResultSet rsPerm = stPerm.executeQuery()) {
+                    java.text.SimpleDateFormat sdfDia = new java.text.SimpleDateFormat("EEEE", new java.util.Locale("es", "EC"));
+                    while (rsPerm.next()) {
+                        String dia = sdfDia.format(rsPerm.getDate(2));
+                        permisosMios.add(new String[]{rsPerm.getString(1), dia, rsPerm.getString(3), rsPerm.getString(4),
+                            rsPerm.getString(5), rsPerm.getString(6), rsPerm.getString(7)});
+                        totalHorasPermisos += rsPerm.getDouble(3);
+                        if ("S".equals(rsPerm.getString(6))) totalDiasPermisos += rsPerm.getDouble(7);
+                    }
+                }
+            }
+        }
+    } catch (Exception exPerm) { /* sin tabla de permisos todavia */ }
+
     // Ventana abierta por Administracion para registrar vacaciones ya
     // gozadas (fechas pasadas). null = modo normal.
     String retroLimite = null;
@@ -413,6 +437,55 @@
                                         <td class="text-end"><p class="text-xs font-weight-bold mb-0">Total</p></td>
                                         <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(totalGozadas)%></p></td>
                                         <td colspan="4"></td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-start flex-wrap">
+                        <div>
+                            <h6 class="mb-0">Permisos solicitados</h6>
+                            <p class="text-xs text-secondary mb-0">Permisos por horas que Talento Humano registro a tu nombre. Un permiso <b>personal de 8 horas</b>
+                                se descuenta de tus vacaciones (1 dia = <%=fmt2(VACACIONES.VAC_CalculoDias.equivalentes(1).doubleValue())%>); los de menos horas, salud, estudio u otros <b>no</b> descuentan.</p>
+                        </div>
+                        <% if (!permisosMios.isEmpty()) { %>
+                        <p class="text-xs mb-0"><b><%=fmt2(totalHorasPermisos)%></b> h en total &middot; <b><%=fmt2(totalDiasPermisos)%></b> dias descontados de vacaciones</p>
+                        <% } %>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Dia</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Motivo</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Horas</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Detalle</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Descuenta de vacaciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (permisosMios.isEmpty()) { %>
+                                    <tr><td colspan="5" class="text-center text-muted py-4">No tienes permisos registrados.</td></tr>
+                                    <% } %>
+                                    <% for (String[] pm : permisosMios) { %>
+                                    <tr>
+                                        <td><p class="text-xs mb-0"><%=pm[0]%> <span class="text-secondary">&middot; <%=pm[1]%></span></p></td>
+                                        <td><span class="badge badge-sm bg-gradient-<%= "PERSONAL".equals(pm[3]) ? "warning" : ("SALUD".equals(pm[3]) ? "danger" : ("ESTUDIO".equals(pm[3]) ? "info" : "secondary")) %>"><%=pm[3]%></span></td>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(Double.parseDouble(pm[2]))%></p></td>
+                                        <td><p class="text-xs mb-0"><%= pm[4] != null ? pm[4].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") : "-" %></p></td>
+                                        <td class="text-center">
+                                            <% if ("S".equals(pm[5])) { %><span class="badge badge-sm bg-gradient-warning">-<%=fmt2(Double.parseDouble(pm[6]))%> dias</span>
+                                            <% } else { %><span class="text-xs text-secondary">No</span><% } %>
+                                        </td>
                                     </tr>
                                     <% } %>
                                 </tbody>

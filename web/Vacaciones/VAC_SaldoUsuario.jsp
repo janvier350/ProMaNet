@@ -46,6 +46,33 @@
     String msj = request.getParameter("msj");
     String error = request.getParameter("error");
 %>
+<%
+    // Permisos del empleado (VAC_PERMISO) y ajustes que provienen de ellos. Si la tabla
+    // aun no existe (script 042 sin ejecutar) todo queda vacio y la pantalla sigue funcionando.
+    java.util.List<String[]> permisosEmp = new java.util.ArrayList<>();
+    java.util.Set<String> ajustesDePermiso = new java.util.HashSet<>();
+    double totalHorasPerm = 0, totalDiasPerm = 0;
+    boolean permisosDisponible = true;
+    try (Connection cnPerm = Servlets.Conexion.getConnection()) {
+        if (cnPerm != null) {
+            try (PreparedStatement stPerm = cnPerm.prepareStatement(
+                    "SELECT ID_PERMISO, TO_CHAR(FECHA,'YYYY-MM-DD'), TO_CHAR(FECHA,'DD/MM/YYYY'), HORAS, MOTIVO, DETALLE, " +
+                    "DESCARGA_VACACIONES, NVL(DIAS_DESCARGADOS,0), NVL(NUM_PERIODO,0), ID_AJUSTE " +
+                    "FROM VAC_PERMISO WHERE ID_USUARIO = ? ORDER BY FECHA DESC, ID_PERMISO DESC")) {
+                stPerm.setInt(1, Integer.parseInt(idEmpleado.trim()));
+                try (ResultSet rsPerm = stPerm.executeQuery()) {
+                    while (rsPerm.next()) {
+                        permisosEmp.add(new String[]{rsPerm.getString(1), rsPerm.getString(2), rsPerm.getString(3), rsPerm.getString(4),
+                            rsPerm.getString(5), rsPerm.getString(6), rsPerm.getString(7), rsPerm.getString(8), rsPerm.getString(9)});
+                        totalHorasPerm += rsPerm.getDouble(4);
+                        if ("S".equals(rsPerm.getString(7))) totalDiasPerm += rsPerm.getDouble(8);
+                        if (rsPerm.getString(10) != null) ajustesDePermiso.add(rsPerm.getString(10));
+                    }
+                }
+            }
+        }
+    } catch (Exception exPerm) { permisosDisponible = false; }
+%>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -212,6 +239,9 @@
                         <div class="d-flex gap-2 flex-wrap">
                             <button type="button" class="btn btn-outline-dark btn-sm mb-0" id="btnNuevoAjuste">
                                 <i class="fa fa-plus me-1"></i> Nuevo ajuste
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm mb-0" id="btnNuevoPermiso">
+                                <i class="fa fa-clock me-1"></i> Registrar permiso
                             </button>
                             <a class="btn btn-outline-primary btn-sm mb-0" href="../VAC_ImprimirSaldo?id=<%=idEmpleado%>" target="_blank">
                                 <i class="fa fa-print me-1"></i> Imprimir
@@ -386,6 +416,76 @@
         <div class="row">
             <div class="col-12">
                 <div class="card mb-4">
+                    <div class="card-header pb-0 d-flex justify-content-between align-items-start flex-wrap">
+                        <div>
+                            <h6 class="mb-0">Permisos del empleado</h6>
+                            <p class="text-xs text-secondary mb-0">Permiso <b>personal de 8 horas</b> descarga 1 dia de vacaciones (<%=fmt2(VACACIONES.VAC_CalculoDias.equivalentes(1).doubleValue())%>);
+                                de 1 a 7 horas no descarga; salud, estudio y otros nunca descargan.</p>
+                        </div>
+                        <% if (!permisosEmp.isEmpty()) { %>
+                        <p class="text-xs mb-0"><b><%=fmt2(totalHorasPerm)%></b> h en total &middot; <b><%=fmt2(totalDiasPerm)%></b> dias descargados a vacaciones</p>
+                        <% } %>
+                    </div>
+                    <div class="card-body px-0 pt-0 pb-2">
+                        <div class="table-responsive p-3">
+                            <table class="table align-items-center mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Horas</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Motivo</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Detalle</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Cargo a vacaciones</th>
+                                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% if (!permisosDisponible) { %>
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Falta ejecutar el script <b>042_vacaciones_permisos.sql</b>.</td></tr>
+                                    <% } else if (permisosEmp.isEmpty()) { %>
+                                    <tr><td colspan="6" class="text-center text-muted py-4">Sin permisos registrados.</td></tr>
+                                    <% } %>
+                                    <% for (String[] pe : permisosEmp) {
+                                           boolean descPe = "S".equals(pe[6]);
+                                           String detPe = pe[5] != null ? pe[5].replace("&","&amp;").replace("<","&lt;").replace(">","&gt;") : "";
+                                    %>
+                                    <tr>
+                                        <td><p class="text-xs mb-0"><%=pe[2]%></p></td>
+                                        <td class="text-center"><p class="text-xs font-weight-bold mb-0"><%=fmt2(Double.parseDouble(pe[3]))%></p></td>
+                                        <td><span class="badge badge-sm bg-gradient-<%= "PERSONAL".equals(pe[4]) ? "warning" : ("SALUD".equals(pe[4]) ? "danger" : ("ESTUDIO".equals(pe[4]) ? "info" : "secondary")) %>"><%=pe[4]%></span></td>
+                                        <td><p class="text-xs mb-0"><%= detPe.isEmpty() ? "-" : detPe %></p></td>
+                                        <td class="text-center">
+                                            <% if (descPe) { %><span class="badge badge-sm bg-gradient-warning">-<%=fmt2(Double.parseDouble(pe[7]))%> dias (periodo <%=pe[8]%>)</span>
+                                            <% } else { %><span class="text-xs text-secondary">No descarga</span><% } %>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-permiso"
+                                                        data-id="<%=pe[0]%>" data-fecha="<%=pe[1]%>" data-horas="<%=pe[3]%>" data-motivo="<%=pe[4]%>"
+                                                        data-detalle="<%=pe[5] != null ? pe[5].replace("&","&amp;").replace("\"","&quot;").replace("<","&lt;") : ""%>">
+                                                    <i class="fa fa-pencil"></i>
+                                                </button>
+                                                <form action="../VAC_EliminarPermiso" method="post" class="d-inline"
+                                                      onsubmit="return confirm('Eliminar este permiso?<%= descPe ? " Tambien se restituira el descargo de vacaciones." : "" %>');">
+                                                    <input type="hidden" name="idEmpleado" value="<%=idEmpleado%>">
+                                                    <input type="hidden" name="idPermiso" value="<%=pe[0]%>">
+                                                    <button type="submit" class="btn btn-xs btn-outline-danger py-1"><i class="fa fa-trash"></i></button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card mb-4">
                     <div class="card-header pb-0">
                         <h6>Ajustes historicos registrados</h6>
                         <p class="text-xs text-secondary mb-0">Consumo cargado manualmente (previo a este modulo).</p>
@@ -427,6 +527,9 @@
                                                         <td><p class="text-xs mb-0"><%=rs2.getString(5) != null ? rs2.getString(5) : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=obs != null ? obs : "-"%></p></td>
                                                         <td class="text-center">
+                                                            <% if (ajustesDePermiso.contains(idAjuste)) { %>
+                                                            <span class="badge badge-sm bg-gradient-info" title="Se gestiona desde la tabla de Permisos">Permiso</span>
+                                                            <% } else { %>
                                                             <div class="d-flex justify-content-center gap-1">
                                                                 <button type="button" class="btn btn-xs btn-outline-primary py-1 btn-editar-ajuste"
                                                                         data-id="<%=idAjuste%>" data-numperiodo="<%=rs2.getString(2)%>"
@@ -445,6 +548,7 @@
                                                                     </button>
                                                                 </form>
                                                             </div>
+                                                            <% } %>
                                                         </td>
                                                     </tr>
                                                     <%
@@ -528,6 +632,52 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-dark btn-sm"><i class="fa fa-save me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: registrar/editar permiso -->
+<div class="modal fade" id="modalPermiso" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="../VAC_GuardarPermiso" method="post" id="formPermiso">
+                <input type="hidden" name="idEmpleado" value="<%=idEmpleado%>">
+                <input type="hidden" name="idPermiso" id="permIdPermiso" value="">
+                <div class="modal-header" style="background:#f0ad4e;">
+                    <h5 class="modal-title text-white" id="modalPermisoTitulo"><i class="fa fa-clock me-2"></i>Registrar permiso</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-7 form-group mb-3">
+                            <label>Fecha del permiso</label>
+                            <input type="date" name="fecha" id="permFecha" class="form-control" required>
+                        </div>
+                        <div class="col-5 form-group mb-3">
+                            <label>Horas ausentadas</label>
+                            <input type="number" name="horas" id="permHoras" class="form-control" min="0.25" max="8" step="0.25" required>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Motivo</label>
+                        <select name="motivo" id="permMotivo" class="form-control" required>
+                            <option value="PERSONAL">Personal</option>
+                            <option value="ESTUDIO">Estudio</option>
+                            <option value="SALUD">Salud</option>
+                            <option value="OTROS">Otros</option>
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Detalle (opcional)</label>
+                        <input type="text" name="detalle" id="permDetalle" class="form-control" maxlength="300" placeholder="Ej: tramites personales, cita medica">
+                    </div>
+                    <div id="permInfo" class="alert alert-secondary py-2 px-3 mb-0 text-sm"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning btn-sm"><i class="fa fa-save me-1"></i>Guardar permiso</button>
                 </div>
             </form>
         </div>
@@ -630,6 +780,49 @@
         recalcAjuste();
         modalAjusteTitulo.innerHTML = '<i class="fa fa-history me-2"></i>Editar Ajuste Historico';
             modalAjuste.show();
+        });
+    });
+
+    // --- Permisos ---
+    var modalPermiso = new bootstrap.Modal(document.getElementById('modalPermiso'));
+    var DIAS_DESCARGO = '<%=fmt2(VACACIONES.VAC_CalculoDias.equivalentes(1).doubleValue())%>';
+    function infoPermiso() {
+        var h = parseFloat(document.getElementById('permHoras').value), mot = document.getElementById('permMotivo').value;
+        var info = document.getElementById('permInfo');
+        if (!(h > 0)) { info.className = 'alert alert-secondary py-2 px-3 mb-0 text-sm'; info.textContent = 'Indica las horas para ver si descarga a vacaciones.'; return; }
+        if (mot === 'PERSONAL' && h >= 8) {
+            info.className = 'alert alert-warning py-2 px-3 mb-0 text-sm';
+            info.innerHTML = '<i class="fa fa-info-circle me-1"></i>Permiso <b>personal de 8 horas</b>: se descargan <b>' + DIAS_DESCARGO + ' dias</b> de vacaciones (1 dia habil &times; 1.3636).';
+        } else if (mot === 'PERSONAL') {
+            info.className = 'alert alert-secondary py-2 px-3 mb-0 text-sm';
+            info.innerHTML = 'Personal de menos de 8 horas: <b>no</b> descarga a vacaciones.';
+        } else {
+            info.className = 'alert alert-secondary py-2 px-3 mb-0 text-sm';
+            info.innerHTML = 'Motivo ' + mot.toLowerCase() + ': <b>no</b> descarga a vacaciones, sin importar las horas.';
+        }
+    }
+    document.getElementById('permHoras').addEventListener('input', infoPermiso);
+    document.getElementById('permMotivo').addEventListener('change', infoPermiso);
+    document.getElementById('btnNuevoPermiso').addEventListener('click', function () {
+        document.getElementById('permIdPermiso').value = '';
+        document.getElementById('permFecha').value = '';
+        document.getElementById('permHoras').value = '8';
+        document.getElementById('permMotivo').value = 'PERSONAL';
+        document.getElementById('permDetalle').value = '';
+        document.getElementById('modalPermisoTitulo').innerHTML = '<i class="fa fa-clock me-2"></i>Registrar permiso';
+        infoPermiso();
+        modalPermiso.show();
+    });
+    document.querySelectorAll('.btn-editar-permiso').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            document.getElementById('permIdPermiso').value = this.getAttribute('data-id');
+            document.getElementById('permFecha').value = this.getAttribute('data-fecha');
+            document.getElementById('permHoras').value = this.getAttribute('data-horas');
+            document.getElementById('permMotivo').value = this.getAttribute('data-motivo');
+            document.getElementById('permDetalle').value = this.getAttribute('data-detalle');
+            document.getElementById('modalPermisoTitulo').innerHTML = '<i class="fa fa-clock me-2"></i>Editar permiso';
+            infoPermiso();
+            modalPermiso.show();
         });
     });
 </script>

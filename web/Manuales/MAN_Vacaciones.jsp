@@ -122,6 +122,7 @@
                             <p class="mb-2"><i class="fas fa-layer-group text-info"></i> Una solicitud debe caber en <b>un solo periodo</b> (un a&ntilde;o de trabajo cumplido).</p>
                             <p class="mb-2"><i class="fas fa-ban text-info"></i> No puedes pedir fechas que se <b>crucen</b> con otra solicitud activa.</p>
                             <p class="mb-2"><i class="fas fa-user-tie text-info"></i> Necesitas tener <b>jefe directo</b> y <b>fecha de ingreso</b> registrados por Talento Humano.</p>
+                            <p class="mb-2"><i class="fas fa-user-clock text-info"></i> <b>Permisos por horas:</b> los registra Talento Humano y los ves en &laquo;Permisos solicitados&raquo;. Solo un permiso <b>personal de 8 horas</b> descuenta 1 d&iacute;a de vacaciones (1.36); de 1 a 7 horas, salud, estudio y otros no descuentan.</p>
                             <p class="mb-0"><i class="fas fa-clock-rotate-left text-info"></i> En &laquo;Mis vacaciones gozadas registradas&raquo; ves los d&iacute;as que Talento Humano carg&oacute; a tu historial; tambi&eacute;n se descuentan.</p>
                         </div>
                     </div>
