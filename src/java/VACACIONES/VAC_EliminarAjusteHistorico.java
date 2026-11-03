@@ -44,6 +44,11 @@ public class VAC_EliminarAjusteHistorico extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            if (!VAC_Alcance.puedeSobre(session, cn, Integer.parseInt(idEmpleado.trim()))) {
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado
+                        + "&error=Ese empleado no pertenece a tu grupo de gestion");
+                return;
+            }
             if (esDePermiso(cn, idAjuste, idEmpleado)) {
                 response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado
                         + "&error=Este ajuste viene de un permiso: eliminalo desde la tabla de Permisos");

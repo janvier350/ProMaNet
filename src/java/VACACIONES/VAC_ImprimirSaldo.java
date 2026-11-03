@@ -51,6 +51,16 @@ public class VAC_ImprimirSaldo extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            try {
+                if (!VAC_Alcance.puedeSobre(session, cn, Integer.parseInt(idEmpleado.trim()))) {
+                    response.sendRedirect("sesionInvalida.jsp");
+                    return;
+                }
+            } catch (NumberFormatException nf) {
+                response.sendRedirect("sesionInvalida.jsp");
+                return;
+            }
+
             String nombreEmpleado = "", cargoEmpleado = "-", departamentoEmpleado = "-", cedulaEmpleado = "";
             try (PreparedStatement st = cn.prepareStatement(
                     "SELECT u.NOMBRE||' '||u.APELLIDOS, r.CARGO, d.DEPARTAMENTO, vc.CEDULA " +

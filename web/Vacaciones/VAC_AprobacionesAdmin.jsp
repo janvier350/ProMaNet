@@ -182,7 +182,9 @@
                                                         "NVL(s.DIAS_HABILES_SOLICITADOS,0), s.RETROACTIVA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_USUARIO_APRUEBA_JEFE = j.IDUSUARIO " +
-                                                        "WHERE s.ESTADO = 'PENDIENTE_ADMIN' ORDER BY s.FECHA_APROBACION_JEFE ASC")) {
+                                                        "LEFT JOIN VAC_CONFIG_USUARIO vcg ON vcg.ID_USUARIO = s.ID_USUARIO " +
+                                                        "WHERE s.ESTADO = 'PENDIENTE_ADMIN' " + VACACIONES.VAC_Alcance.filtroSql(session, cn, "vcg.ID_GRUPO") +
+                                                        "ORDER BY s.FECHA_APROBACION_JEFE ASC")) {
                                                     try (ResultSet rs = st.executeQuery()) {
                                                         boolean hay = false;
                                                         while (rs.next()) {
@@ -279,6 +281,8 @@
                                                         "s.DIAS_SOLICITADOS, s.ESTADO, s.ANTICIPADA, s.RETROACTIVA " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
                                                         "JOIN USUARIO j ON s.ID_JEFE_DIRECTO = j.IDUSUARIO " +
+                                                        "LEFT JOIN VAC_CONFIG_USUARIO vcg ON vcg.ID_USUARIO = s.ID_USUARIO " +
+                                                        "WHERE 1 = 1 " + VACACIONES.VAC_Alcance.filtroSql(session, cnAll, "vcg.ID_GRUPO") +
                                                         "ORDER BY s.FECHA_SOLICITUD DESC) WHERE ROWNUM <= 100")) {
                                                     try (ResultSet rsAll = stAll.executeQuery()) {
                                                         boolean hayAll = false;
@@ -376,7 +380,8 @@
                                                         "TO_CHAR(s.FECHA_HASTA,'DD/MM/YYYY'), s.DIAS_APROBADOS, " +
                                                         "TO_CHAR(s.FECHA_APROBACION_ADMIN,'DD/MM/YYYY'), s.ESTADO " +
                                                         "FROM VAC_SOLICITUD s JOIN USUARIO u ON s.ID_USUARIO = u.IDUSUARIO " +
-                                                        "WHERE s.ESTADO IN ('APROBADO','RECIBIDO','RECHAZADO_ADMIN') " +
+                                                        "LEFT JOIN VAC_CONFIG_USUARIO vcg ON vcg.ID_USUARIO = s.ID_USUARIO " +
+                                                        "WHERE s.ESTADO IN ('APROBADO','RECIBIDO','RECHAZADO_ADMIN') " + VACACIONES.VAC_Alcance.filtroSql(session, cn3, "vcg.ID_GRUPO") +
                                                         "ORDER BY s.FECHA_APROBACION_ADMIN DESC) WHERE ROWNUM <= 20")) {
                                                     try (ResultSet rs3 = st3.executeQuery()) {
                                                         boolean hay3 = false;

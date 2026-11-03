@@ -119,7 +119,7 @@ public class VAC_ImprimirSolicitud extends HttpServlet {
                 }
             }
 
-            if (miId != idUsuarioSolicitud && miId != idJefeDirecto && !puedeGestionar) {
+            if (miId != idUsuarioSolicitud && miId != idJefeDirecto && !(puedeGestionar && VAC_Alcance.puedeSobre(session, cn, idUsuarioSolicitud))) {
                 response.sendRedirect("sesionInvalida.jsp");
                 return;
             }

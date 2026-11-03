@@ -16,22 +16,50 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
-    // Estado de la ventana "registro de vacaciones ya gozadas".
-    String retroLimite = null, retroLimiteIso = null, retroAbrio = null;
+    // Grupos de gestion que ve este usuario (todos si es administrador global) y, por cada
+    // uno, el estado de su ventana "registro de vacaciones ya gozadas".
+    boolean esGlobal = VACACIONES.VAC_Alcance.esGlobal(session);
     String retroDefaultIso = java.time.LocalDate.now().plusDays(7).toString();
     String retroMaxIso = java.time.LocalDate.now().plusDays(30).toString();
     String retroHoyIso = java.time.LocalDate.now().toString();
+    // { idGrupo, nombre, limite(dd/MM/yyyy o null), abrio (o null), nEmpleados, gestores }
+    java.util.List<String[]> gruposDash = new java.util.ArrayList<>();
+    int sinAsignar = 0;
     try (java.sql.Connection cnRetro = Servlets.Conexion.getConnection()) {
         if (cnRetro != null) {
-            java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro);
-            if (lim != null) {
-                retroLimite = new java.text.SimpleDateFormat("dd/MM/yyyy").format(lim);
-                try (java.sql.PreparedStatement stR = cnRetro.prepareStatement(
-                        "SELECT u.NOMBRE||' '||u.APELLIDOS FROM (SELECT ID_USUARIO_ABRE FROM VAC_RETRO_VENTANA " +
-                        "WHERE ACTIVA = 'S' ORDER BY ID_VENTANA DESC) v LEFT JOIN USUARIO u ON u.IDUSUARIO = v.ID_USUARIO_ABRE " +
-                        "WHERE ROWNUM = 1");
-                     java.sql.ResultSet rsR = stR.executeQuery()) {
-                    if (rsR.next()) retroAbrio = rsR.getString(1);
+            java.util.List<Integer> misGrupos = esGlobal ? null : VACACIONES.VAC_Alcance.grupos(cnRetro, VACACIONES.VAC_Alcance.idUsuario(session));
+            try (java.sql.PreparedStatement stG = cnRetro.prepareStatement(
+                    "SELECT g.ID_GRUPO, g.NOMBRE, " +
+                    "(SELECT COUNT(*) FROM VAC_CONFIG_USUARIO vc JOIN USUARIO u ON u.IDUSUARIO = vc.ID_USUARIO " +
+                    "  WHERE vc.ID_GRUPO = g.ID_GRUPO AND u.ESTADO = 'a'), " +
+                    "(SELECT LISTAGG(u.USUARIO, ', ') WITHIN GROUP (ORDER BY u.USUARIO) FROM VAC_GRUPO_GESTOR gg " +
+                    "  JOIN USUARIO u ON u.IDUSUARIO = gg.ID_USUARIO WHERE gg.ID_GRUPO = g.ID_GRUPO) " +
+                    "FROM VAC_GRUPO g WHERE g.ESTADO = 'A' ORDER BY g.NOMBRE");
+                 java.sql.ResultSet rsG = stG.executeQuery()) {
+                while (rsG.next()) {
+                    int idG = rsG.getInt(1);
+                    if (misGrupos != null && !misGrupos.contains(idG)) continue;
+                    String limite = null, abrio = null;
+                    java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro, idG);
+                    if (lim != null) {
+                        limite = new java.text.SimpleDateFormat("dd/MM/yyyy").format(lim);
+                        try (java.sql.PreparedStatement stR = cnRetro.prepareStatement(
+                                "SELECT u.NOMBRE||' '||u.APELLIDOS FROM (SELECT ID_USUARIO_ABRE FROM VAC_RETRO_VENTANA " +
+                                "WHERE ACTIVA = 'S' AND (ID_GRUPO = ? OR ID_GRUPO IS NULL) ORDER BY ID_VENTANA DESC) v " +
+                                "LEFT JOIN USUARIO u ON u.IDUSUARIO = v.ID_USUARIO_ABRE WHERE ROWNUM = 1")) {
+                            stR.setInt(1, idG);
+                            try (java.sql.ResultSet rsR = stR.executeQuery()) { if (rsR.next()) abrio = rsR.getString(1); }
+                        }
+                    }
+                    gruposDash.add(new String[]{String.valueOf(idG), rsG.getString(2), limite, abrio, rsG.getString(3), rsG.getString(4)});
+                }
+            }
+            if (esGlobal) {
+                try (java.sql.PreparedStatement stS = cnRetro.prepareStatement(
+                        "SELECT COUNT(*) FROM USUARIO u LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
+                        "WHERE u.ESTADO = 'a' AND vc.ID_GRUPO IS NULL");
+                     java.sql.ResultSet rsS = stS.executeQuery()) {
+                    if (rsS.next()) sinAsignar = rsS.getInt(1);
                 }
             }
         }
@@ -212,30 +240,49 @@
             </div>
             <% } %>
 
-            <%-- Ventana para registrar vacaciones ya gozadas: habilita temporalmente a los
-                 usuarios a solicitar fechas pasadas; se cierra con el boton o al vencer la fecha limite. --%>
+            <%-- Grupos de gestion: resumen (solo administrador global) --%>
+            <% if (esGlobal) { %>
             <div class="col-xl-3 col-sm-6 mb-4">
                 <div class="card">
                     <div class="card-body p-3">
-                        <p class="text-sm mb-0 text-uppercase font-weight-bold">Vacaciones ya gozadas</p>
-                        <% if (retroLimite != null) { %>
+                        <p class="text-sm mb-0 text-uppercase font-weight-bold">Grupos de gestion</p>
+                        <% for (String[] gd : gruposDash) { %>
+                        <p class="text-xs mb-1"><b><%=gd[1]%></b>: <%=gd[4]%> empleados &middot; gestor: <%= gd[5] != null ? gd[5] : "-" %></p>
+                        <% } %>
+                        <p class="text-xs mb-2 <%= sinAsignar > 0 ? "text-danger" : "text-secondary" %>"><b>Sin asignar</b>: <%=sinAsignar%> empleados</p>
+                        <a href="VAC_ConfigUsuarios.jsp?grupo=0" class="btn btn-sm btn-outline-primary mb-0"><i class="fa fa-users me-1"></i> Asignar empleados</a>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <%-- Ventana "vacaciones ya gozadas": una por grupo de gestion que el usuario administra. --%>
+            <% for (String[] gd : gruposDash) { boolean abierta = gd[2] != null; %>
+            <div class="col-xl-3 col-sm-6 mb-4">
+                <div class="card">
+                    <div class="card-body p-3">
+                        <p class="text-sm mb-0 text-uppercase font-weight-bold">Vacaciones ya gozadas &middot; <%=gd[1]%></p>
+                        <% if (abierta) { %>
                         <h5 class="font-weight-bolder mb-1"><span class="badge bg-gradient-success">HABILITADO</span></h5>
-                        <p class="text-xs mb-2">Los usuarios pueden registrar fechas pasadas hasta el <b><%=retroLimite%></b><%= retroAbrio != null ? " (abierto por " + retroAbrio + ")" : "" %>.</p>
+                        <p class="text-xs mb-2">Los empleados de <%=gd[1]%> pueden registrar fechas pasadas hasta el <b><%=gd[2]%></b><%= gd[3] != null ? " (abierto por " + gd[3] + ")" : "" %>.</p>
                         <form action="../VAC_RetroactivasToggle" method="post" class="d-inline"
-                              onsubmit="return confirm('Volver al modo normal? Los usuarios ya no podran registrar fechas pasadas.');">
+                              onsubmit="return confirm('Volver al modo normal en <%=gd[1]%>? Ya no podran registrar fechas pasadas.');">
                             <input type="hidden" name="accion" value="CERRAR">
+                            <input type="hidden" name="idGrupo" value="<%=gd[0]%>">
                             <button type="submit" class="btn btn-sm btn-outline-danger mb-0"><i class="fa fa-lock me-1"></i> Volver al modo normal</button>
                         </form>
                         <% } else { %>
                         <h5 class="font-weight-bolder mb-1"><span class="badge bg-gradient-secondary">MODO NORMAL</span></h5>
-                        <p class="text-xs mb-2">Los usuarios solo pueden solicitar desde hoy en adelante.</p>
-                        <button type="button" class="btn btn-sm btn-outline-warning mb-0" data-bs-toggle="modal" data-bs-target="#modalRetro">
+                        <p class="text-xs mb-2">Los empleados de <%=gd[1]%> solo pueden solicitar desde hoy en adelante.</p>
+                        <button type="button" class="btn btn-sm btn-outline-warning mb-0 btn-abrir-retro" data-bs-toggle="modal" data-bs-target="#modalRetro"
+                                data-grupo="<%=gd[0]%>" data-nombre="<%=gd[1]%>">
                             <i class="fa fa-unlock me-1"></i> Habilitar fechas pasadas
                         </button>
                         <% } %>
                     </div>
                 </div>
             </div>
+            <% } %>
         </div>
     </div>
 
@@ -258,12 +305,13 @@
         <div class="modal-content">
             <form action="../VAC_RetroactivasToggle" method="post">
                 <input type="hidden" name="accion" value="ABRIR">
+                <input type="hidden" name="idGrupo" id="retroIdGrupo" value="">
                 <div class="modal-header" style="background:#f0ad4e;">
-                    <h5 class="modal-title text-white"><i class="fa fa-unlock me-2"></i>Habilitar vacaciones ya gozadas</h5>
+                    <h5 class="modal-title text-white"><i class="fa fa-unlock me-2"></i>Habilitar vacaciones ya gozadas &middot; <span id="retroNombreGrupo"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-sm">Mientras este habilitado, todos los usuarios podran solicitar vacaciones con fechas
+                    <p class="text-sm">Mientras este habilitado, los empleados de este grupo podran solicitar vacaciones con fechas
                         <b>completamente pasadas</b>. Siguen el flujo normal de aprobacion (jefe y administracion) y se
                         marcan como &quot;Ya gozadas&quot;. Vuelve solo al modo normal al vencer la fecha limite.</p>
                     <div class="form-group mb-3">
@@ -291,5 +339,14 @@
 <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 <script src="../assets/js/custom-sidenav-toggle.js"></script>
+
+<script>
+    document.querySelectorAll('.btn-abrir-retro').forEach(function (b) {
+        b.addEventListener('click', function () {
+            document.getElementById('retroIdGrupo').value = this.getAttribute('data-grupo');
+            document.getElementById('retroNombreGrupo').textContent = this.getAttribute('data-nombre');
+        });
+    });
+</script>
 </body>
 </html>

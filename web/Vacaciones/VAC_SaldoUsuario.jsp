@@ -27,6 +27,13 @@
         response.sendRedirect("VAC_ConfigUsuarios.jsp"); return;
     }
 
+    // Alcance: un gestor solo ve el saldo de los empleados de su grupo de gestion.
+    try (java.sql.Connection cnAl = Servlets.Conexion.getConnection()) {
+        if (cnAl == null || !VACACIONES.VAC_Alcance.puedeSobre(session, cnAl, Integer.parseInt(idEmpleado.trim()))) {
+            response.sendRedirect("../sesionInvalida.jsp"); return;
+        }
+    } catch (Exception exAl) { response.sendRedirect("../sesionInvalida.jsp"); return; }
+
     String nombreEmpleado = "";
     VAC_CalculoSaldo.Saldo saldo = new VAC_CalculoSaldo.Saldo();
 

@@ -98,7 +98,7 @@
     String retroLimite = null;
     try (Connection cnRetro = Servlets.Conexion.getConnection()) {
         if (cnRetro != null) {
-            java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro);
+            java.sql.Date lim = VACACIONES.VAC_RetroHelper.fechaLimiteVigente(cnRetro, VACACIONES.VAC_Alcance.grupoDe(cnRetro, idUsuarioSesion));
             if (lim != null) retroLimite = new java.text.SimpleDateFormat("dd/MM/yyyy").format(lim);
         }
     } catch (Exception exRetro) { exRetro.printStackTrace(); }

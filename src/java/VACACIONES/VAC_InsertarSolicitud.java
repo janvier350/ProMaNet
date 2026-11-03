@@ -102,7 +102,7 @@ public class VAC_InsertarSolicitud extends HttpServlet {
             cn.setAutoCommit(false);
 
             if (retroactiva) {
-                if (!VAC_RetroHelper.habilitada(cn)) {
+                if (!VAC_RetroHelper.habilitadaPara(cn, idUsuario)) {
                     cn.rollback();
                     response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_MiSaldo.jsp?error=No puedes solicitar vacaciones con fecha desde en el pasado");
                     return;

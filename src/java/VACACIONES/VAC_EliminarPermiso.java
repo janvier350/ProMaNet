@@ -49,6 +49,12 @@ public class VAC_EliminarPermiso extends HttpServlet {
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
             cn.setAutoCommit(false);
 
+            if (!VAC_Alcance.puedeSobre(session, cn, idEmpleado)) {
+                cn.rollback();
+                response.sendRedirect(base + "&error=" + enc("Ese empleado no pertenece a tu grupo de gestion"));
+                return;
+            }
+
             Integer idAjuste = null;
             boolean existe = false;
             try (PreparedStatement st = cn.prepareStatement("SELECT ID_AJUSTE FROM VAC_PERMISO WHERE ID_PERMISO = ? AND ID_USUARIO = ?")) {

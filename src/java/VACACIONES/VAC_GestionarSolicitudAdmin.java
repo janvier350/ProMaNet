@@ -66,15 +66,23 @@ public class VAC_GestionarSolicitudAdmin extends HttpServlet {
 
             String estadoActual = null;
             int diasHabilesSolicitados = 0;
+            int idSolicitante = -1;
             try (PreparedStatement st = cn.prepareStatement(
-                    "SELECT ESTADO, NVL(DIAS_HABILES_SOLICITADOS,0) FROM VAC_SOLICITUD WHERE ID_SOLICITUD = ?")) {
+                    "SELECT ESTADO, NVL(DIAS_HABILES_SOLICITADOS,0), ID_USUARIO FROM VAC_SOLICITUD WHERE ID_SOLICITUD = ?")) {
                 st.setString(1, idSolicitud);
                 try (ResultSet rs = st.executeQuery()) {
                     if (rs.next()) {
                         estadoActual = rs.getString(1);
                         diasHabilesSolicitados = rs.getInt(2);
+                        idSolicitante = rs.getInt(3);
                     }
                 }
+            }
+
+            // Solo el gestor del grupo del solicitante puede aprobar/rechazar.
+            if (idSolicitante > 0 && !VAC_Alcance.puedeSobre(session, cn, idSolicitante)) {
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_AprobacionesAdmin.jsp?error=Esa solicitud no pertenece a tu grupo de gestion");
+                return;
             }
 
             // APROBAR / RECHAZAR

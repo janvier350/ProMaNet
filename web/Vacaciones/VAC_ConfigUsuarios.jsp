@@ -21,6 +21,20 @@
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
 
+    // Alcance: un gestor solo ve a los empleados de su grupo; el administrador global ve todos
+    // y puede filtrar por grupo (?grupo=ID, ?grupo=0 = sin asignar).
+    boolean esGlobal = VACACIONES.VAC_Alcance.esGlobal(session);
+    String filtroGrupoParam = esGlobal ? request.getParameter("grupo") : null;
+    java.util.List<String[]> catGrupos = new java.util.ArrayList<>();   // {id, nombre}
+    try (Connection cnG = Servlets.Conexion.getConnection()) {
+        if (cnG != null) {
+            try (PreparedStatement stG = cnG.prepareStatement("SELECT ID_GRUPO, NOMBRE FROM VAC_GRUPO WHERE ESTADO = 'A' ORDER BY NOMBRE");
+                 ResultSet rsG = stG.executeQuery()) {
+                while (rsG.next()) catGrupos.add(new String[]{rsG.getString(1), rsG.getString(2)});
+            }
+        }
+    } catch (Exception exG) { exG.printStackTrace(); }
+
     // Catalogo de empleados activos, para el select de "Jefe directo".
     List<Map<String,String>> empleados = new ArrayList<>();
     try (Connection cnCat = Servlets.Conexion.getConnection()) {
@@ -189,8 +203,17 @@
                 <div class="card mb-4">
                     <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                         <span class="mb-2 mb-md-0"><i class="fa fa-users mr-2 text-secondary"></i>Empleados
-                            <span class="badge ml-2" style="background:#6c757d;color:#fff;"><%=empleados.size()%> registros</span>
+                            <span class="badge ml-2" id="badgeConteo" style="background:#6c757d;color:#fff;"><%=empleados.size()%> registros</span>
                         </span>
+                        <% if (esGlobal) { %>
+                        <select id="filtroGrupo" class="form-control form-control-sm mb-2 mb-md-0 mx-md-2" style="max-width:200px;">
+                            <option value="" <%= filtroGrupoParam == null ? "selected" : "" %>>Todos los grupos</option>
+                            <% for (String[] gg : catGrupos) { %>
+                            <option value="<%=gg[0]%>" <%= gg[0].equals(filtroGrupoParam) ? "selected" : "" %>><%=gg[1]%></option>
+                            <% } %>
+                            <option value="0" <%= "0".equals(filtroGrupoParam) ? "selected" : "" %>>Sin asignar</option>
+                        </select>
+                        <% } %>
                         <input type="text" id="buscarEmpleado" class="form-control form-control-sm" placeholder="Buscar..." style="max-width:220px;">
                     </div>
                     <div class="card-body px-0 pt-0 pb-2">
@@ -203,6 +226,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empresa (IESS)</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Departamento</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Oficina</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Grupo de gestion</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Ingreso</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Antiguedad</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jefe Directo</th>
@@ -216,12 +240,13 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, c.COMPANIA, d.DEPARTAMENTO, " +
                                                         "TO_CHAR(vc.FECHA_INGRESO,'YYYY-MM-DD'), TO_CHAR(vc.FECHA_INGRESO,'DD/MM/YYYY'), " +
-                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS, ofi.UBICACIONOFICINA, vc.OFICINA " +
+                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS, ofi.UBICACIONOFICINA, vc.OFICINA, vc.ID_GRUPO, g.NOMBRE " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN COMPANIA c ON u.IDCOMPANIA = c.IDCOMPANIA " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
                                                         "LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
                                                         "LEFT JOIN USUARIO jefe ON jefe.IDUSUARIO = vc.ID_JEFE_DIRECTO " +
+                                                        "LEFT JOIN VAC_GRUPO g ON g.ID_GRUPO = vc.ID_GRUPO " +
                                                         // Oficina del usuario: ubicacion del equipo que tiene asignado (el mas reciente si tiene varios).
                                                         "LEFT JOIN (SELECT IDUSUARIO, UBICACIONOFICINA FROM (" +
                                                         "   SELECT a.IDUSUARIO, e.UBICACIONOFICINA, " +
@@ -229,6 +254,10 @@
                                                         "   FROM INV_ASIGNACION a JOIN INV_EQUIPOS e ON e.IDINVEQUIPO = a.IDINVEQUIPO " +
                                                         "   WHERE a.ESTADO = 'A' AND e.UBICACIONOFICINA IS NOT NULL) WHERE RN = 1) ofi ON ofi.IDUSUARIO = u.IDUSUARIO " +
                                                         "WHERE u.ESTADO = 'a' " +
+                                                        VACACIONES.VAC_Alcance.filtroSql(session, cn, "vc.ID_GRUPO") +
+                                                        ("0".equals(filtroGrupoParam) ? " AND vc.ID_GRUPO IS NULL " : "") +
+                                                        (filtroGrupoParam != null && filtroGrupoParam.matches("[0-9]+") && !"0".equals(filtroGrupoParam)
+                                                                ? " AND vc.ID_GRUPO = " + Integer.parseInt(filtroGrupoParam) + " " : "") +
                                                         "ORDER BY c.COMPANIA, u.NOMBRE, u.APELLIDOS")) {
                                                     try (ResultSet rs = st.executeQuery()) {
                                                         while (rs.next()) {
@@ -243,7 +272,9 @@
                                                             String cedulaE = rs.getString(9);
                                                             String empresaIessE = rs.getString(10);
                                                             String oficinaSugeridaE = rs.getString(11);   // segun el equipo asignado
-                                                            String oficinaGuardadaE = rs.getString(12);    // definida por Talento Humano
+                                                            String oficinaGuardadaE = rs.getString(12);
+                                                            String idGrupoE = rs.getString(13);
+                                                            String grupoNombreE = rs.getString(14);    // definida por Talento Humano
                                                             String oficinaFormE = oficinaGuardadaE != null ? oficinaGuardadaE
                                                                     : (VACACIONES.VAC_Oficinas.normalizar(oficinaSugeridaE) != null ? VACACIONES.VAC_Oficinas.normalizar(oficinaSugeridaE) : "");
 
@@ -272,6 +303,19 @@
                                                             <p class="text-xs text-secondary mb-0" style="font-style:italic;" title="Sugerida por el equipo asignado. Pulsa Editar para confirmarla."><%=oficinaSugeridaE%> <i class="fa fa-question-circle"></i></p>
                                                             <% } else { %>
                                                             <p class="text-xs mb-0">-</p>
+                                                            <% } %>
+                                                        </td>
+                                                        <td>
+                                                            <% if (esGlobal) { %>
+                                                            <select class="form-control form-control-sm sel-grupo" style="min-width:120px;" data-emp="<%=idE%>"
+                                                                    data-actual="<%= idGrupoE != null ? idGrupoE : "" %>">
+                                                                <option value="">Sin asignar</option>
+                                                                <% for (String[] gg : catGrupos) { %>
+                                                                <option value="<%=gg[0]%>" <%= gg[0].equals(idGrupoE) ? "selected" : "" %>><%=gg[1]%></option>
+                                                                <% } %>
+                                                            </select>
+                                                            <% } else { %>
+                                                            <p class="text-xs mb-0"><%= grupoNombreE != null ? grupoNombreE : "-" %></p>
                                                             <% } %>
                                                         </td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
@@ -371,6 +415,14 @@
 <script src="../assets/js/plugins/smooth-scrollbar.min.js"></script>
 <script src="../assets/js/argon-dashboard.min.js?v=2.0.4"></script>
 <script src="../assets/js/custom-sidenav-toggle.js"></script>
+
+<% if (esGlobal) { %>
+<form id="formAsignarGrupo" action="../VAC_AsignarGrupo" method="post" style="display:none;">
+    <input type="hidden" name="idEmpleado" id="agIdEmpleado">
+    <input type="hidden" name="idGrupo" id="agIdGrupo">
+    <input type="hidden" name="volver" value="<%= filtroGrupoParam != null ? filtroGrupoParam : "" %>">
+</form>
+<% } %>
 <script>
     var modalConfig = new bootstrap.Modal(document.getElementById('modalConfig'));
     $('#configIdJefe').select2({theme: 'bootstrap-5', width: '100%', dropdownParent: $('#modalConfig'), allowClear: true, placeholder: '-- Sin definir --'});
@@ -396,6 +448,26 @@
             tr.style.display = (!q || texto.indexOf(q) !== -1) ? '' : 'none';
         });
     });
+
+    // Asignacion de grupo de gestion (solo administrador global): al cambiar el select se guarda.
+    document.querySelectorAll('.sel-grupo').forEach(function (sel) {
+        sel.addEventListener('change', function () {
+            if (!confirm('Cambiar el grupo de gestion de este empleado?')) { this.value = this.getAttribute('data-actual'); return; }
+            document.getElementById('agIdEmpleado').value = this.getAttribute('data-emp');
+            document.getElementById('agIdGrupo').value = this.value;
+            document.getElementById('formAsignarGrupo').submit();
+        });
+    });
+    var filtroGrupoSel = document.getElementById('filtroGrupo');
+    if (filtroGrupoSel) filtroGrupoSel.addEventListener('change', function () {
+        location.href = 'VAC_ConfigUsuarios.jsp' + (this.value !== '' ? '?grupo=' + this.value : '');
+    });
+    // Conteo real de filas mostradas (el alcance puede ser menor que el catalogo de empleados).
+    (function () {
+        var n = document.querySelectorAll('#tablaConfig tbody tr').length;
+        var b = document.getElementById('badgeConteo');
+        if (b) b.textContent = n + ' registros';
+    })();
 </script>
 </body>
 </html>

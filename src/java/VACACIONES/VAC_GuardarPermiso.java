@@ -94,6 +94,12 @@ public class VAC_GuardarPermiso extends HttpServlet {
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
             cn.setAutoCommit(false);
 
+            if (!VAC_Alcance.puedeSobre(session, cn, idEmpleado)) {
+                cn.rollback();
+                response.sendRedirect(base + "&error=" + enc("Ese empleado no pertenece a tu grupo de gestion"));
+                return;
+            }
+
             // 1. Permiso existente (edicion): debe ser del mismo empleado.
             Integer ajusteViejo = null;
             if (idPermiso != null) {

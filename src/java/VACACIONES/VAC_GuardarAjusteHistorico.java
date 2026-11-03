@@ -118,6 +118,10 @@ public class VAC_GuardarAjusteHistorico extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            if (!VAC_Alcance.puedeSobre(session, cn, Integer.parseInt(idEmpleado.trim()))) {
+                response.sendRedirect(base + "&error=" + "Ese empleado no pertenece a tu grupo de gestion");
+                return;
+            }
             if (esEdicion && esDePermiso(cn, idAjuste, idEmpleado)) {
                 response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_SaldoUsuario.jsp?id=" + idEmpleado
                         + "&error=Este ajuste viene de un permiso: editalo desde la tabla de Permisos");

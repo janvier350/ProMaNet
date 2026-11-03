@@ -61,6 +61,12 @@ public class VAC_GuardarConfigUsuario extends HttpServlet {
             cn = Servlets.Conexion.getConnection();
             if (cn == null) throw new Exception("No se pudo conectar a la base de datos");
 
+            // Un gestor solo configura a los empleados de su grupo.
+            if (!VAC_Alcance.puedeSobre(session, cn, Integer.parseInt(idEmpleado.trim()))) {
+                response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_ConfigUsuarios.jsp?error=Ese empleado no pertenece a tu grupo de gestion");
+                return;
+            }
+
             try (PreparedStatement st = cn.prepareStatement(
                     "MERGE INTO VAC_CONFIG_USUARIO v USING (SELECT ? AS ID_USUARIO FROM DUAL) src " +
                     "ON (v.ID_USUARIO = src.ID_USUARIO) " +

@@ -29,4 +29,27 @@ public class VAC_RetroHelper {
     public static boolean habilitada(Connection cn) {
         return fechaLimiteVigente(cn) != null;
     }
+
+    /**
+     * Ventana vigente PARA UN GRUPO de gestion: la abierta para ese grupo o una antigua sin grupo
+     * (ID_GRUPO nulo = valia para todos). Con idGrupo nulo (empleado "Sin asignar") solo cuentan
+     * las antiguas sin grupo.
+     */
+    public static Date fechaLimiteVigente(Connection cn, Integer idGrupo) {
+        String sql = "SELECT FECHA_LIMITE FROM (SELECT FECHA_LIMITE FROM VAC_RETRO_VENTANA " +
+                "WHERE ACTIVA = 'S' AND TRUNC(SYSDATE) <= TRUNC(FECHA_LIMITE) AND (ID_GRUPO IS NULL" +
+                (idGrupo != null ? " OR ID_GRUPO = ?" : "") + ") ORDER BY ID_VENTANA DESC) WHERE ROWNUM = 1";
+        try (PreparedStatement st = cn.prepareStatement(sql)) {
+            if (idGrupo != null) st.setInt(1, idGrupo);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) return rs.getDate(1);
+            }
+        } catch (Exception e) { }
+        return null;
+    }
+
+    /** true si el empleado (segun su grupo de gestion) puede registrar vacaciones ya gozadas hoy. */
+    public static boolean habilitadaPara(Connection cn, int idUsuario) {
+        return fechaLimiteVigente(cn, VAC_Alcance.grupoDe(cn, idUsuario)) != null;
+    }
 }
