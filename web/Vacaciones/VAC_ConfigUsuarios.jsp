@@ -202,6 +202,7 @@
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Cedula</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Empresa (IESS)</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Departamento</th>
+                                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Oficina</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha Ingreso</th>
                                         <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Antiguedad</th>
                                         <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Jefe Directo</th>
@@ -215,12 +216,18 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, c.COMPANIA, d.DEPARTAMENTO, " +
                                                         "TO_CHAR(vc.FECHA_INGRESO,'YYYY-MM-DD'), TO_CHAR(vc.FECHA_INGRESO,'DD/MM/YYYY'), " +
-                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS " +
+                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS, ofi.UBICACIONOFICINA " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN COMPANIA c ON u.IDCOMPANIA = c.IDCOMPANIA " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
                                                         "LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
                                                         "LEFT JOIN USUARIO jefe ON jefe.IDUSUARIO = vc.ID_JEFE_DIRECTO " +
+                                                        // Oficina del usuario: ubicacion del equipo que tiene asignado (el mas reciente si tiene varios).
+                                                        "LEFT JOIN (SELECT IDUSUARIO, UBICACIONOFICINA FROM (" +
+                                                        "   SELECT a.IDUSUARIO, e.UBICACIONOFICINA, " +
+                                                        "          ROW_NUMBER() OVER (PARTITION BY a.IDUSUARIO ORDER BY a.FECHAASIGNACION DESC, a.IDINV_ASIGNACION DESC) RN " +
+                                                        "   FROM INV_ASIGNACION a JOIN INV_EQUIPOS e ON e.IDINVEQUIPO = a.IDINVEQUIPO " +
+                                                        "   WHERE a.ESTADO = 'A' AND e.UBICACIONOFICINA IS NOT NULL) WHERE RN = 1) ofi ON ofi.IDUSUARIO = u.IDUSUARIO " +
                                                         "WHERE u.ESTADO = 'a' " +
                                                         "ORDER BY c.COMPANIA, u.NOMBRE, u.APELLIDOS")) {
                                                     try (ResultSet rs = st.executeQuery()) {
@@ -235,6 +242,7 @@
                                                             String jefeNombreE = rs.getString(8);
                                                             String cedulaE = rs.getString(9);
                                                             String empresaIessE = rs.getString(10);
+                                                            String oficinaE = rs.getString(11) != null ? rs.getString(11) : "-";
 
                                                             String antiguedadTxt;
                                                             String badgeClase;
@@ -254,6 +262,7 @@
                                                         <td><p class="text-xs mb-0"><%=cedulaE != null ? cedulaE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=empresaIessE != null ? empresaIessE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=deptoE%></p></td>
+                                                        <td><p class="text-xs mb-0"><%=oficinaE%></p></td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
                                                         <td class="text-center"><span class="badge badge-sm <%=badgeClase%>"><%=antiguedadTxt%></span></td>
                                                         <td><p class="text-xs mb-0"><%=jefeNombreE != null ? jefeNombreE : "-"%></p></td>
