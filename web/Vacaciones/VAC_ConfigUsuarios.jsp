@@ -216,7 +216,7 @@
                                                 try (PreparedStatement st = cn.prepareStatement(
                                                         "SELECT u.IDUSUARIO, u.NOMBRE||' '||u.APELLIDOS, c.COMPANIA, d.DEPARTAMENTO, " +
                                                         "TO_CHAR(vc.FECHA_INGRESO,'YYYY-MM-DD'), TO_CHAR(vc.FECHA_INGRESO,'DD/MM/YYYY'), " +
-                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS, ofi.UBICACIONOFICINA " +
+                                                        "vc.ID_JEFE_DIRECTO, jefe.NOMBRE||' '||jefe.APELLIDOS, vc.CEDULA, vc.EMPRESA_IESS, ofi.UBICACIONOFICINA, vc.OFICINA " +
                                                         "FROM USUARIO u " +
                                                         "LEFT JOIN COMPANIA c ON u.IDCOMPANIA = c.IDCOMPANIA " +
                                                         "LEFT JOIN ADM_DEPARTAMENTO d ON u.ID_ADM_DEPARTAMENTO = d.ID_DEPARTAMENTO " +
@@ -242,7 +242,10 @@
                                                             String jefeNombreE = rs.getString(8);
                                                             String cedulaE = rs.getString(9);
                                                             String empresaIessE = rs.getString(10);
-                                                            String oficinaE = rs.getString(11) != null ? rs.getString(11) : "-";
+                                                            String oficinaSugeridaE = rs.getString(11);   // segun el equipo asignado
+                                                            String oficinaGuardadaE = rs.getString(12);    // definida por Talento Humano
+                                                            String oficinaFormE = oficinaGuardadaE != null ? oficinaGuardadaE
+                                                                    : (VACACIONES.VAC_Oficinas.normalizar(oficinaSugeridaE) != null ? VACACIONES.VAC_Oficinas.normalizar(oficinaSugeridaE) : "");
 
                                                             String antiguedadTxt;
                                                             String badgeClase;
@@ -262,7 +265,15 @@
                                                         <td><p class="text-xs mb-0"><%=cedulaE != null ? cedulaE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=empresaIessE != null ? empresaIessE : "-"%></p></td>
                                                         <td><p class="text-xs mb-0"><%=deptoE%></p></td>
-                                                        <td><p class="text-xs mb-0"><%=oficinaE%></p></td>
+                                                        <td>
+                                                            <% if (oficinaGuardadaE != null) { %>
+                                                            <p class="text-xs mb-0"><%=oficinaGuardadaE%></p>
+                                                            <% } else if (oficinaSugeridaE != null) { %>
+                                                            <p class="text-xs text-secondary mb-0" style="font-style:italic;" title="Sugerida por el equipo asignado. Pulsa Editar para confirmarla."><%=oficinaSugeridaE%> <i class="fa fa-question-circle"></i></p>
+                                                            <% } else { %>
+                                                            <p class="text-xs mb-0">-</p>
+                                                            <% } %>
+                                                        </td>
                                                         <td><p class="text-xs mb-0"><%=fechaDisplay != null ? fechaDisplay : "-"%></p></td>
                                                         <td class="text-center"><span class="badge badge-sm <%=badgeClase%>"><%=antiguedadTxt%></span></td>
                                                         <td><p class="text-xs mb-0"><%=jefeNombreE != null ? jefeNombreE : "-"%></p></td>
@@ -273,7 +284,8 @@
                                                                         data-fecha="<%=fechaIso != null ? fechaIso : ""%>"
                                                                         data-idjefe="<%=idJefeE != null ? idJefeE : ""%>"
                                                                         data-cedula="<%=cedulaE != null ? cedulaE : ""%>"
-                                                                        data-empresaiess="<%=empresaIessE != null ? empresaIessE : ""%>">
+                                                                        data-empresaiess="<%=empresaIessE != null ? empresaIessE : ""%>"
+                                                                        data-oficina="<%=oficinaFormE%>">
                                                                     <i class="fa fa-pencil"></i> Editar
                                                                 </button>
                                                                 <a class="btn btn-xs btn-outline-success py-1" href="VAC_SaldoUsuario.jsp?id=<%=idE%>">
@@ -321,6 +333,16 @@
                         <small class="text-muted">Empresa con la que se hizo el Aviso de Entrada al IESS -- puede ser distinta de la Compania de Inventario.</small>
                     </div>
                     <div class="form-group mb-3">
+                        <label>Oficina</label>
+                        <select name="oficina" id="configOficina" class="form-control">
+                            <option value="">-- Sin definir --</option>
+                            <% for (String _of : VACACIONES.VAC_Oficinas.LISTA) { %>
+                            <option value="<%=_of%>"><%=_of%></option>
+                            <% } %>
+                        </select>
+                        <small class="text-muted">Sede donde trabaja la persona. Se usa para separar los datos de Vacaciones por oficina.</small>
+                    </div>
+                    <div class="form-group mb-3">
                         <label>Fecha de ingreso real</label>
                         <input type="date" name="fechaIngreso" id="configFechaIngreso" class="form-control" required>
                     </div>
@@ -359,6 +381,7 @@
             document.getElementById('configNombreEmpleado').textContent = this.getAttribute('data-nombre');
             document.getElementById('configCedula').value = this.getAttribute('data-cedula');
             document.getElementById('configEmpresaIess').value = this.getAttribute('data-empresaiess');
+            document.getElementById('configOficina').value = this.getAttribute('data-oficina') || '';
             document.getElementById('configFechaIngreso').value = this.getAttribute('data-fecha');
             $('#configIdJefe').val(this.getAttribute('data-idjefe')).trigger('change');
             modalConfig.show();

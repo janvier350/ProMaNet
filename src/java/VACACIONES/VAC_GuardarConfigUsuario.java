@@ -37,6 +37,12 @@ public class VAC_GuardarConfigUsuario extends HttpServlet {
         String idJefe = request.getParameter("idJefe"); // puede venir vacio
         String cedula = request.getParameter("cedula"); // puede venir vacia
         String empresaIess = request.getParameter("empresaIess"); // puede venir vacia
+        String oficinaP = request.getParameter("oficina");        // vacia = sin definir
+        String oficina = VAC_Oficinas.normalizar(oficinaP);
+        if (oficinaP != null && !oficinaP.trim().isEmpty() && oficina == null) {
+            response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_ConfigUsuarios.jsp?error=Oficina no valida");
+            return;
+        }
 
         if (idEmpleado == null || fechaIngreso == null || fechaIngreso.trim().isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_ConfigUsuarios.jsp?error=Falta el empleado o la fecha de ingreso");
@@ -63,25 +69,30 @@ public class VAC_GuardarConfigUsuario extends HttpServlet {
                     "  ID_JEFE_DIRECTO = ?, " +
                     "  CEDULA = ?, " +
                     "  EMPRESA_IESS = ?, " +
+                    "  OFICINA = ?, " +
                     "  ID_USUARIO_ACTUALIZA = ?, " +
                     "  FECHA_ACTUALIZACION = SYSDATE " +
-                    "WHEN NOT MATCHED THEN INSERT (ID_USUARIO, FECHA_INGRESO, ID_JEFE_DIRECTO, CEDULA, EMPRESA_IESS, ID_USUARIO_ACTUALIZA, FECHA_ACTUALIZACION) " +
-                    "VALUES (?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, SYSDATE)")) {
+                    "WHEN NOT MATCHED THEN INSERT (ID_USUARIO, FECHA_INGRESO, ID_JEFE_DIRECTO, CEDULA, EMPRESA_IESS, OFICINA, ID_USUARIO_ACTUALIZA, FECHA_ACTUALIZACION) " +
+                    "VALUES (?, TO_DATE(?, 'YYYY-MM-DD'), ?, ?, ?, ?, ?, SYSDATE)")) {
                 st.setString(1, idEmpleado);
                 st.setString(2, fechaIngreso);
                 if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(3, idJefe); else st.setNull(3, java.sql.Types.NUMERIC);
                 if (cedula != null && !cedula.trim().isEmpty()) st.setString(4, cedula.trim()); else st.setNull(4, java.sql.Types.VARCHAR);
                 if (empresaIess != null && !empresaIess.trim().isEmpty()) st.setString(5, empresaIess.trim()); else st.setNull(5, java.sql.Types.VARCHAR);
-                st.setInt(6, idGestor);
-                st.setString(7, idEmpleado);
-                st.setString(8, fechaIngreso);
-                if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(9, idJefe); else st.setNull(9, java.sql.Types.NUMERIC);
-                if (cedula != null && !cedula.trim().isEmpty()) st.setString(10, cedula.trim()); else st.setNull(10, java.sql.Types.VARCHAR);
-                if (empresaIess != null && !empresaIess.trim().isEmpty()) st.setString(11, empresaIess.trim()); else st.setNull(11, java.sql.Types.VARCHAR);
-                st.setInt(12, idGestor);
+                if (oficina != null) st.setString(6, oficina); else st.setNull(6, java.sql.Types.VARCHAR);
+                st.setInt(7, idGestor);
+                st.setString(8, idEmpleado);
+                st.setString(9, fechaIngreso);
+                if (idJefe != null && !idJefe.trim().isEmpty()) st.setString(10, idJefe); else st.setNull(10, java.sql.Types.NUMERIC);
+                if (cedula != null && !cedula.trim().isEmpty()) st.setString(11, cedula.trim()); else st.setNull(11, java.sql.Types.VARCHAR);
+                if (empresaIess != null && !empresaIess.trim().isEmpty()) st.setString(12, empresaIess.trim()); else st.setNull(12, java.sql.Types.VARCHAR);
+                if (oficina != null) st.setString(13, oficina); else st.setNull(13, java.sql.Types.VARCHAR);
+                st.setInt(14, idGestor);
                 st.executeUpdate();
             }
 
+            COMUN.LogActividad.registrar(request, "VACACIONES", "EDITAR",
+                    "Actualizo configuracion de vacaciones del usuario #" + idEmpleado + " (oficina: " + (oficina != null ? oficina : "sin definir") + ")");
             response.sendRedirect(request.getContextPath() + "/Vacaciones/VAC_ConfigUsuarios.jsp?msj=Datos guardados correctamente");
         } catch (Exception e) {
             e.printStackTrace();
