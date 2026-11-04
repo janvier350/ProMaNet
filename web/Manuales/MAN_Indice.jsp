@@ -21,6 +21,8 @@
          "MAN_AnticiposAuditoria.jsp", "fa-hand-holding-usd", "info", "ANTICIPOS_AUD_ACCESO|ANTICIPOS_AUD_GESTIONAR"},
         {"Solicitud de vacaciones", "Para quien solicita: entender el saldo, pedir vacaciones, seguir la aprobacion, anticipadas y ya gozadas.",
          "MAN_Vacaciones.jsp", "fa-umbrella-beach", "warning", "VACACIONES_SOLICITAR"},
+        {"Gestion de vacaciones", "Para gestores de grupo (Romeria / Kennedy) y administrador global: configurar, aprobar, ajustes, permisos por horas, fechas pasadas y asignar grupos.",
+         "MAN_VacacionesGestion.jsp", "fa-people-group", "primary", "VACACIONES_CONFIGURAR|VACACIONES_GESTIONAR"},
     };
     List<String[]> visibles = new ArrayList<>();
     for (String[] m : manuales) {

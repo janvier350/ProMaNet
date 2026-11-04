@@ -19,6 +19,22 @@
     String nombre    = (String) session.getAttribute("nombre");
     String apellidos = (String) session.getAttribute("apellidos");
     request.setAttribute("sidenav_active", "manuales");
+
+    // Grupo de gestion del usuario y sus gestores (se muestra en la tarjeta "Quien gestiona mis vacaciones").
+    String miGrupo = null, misGestores = null;
+    try (java.sql.Connection cnG = Servlets.Conexion.getConnection()) {
+        if (cnG != null) {
+            try (java.sql.PreparedStatement st = cnG.prepareStatement(
+                    "SELECT g.NOMBRE, (SELECT LISTAGG(u.NOMBRE||' '||u.APELLIDOS, ', ') WITHIN GROUP (ORDER BY u.NOMBRE) " +
+                    "FROM VAC_GRUPO_GESTOR gg JOIN USUARIO u ON u.IDUSUARIO = gg.ID_USUARIO WHERE gg.ID_GRUPO = g.ID_GRUPO) " +
+                    "FROM VAC_CONFIG_USUARIO vc JOIN VAC_GRUPO g ON g.ID_GRUPO = vc.ID_GRUPO WHERE vc.ID_USUARIO = ?")) {
+                st.setInt(1, Integer.parseInt(((String) session.getAttribute("cod")).trim()));
+                try (java.sql.ResultSet rs = st.executeQuery()) {
+                    if (rs.next()) { miGrupo = rs.getString(1); misGestores = rs.getString(2); }
+                }
+            }
+        }
+    } catch (Exception exG) { /* sin grupos todavia */ }
     request.setAttribute("guiaSiempreVisible", Boolean.TRUE);
 %>
 <!DOCTYPE html>
@@ -75,6 +91,21 @@
                 <button class="btn btn-sm btn-white mb-0 no-print" onclick="window.print()"><i class="fas fa-print me-1"></i> Imprimir / PDF</button>
             </div>
 
+            <div class="card mb-4">
+                <div class="card-body py-3">
+                    <h6 class="mb-1"><i class="fas fa-people-group text-primary me-2"></i>&iquest;Qui&eacute;n gestiona mis vacaciones?</h6>
+                    <p class="text-sm mb-1">Las vacaciones se gestionan <b>por oficina</b>, en dos grupos: <b>Romer&iacute;a</b> y <b>Kennedy</b> (oficinas 401 y 403).
+                        Cada grupo tiene su gestor, que aprueba tus solicitudes, carga tus ajustes y permisos y habilita el registro de vacaciones ya gozadas.
+                        Solo tu gestor y tu jefe directo ven tus datos de vacaciones.</p>
+                    <% if (miGrupo != null) { %>
+                    <p class="text-sm mb-0"><span class="badge bg-gradient-primary me-1">Tu grupo: <%=miGrupo%></span>
+                        Gestor: <b><%= misGestores != null ? misGestores : "-" %></b></p>
+                    <% } else { %>
+                    <p class="text-sm text-warning mb-0"><i class="fas fa-circle-exclamation me-1"></i>Todav&iacute;a no tienes un grupo asignado. Avisa para que te ubiquen en el de tu oficina.</p>
+                    <% } %>
+                </div>
+            </div>
+
             <%@ include file="/_guias/guia_vacaciones.jspf" %>
 
             <div class="row">
@@ -102,7 +133,7 @@
                             <table class="table table-sm align-middle mb-0">
                                 <tbody>
                                     <tr><td><span class="badge badge-sm bg-gradient-warning">Jefe</span> pendiente</td><td>Tu jefe directo a&uacute;n no responde.</td></tr>
-                                    <tr><td><span class="badge badge-sm bg-gradient-warning">Admin.</span> pendiente</td><td>Tu jefe aprob&oacute;; falta Administraci&oacute;n.</td></tr>
+                                    <tr><td><span class="badge badge-sm bg-gradient-warning">Admin.</span> pendiente</td><td>Tu jefe aprob&oacute;; falta el gestor de tu oficina (el paso &laquo;Admin.&raquo;).</td></tr>
                                     <tr><td><span class="badge badge-sm bg-gradient-success">Admin.</span> aprobado</td><td>Aprobada. Imprime el documento, f&iacute;rmalo y entr&eacute;galo.</td></tr>
                                     <tr><td><span class="badge badge-sm bg-gradient-danger">Rechazado</span></td><td>Revisa el motivo en &laquo;Mis solicitudes&raquo; y vuelve a solicitar si corresponde.</td></tr>
                                 </tbody>
@@ -118,12 +149,12 @@
                     <div class="card h-100">
                         <div class="card-header pb-0"><h6 class="mb-0"><i class="fas fa-list-check text-primary me-2"></i>Reglas a recordar</h6></div>
                         <div class="card-body regla text-sm">
-                            <p class="mb-2"><i class="fas fa-calendar-day text-info"></i> Pide <b>desde hoy en adelante</b> (las fechas pasadas solo cuando Administraci&oacute;n habilita el registro de vacaciones ya gozadas).</p>
+                            <p class="mb-2"><i class="fas fa-calendar-day text-info"></i> Pide <b>desde hoy en adelante</b> (las fechas pasadas solo cuando tu gestor habilita el registro de vacaciones ya gozadas).</p>
                             <p class="mb-2"><i class="fas fa-layer-group text-info"></i> Una solicitud debe caber en <b>un solo periodo</b> (un a&ntilde;o de trabajo cumplido).</p>
                             <p class="mb-2"><i class="fas fa-ban text-info"></i> No puedes pedir fechas que se <b>crucen</b> con otra solicitud activa.</p>
-                            <p class="mb-2"><i class="fas fa-user-tie text-info"></i> Necesitas tener <b>jefe directo</b> y <b>fecha de ingreso</b> registrados por Talento Humano.</p>
-                            <p class="mb-2"><i class="fas fa-user-clock text-info"></i> <b>Permisos por horas:</b> los registra Talento Humano y los ves en &laquo;Permisos solicitados&raquo;. Solo un permiso <b>personal de 8 horas</b> descuenta 1 d&iacute;a de vacaciones (1.36); de 1 a 7 horas, salud, estudio y otros no descuentan.</p>
-                            <p class="mb-0"><i class="fas fa-clock-rotate-left text-info"></i> En &laquo;Mis vacaciones gozadas registradas&raquo; ves los d&iacute;as que Talento Humano carg&oacute; a tu historial; tambi&eacute;n se descuentan.</p>
+                            <p class="mb-2"><i class="fas fa-user-tie text-info"></i> Necesitas tener <b>jefe directo</b> y <b>fecha de ingreso</b> registrados por el gestor de vacaciones de tu oficina.</p>
+                            <p class="mb-2"><i class="fas fa-user-clock text-info"></i> <b>Permisos por horas:</b> los registra el gestor de tu oficina y los ves en &laquo;Permisos solicitados&raquo;. Solo un permiso <b>personal de 8 horas</b> descuenta 1 d&iacute;a de vacaciones (1.36); de 1 a 7 horas, salud, estudio y otros no descuentan.</p>
+                            <p class="mb-0"><i class="fas fa-clock-rotate-left text-info"></i> En &laquo;Mis vacaciones gozadas registradas&raquo; ves los d&iacute;as que tu gestor carg&oacute; a tu historial; tambi&eacute;n se descuentan.</p>
                         </div>
                     </div>
                 </div>
@@ -133,13 +164,13 @@
                         <div class="card-body text-sm">
                             <table class="table table-sm align-middle mb-0">
                                 <tbody>
-                                    <tr><td><i>No tienes un jefe directo asignado</i></td><td>Avisa a Talento Humano para que lo registre.</td></tr>
-                                    <tr><td><i>No tienes fecha de ingreso configurada</i></td><td>Igual: Talento Humano debe cargarla.</td></tr>
+                                    <tr><td><i>No tienes un jefe directo asignado</i></td><td>Avisa al gestor de vacaciones de tu oficina para que lo registre.</td></tr>
+                                    <tr><td><i>No tienes fecha de ingreso configurada</i></td><td>Igual: tu gestor debe cargarla.</td></tr>
                                     <tr><td><i>No tienes suficientes d&iacute;as disponibles en un solo periodo</i></td><td>Pide menos d&iacute;as, o marca &laquo;Solicitud anticipada&raquo; si es un adelanto acordado.</td></tr>
                                     <tr><td><i>Debes indicar la justificaci&oacute;n</i></td><td>En una solicitud anticipada escribe el motivo.</td></tr>
                                     <tr><td><i>El adelanto no puede superar los d&iacute;as que ganar&iacute;as</i></td><td>Baja la cantidad al m&aacute;ximo indicado en el mensaje.</td></tr>
                                     <tr><td><i>Ya tienes una solicitud que se solapa</i></td><td>Cambia las fechas o cancela la anterior.</td></tr>
-                                    <tr><td><i>No puedes solicitar con fecha desde en el pasado</i></td><td>Usa fechas desde hoy; las pasadas requieren que Administraci&oacute;n habilite el registro.</td></tr>
+                                    <tr><td><i>No puedes solicitar con fecha desde en el pasado</i></td><td>Usa fechas desde hoy; las pasadas requieren que tu gestor habilite el registro.</td></tr>
                                     <tr><td><i>El rango no contiene d&iacute;as h&aacute;biles</i></td><td>Elige al menos un d&iacute;a de lunes a viernes.</td></tr>
                                 </tbody>
                             </table>

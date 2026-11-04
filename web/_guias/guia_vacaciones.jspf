@@ -12,15 +12,15 @@
         "&laquo;Nueva solicitud&raquo;: elige desde/hasta, revisa cu&aacute;ntos d&iacute;as se descuentan y env&iacute;a.", "ni-send"});
     _gvPasos.add(new String[]{"Jefe directo", "Tu jefe directo", "0",
         "Aprueba o rechaza. Si rechaza, ver&aacute;s el motivo en &laquo;Mis solicitudes&raquo;.", "ni-single-02"});
-    _gvPasos.add(new String[]{"Administraci&oacute;n", "Administraci&oacute;n / Talento Humano", "0",
-        "Aprobaci&oacute;n final. Tu solicitud pasa a &laquo;Aprobado&raquo;.", "ni-badge"});
+    _gvPasos.add(new String[]{"Gestor de tu oficina", "Romer&iacute;a o Kennedy", "0",
+        "Aprobaci&oacute;n final del gestor de tu grupo. Tu solicitud pasa a &laquo;Aprobado&raquo;.", "ni-badge"});
     _gvPasos.add(new String[]{"Imprime y entrega", "Tu", "1",
-        "Con el icono de impresora saca el documento, f&iacute;rmalo y ent&eacute;galo a Talento Humano.", "ni-single-copy-04"});
+        "Con el icono de impresora saca el documento, f&iacute;rmalo y ent&eacute;galo a tu gestor.", "ni-single-copy-04"});
     for (String[] _gvP : _gvPasos) { if ("Tu".equals(_gvP[1])) _gvP[1] = "T&uacute;"; }
 
     java.util.List<String> _gvNotas = new java.util.ArrayList<>();
-    _gvNotas.add("<i class='ni ni-time-alarm me-1'></i><b>&iquest;A&uacute;n no tienes d&iacute;as ganados?</b> Marca &laquo;Solicitud anticipada&raquo; y escribe la justificaci&oacute;n (adelanto acordado con Administraci&oacute;n).");
-    _gvNotas.add("<i class='ni ni-bulb-61 me-1'></i><b>Vacaciones ya gozadas:</b> si Administraci&oacute;n habilit&oacute; el registro de fechas pasadas ver&aacute;s un aviso azul; usa &laquo;Nueva solicitud&raquo; con fechas anteriores a hoy.");
+    _gvNotas.add("<i class='ni ni-time-alarm me-1'></i><b>&iquest;A&uacute;n no tienes d&iacute;as ganados?</b> Marca &laquo;Solicitud anticipada&raquo; y escribe la justificaci&oacute;n (adelanto acordado con tu gestor).");
+    _gvNotas.add("<i class='ni ni-bulb-61 me-1'></i><b>Vacaciones ya gozadas:</b> si el gestor de tu oficina habilit&oacute; el registro de fechas pasadas ver&aacute;s un aviso azul; usa &laquo;Nueva solicitud&raquo; con fechas anteriores a hoy.");
 
     request.setAttribute("guiaId", "vacaciones");
     request.setAttribute("guiaTitulo", "c&oacute;mo solicitar vacaciones");

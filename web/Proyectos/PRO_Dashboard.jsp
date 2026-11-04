@@ -221,7 +221,7 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
-                    <% if (tieneAudAcceso || tieneAudGestionar || COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) { %>
+                    <% if (tieneAudAcceso || tieneAudGestionar || COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
                     <li class="nav-item">
                         <a class="nav-link " href="../Manuales/MAN_Indice.jsp">
                             <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">

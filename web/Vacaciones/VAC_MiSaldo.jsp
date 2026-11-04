@@ -288,7 +288,7 @@
         <% if (!saldo.configurado) { %>
         <div class="alert alert-warning">
             <i class="fa fa-exclamation-triangle me-2"></i>
-            Todavia no tienes tu fecha de ingreso configurada en el sistema. Contacta a Talento Humano
+            Todavia no tienes tu fecha de ingreso configurada en el sistema. Contacta al gestor de vacaciones de tu oficina
             para que la carguen y puedas ver tu saldo de vacaciones.
         </div>
         <% } else { %>
@@ -402,8 +402,8 @@
                 <div class="card mb-4">
                     <div class="card-header pb-0">
                         <h6 class="mb-0">Vacaciones gozadas registradas por Administracion</h6>
-                        <p class="text-xs text-secondary mb-0">Dias ya tomados que Talento Humano cargo a tu historial. Se descuentan de tu saldo.
-                            Si algo no coincide con tus registros, comunicate con Talento Humano.</p>
+                        <p class="text-xs text-secondary mb-0">Dias ya tomados que tu gestor de vacaciones cargo a tu historial. Se descuentan de tu saldo.
+                            Si algo no coincide con tus registros, comunicate con tu gestor de vacaciones.</p>
                     </div>
                     <div class="card-body px-0 pt-0 pb-2">
                         <div class="table-responsive p-3">
@@ -453,7 +453,7 @@
                     <div class="card-header pb-0 d-flex justify-content-between align-items-start flex-wrap">
                         <div>
                             <h6 class="mb-0">Permisos solicitados</h6>
-                            <p class="text-xs text-secondary mb-0">Permisos por horas que Talento Humano registro a tu nombre. Un permiso <b>personal de 8 horas</b>
+                            <p class="text-xs text-secondary mb-0">Permisos por horas que tu gestor de vacaciones registro a tu nombre. Un permiso <b>personal de 8 horas</b>
                                 se descuenta de tus vacaciones (1 dia = <%=fmt2(VACACIONES.VAC_CalculoDias.equivalentes(1).doubleValue())%>); los de menos horas, salud, estudio u otros <b>no</b> descuentan.</p>
                         </div>
                         <% if (!permisosMios.isEmpty()) { %>

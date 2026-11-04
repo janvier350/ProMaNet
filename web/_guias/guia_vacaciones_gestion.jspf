@@ -1,0 +1,28 @@
+<%--
+    Guia rapida de GESTION de vacaciones (para los gestores de cada grupo y el administrador global).
+    Se usa en Manuales/MAN_VacacionesGestion.jsp.
+--%>
+<%
+    java.util.List<String[]> _ggPasos = new java.util.ArrayList<>();
+    _ggPasos.add(new String[]{"Confirma tu grupo", "Gestor", "1",
+        "Solo ves a los empleados de tu grupo (Romer&iacute;a o Kennedy). Entra por &laquo;Administrar Vacaciones&raquo;.", "ni-single-02"});
+    _ggPasos.add(new String[]{"Configura al empleado", "Gestor", "1",
+        "&laquo;Configuraci&oacute;n&raquo; &rarr; Editar: fecha de ingreso real, jefe directo, c&eacute;dula, empresa y oficina.", "ni-settings"});
+    _ggPasos.add(new String[]{"Aprueba solicitudes", "Gestor", "1",
+        "&laquo;Aprobaciones&raquo;: las que ya aprob&oacute; el jefe. Puedes ajustar los d&iacute;as h&aacute;biles aprobados o rechazar con motivo.", "ni-check-bold"});
+    _ggPasos.add(new String[]{"Carga permisos y ajustes", "Gestor", "1",
+        "En &laquo;Ver Saldo&raquo;: <b>Registrar permiso</b> (por horas) y <b>Nuevo ajuste</b> (d&iacute;as ya gozados antes del sistema).", "ni-collection"});
+    _ggPasos.add(new String[]{"Fechas pasadas", "Gestor", "1",
+        "En el panel, tarjeta de tu grupo: <b>Habilitar fechas pasadas</b> con fecha l&iacute;mite; <b>Volver al modo normal</b> cuando termines.", "ni-time-alarm"});
+    _ggPasos.add(new String[]{"Imprime y archiva", "Gestor", "1",
+        "Imprime la solicitud aprobada (o el saldo) para la firma del empleado y arch&iacute;vala.", "ni-single-copy-04"});
+
+    java.util.List<String> _ggNotas = new java.util.ArrayList<>();
+    _ggNotas.add("<i class='ni ni-bulb-61 me-1'></i><b>Administrador global:</b> ve todos los grupos y a los empleados &laquo;Sin asignar&raquo;; en &laquo;Configuraci&oacute;n&raquo; los ubica en su grupo con el desplegable de la columna <b>Grupo de gesti&oacute;n</b>.");
+
+    request.setAttribute("guiaId", "vacaciones_gestion");
+    request.setAttribute("guiaTitulo", "c&oacute;mo gestionar las vacaciones de tu grupo");
+    request.setAttribute("guiaPasos", _ggPasos);
+    request.setAttribute("guiaNotas", _ggNotas);
+%>
+<%@ include file="/_guia_rapida.jspf" %>
