@@ -37,7 +37,7 @@ public class InsertReporteTecnico extends HttpServlet {
         String reporte        = request.getParameter("reporte");
 
         if (idSolicitudTxt == null || idSolicitudTxt.trim().isEmpty()) {
-            response.sendRedirect("Soportes/SOP_ListaSolicitudes.jsp?error=Falta idSolicitud");
+            response.sendRedirect("Soportes/SOP_ListaTickets.jsp?error=Falta idSolicitud");
             return;
         }
 
@@ -107,19 +107,54 @@ public class InsertReporteTecnico extends HttpServlet {
                 System.out.println("InsertReporteTecnico: no se pudo registrar incidencia CIERRE (ok si todavia no se corrio 035): " + incEx.getMessage());
             }
 
+            // Ticket de mantenimiento preventivo ([MANTENIMIENTO], creado desde el aviso al usuario): al cerrarlo
+            // como ATENDIDO queda registrado en el historial del equipo. Es "best effort": si falla (tabla sin
+            // crear, etc.) no se revierte el cierre del ticket.
+            try {
+                Integer idEquipoMant = null;
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT IDEQUIPO FROM SOP_SOPORTE_CAB WHERE IDSOPORTE = ? AND SOPORTE LIKE ?")) {
+                    st.setInt(1, idSolInt);
+                    st.setString(2, INVENTARIO.INV_MantenimientoHelper.MARCA_TICKET + "%");
+                    try (java.sql.ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) { int v = rs.getInt(1); if (!rs.wasNull()) idEquipoMant = v; }
+                    }
+                }
+                if (idEquipoMant != null) {
+                    int idMant = 1;
+                    try (PreparedStatement st = cn.prepareStatement("SELECT NVL(MAX(ID_MANTENIMIENTO),0)+1 FROM INV_MANTENIMIENTO");
+                         java.sql.ResultSet rs = st.executeQuery()) { if (rs.next()) idMant = rs.getInt(1); }
+                    try (PreparedStatement st = cn.prepareStatement(
+                            "INSERT INTO INV_MANTENIMIENTO (ID_MANTENIMIENTO, IDINVEQUIPO, FECHA_MANT, TIPO, ACTIVIDADES, OBSERVACIONES, " +
+                            "ID_TECNICO, ID_SOPORTE, ID_USUARIO_REGISTRA, FECHA_REGISTRO, ESTADO) " +
+                            "VALUES (?, ?, TRUNC(SYSDATE), 'PREVENTIVO', 'Limpieza externa, Teclado, Pantalla, Polvo interno', ?, ?, ?, ?, SYSDATE, 'A')")) {
+                        st.setInt(1, idMant);
+                        st.setInt(2, idEquipoMant);
+                        String obs = "Ticket #" + idSolInt + ": " + (reporte == null ? "" : reporte);
+                        st.setString(3, obs.length() > 500 ? obs.substring(0, 500) : obs);
+                        if (idTecnicoAsignado == null) st.setNull(4, java.sql.Types.NUMERIC); else st.setInt(4, idTecnicoAsignado);
+                        st.setInt(5, idSolInt);
+                        if (idTecnicoAsignado == null) st.setNull(6, java.sql.Types.NUMERIC); else st.setInt(6, idTecnicoAsignado);
+                        st.executeUpdate();
+                    }
+                }
+            } catch (Exception mantEx) {
+                System.out.println("InsertReporteTecnico: no se pudo registrar el mantenimiento del equipo (ok si falta el script 046): " + mantEx.getMessage());
+            }
+
             cn.commit();
 
             COMUN.LogActividad.registrar(request, "SOPORTES", "APROBAR",
                     "Atendio y cerro ticket #" + idSolicitudTxt);
         } catch (Exception e) {
             e.printStackTrace();
-            response.sendRedirect("Soportes/SOP_ListaSolicitudes.jsp?error=Error al registrar el reporte");
+            response.sendRedirect("Soportes/SOP_ListaTickets.jsp?error=Error al registrar el reporte");
             return;
         } finally {
             try { if (cn != null) cn.close(); } catch (Exception ignore) {}
         }
 
-        response.sendRedirect("Soportes/SOP_ListaSolicitudes.jsp?msj=Reporte registrado");
+        response.sendRedirect("Soportes/SOP_ListaTickets.jsp?msj=Reporte registrado");
     }
 
     @Override

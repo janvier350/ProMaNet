@@ -37,9 +37,11 @@
     List<INV_MantenimientoHelper.Fila> filas = new ArrayList<>();
     List<String[]> tecnicos = new ArrayList<>();     // {id, nombre}
     String errorCarga = null;
+    boolean avisosOn = false;
     try (Connection cn = Servlets.Conexion.getConnection()) {
         if (cn != null) {
             filas = INV_MantenimientoHelper.cargar(cn, false);
+            avisosOn = INV_MantenimientoHelper.avisosActivos(cn);
             // Tecnicos: personal de Tecnologia + quien registra
             Set<Integer> vistos = new HashSet<>();
             try (PreparedStatement st = cn.prepareStatement(
@@ -165,6 +167,25 @@
             </div>
         </div>
 
+        <% if (puedeGestionar) { %>
+        <div class="card mb-4">
+            <div class="card-body py-3 d-flex flex-wrap align-items-center justify-content-between">
+                <div class="me-3">
+                    <p class="text-sm font-weight-bold mb-0"><i class="fas fa-bell me-1 text-warning"></i>Avisos a los usuarios:
+                        <span class="badge <%= avisosOn ? "bg-gradient-success" : "bg-gradient-secondary" %>"><%= avisosOn ? "ACTIVADOS" : "DESACTIVADOS" %></span></p>
+                    <p class="text-xs text-secondary mb-0">Cuando estan activados, cada usuario con un equipo <b>proximo o vencido</b> ve un aviso en su dashboard con el boton
+                        &laquo;Solicitar mantenimiento&raquo; (crea un ticket). Actívalos cuando este lista la primera ronda para no avisar a todos a la vez.</p>
+                </div>
+                <form action="../INV_MantenimientoAccion" method="post" class="mt-2 mt-md-0 mb-0"
+                      onsubmit="return confirm('<%= avisosOn ? "Desactivar los avisos a los usuarios?" : "Activar los avisos? Los usuarios con equipo proximo o vencido empezaran a verlos." %>');">
+                    <input type="hidden" name="accion" value="<%= avisosOn ? "AVISOS_OFF" : "AVISOS_ON" %>">
+                    <button type="submit" class="btn btn-sm <%= avisosOn ? "btn-outline-danger" : "btn-success" %> mb-0">
+                        <i class="fas <%= avisosOn ? "fa-bell-slash" : "fa-bell" %> me-1"></i><%= avisosOn ? "Desactivar avisos" : "Activar avisos" %></button>
+                </form>
+            </div>
+        </div>
+        <% } %>
+
         <div class="card mb-4">
             <div class="card-header pb-0">
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
@@ -224,7 +245,10 @@
                                 <td data-order="<%= f.ultimo != null ? f.ultimo.toString() : "" %>"><p class="text-xs mb-0"><%= f.ultimo != null ? f.ultimo.format(fmt) : "-" %></p></td>
                                 <td class="text-center"><p class="text-xs mb-0"><%=f.periodo%> m<%= f.periodoFijo != null ? " *" : "" %></p></td>
                                 <td data-order="<%= f.proxima != null ? f.proxima.toString() : "" %>"><p class="text-xs mb-0"><%= f.proxima != null ? f.proxima.format(fmt) : "-" %></p></td>
-                                <td class="text-center"><span class="badge badge-sm <%=badge%>"><%=esc(textoEstado)%></span></td>
+                                <td class="text-center"><span class="badge badge-sm <%=badge%>"><%=esc(textoEstado)%></span>
+                                    <% if (f.ticket != null) { %>
+                                    <br><a class="badge badge-sm bg-gradient-info mt-1" href="../Soportes/SOP_AtenderTicket.jsp?idSolicitud=<%=f.ticket%>" title="Ticket de mantenimiento abierto"><i class="fas fa-ticket me-1"></i>Ticket #<%=f.ticket%></a>
+                                    <% } %></td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
                                         <% if (puedeGestionar && f.aplica) { %>

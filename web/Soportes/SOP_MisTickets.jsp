@@ -223,6 +223,7 @@
     </nav>
 
     <div class="container-fluid py-4">
+<%@ include file="/_aviso_mantenimiento.jspf" %>
 
 <% if (!modoDetalle) { %>
         <div class="card">

@@ -1,0 +1,49 @@
+<%--
+    Aviso de mantenimiento para el usuario logueado: si Tecnologia activo los avisos y algun equipo
+    asignado a el esta PROXIMO o VENCIDO, muestra una alerta con el boton "Solicitar mantenimiento"
+    (crea un ticket). Se incluye con <%@ include file="/_aviso_mantenimiento.jspf" %> dentro del
+    contenedor de la pagina. Si algo falla (tablas sin crear) no muestra nada.
+--%>
+<%
+    try (java.sql.Connection _cnMa = Servlets.Conexion.getConnection()) {
+        if (_cnMa != null && INVENTARIO.INV_MantenimientoHelper.avisosActivos(_cnMa)) {
+            int _uidMa = -1;
+            try { _uidMa = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception _e) { }
+            if (_uidMa > 0) {
+                java.time.format.DateTimeFormatter _fmtMa = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                for (INVENTARIO.INV_MantenimientoHelper.Fila _fa : INVENTARIO.INV_MantenimientoHelper.cargarDeUsuario(_cnMa, _uidMa)) {
+                    if ("AL_DIA".equals(_fa.estado)) continue;
+                    boolean _venc = "VENCIDO".equals(_fa.estado);
+                    String _descMa = (_fa.dispositivo + " " + _fa.marca + " " + _fa.modelo).trim()
+                            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+%>
+<div class="alert alert-<%= _venc ? "danger" : "warning" %> text-white d-flex flex-wrap align-items-center justify-content-between" role="alert">
+    <div class="me-3">
+        <i class="fas fa-broom me-2"></i><b>Mantenimiento de tu equipo:</b> <%=_descMa%>
+        <span class="d-block text-sm">
+            <% if (_fa.proxima == null) { %>
+            Todavia no tiene un mantenimiento registrado.
+            <% } else if (_venc) { %>
+            Su limpieza y revision vencio el <%=_fa.proxima.format(_fmtMa)%> (hace <%=-_fa.dias%> dias).
+            <% } else { %>
+            Su limpieza y revision toca el <%=_fa.proxima.format(_fmtMa)%> (en <%=_fa.dias%> dias).
+            <% } %>
+            El mantenimiento incluye limpieza de teclado, pantalla y polvo interno.
+        </span>
+    </div>
+    <% if (_fa.ticket != null) { %>
+    <span class="badge bg-white text-dark mt-2 mt-md-0"><i class="fas fa-ticket me-1"></i>Solicitado &middot; ticket #<%=_fa.ticket%></span>
+    <% } else { %>
+    <form action="<%=request.getContextPath()%>/INV_SolicitarMantenimiento" method="post" class="mt-2 mt-md-0 mb-0"
+          onsubmit="return confirm('Solicitar el mantenimiento de este equipo? Se creara un ticket para Sistemas.');">
+        <input type="hidden" name="idEquipo" value="<%=_fa.idEquipo%>">
+        <button type="submit" class="btn btn-sm btn-white mb-0"><i class="fas fa-paper-plane me-1"></i>Solicitar mantenimiento</button>
+    </form>
+    <% } %>
+</div>
+<%
+                }
+            }
+        }
+    } catch (Exception _exMa) { /* sin tablas de mantenimiento todavia: sin aviso */ }
+%>

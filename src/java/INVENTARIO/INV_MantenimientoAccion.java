@@ -15,6 +15,7 @@ import java.sql.PreparedStatement;
 //   accion=ELIMINAR  idMantenimiento   -> anula un registro cargado por error (ESTADO = 'X')
 //   accion=EXCLUIR   idEquipo          -> el equipo deja de requerir mantenimiento (MANT_APLICA = 'N')
 //   accion=INCLUIR   idEquipo          -> vuelve al plan (MANT_APLICA = 'S')
+//   accion=AVISOS_ON / AVISOS_OFF      -> enciende/apaga los avisos que ven los usuarios (INV_MANT_CONFIG)
 @WebServlet(name = "INV_MantenimientoAccion", urlPatterns = {"/INV_MantenimientoAccion"})
 public class INV_MantenimientoAccion extends HttpServlet {
 
@@ -62,6 +63,29 @@ public class INV_MantenimientoAccion extends HttpServlet {
                 COMUN.LogActividad.registrar(request, "INVENTARIO", "EDITAR",
                         (incluir ? "Incluyo" : "Excluyo") + " el equipo #" + idEquipo + " del plan de mantenimiento");
                 msj = incluir ? "Equipo incluido en el plan de mantenimiento" : "Equipo excluido del plan de mantenimiento";
+            } else if ("AVISOS_ON".equals(accion) || "AVISOS_OFF".equals(accion)) {
+                boolean on = "AVISOS_ON".equals(accion);
+                int idGestor = -1;
+                try { idGestor = Integer.parseInt(((String) session.getAttribute("cod")).trim()); } catch (Exception ignore) {}
+                int n;
+                try (PreparedStatement st = cn.prepareStatement(
+                        "UPDATE INV_MANT_CONFIG SET VALOR = ?, ID_USUARIO = ?, FECHA = SYSDATE WHERE CLAVE = 'AVISOS_USUARIO'")) {
+                    st.setString(1, on ? "S" : "N");
+                    st.setInt(2, idGestor);
+                    n = st.executeUpdate();
+                }
+                if (n == 0) {
+                    try (PreparedStatement st = cn.prepareStatement(
+                            "INSERT INTO INV_MANT_CONFIG (CLAVE, VALOR, ID_USUARIO, FECHA) VALUES ('AVISOS_USUARIO', ?, ?, SYSDATE)")) {
+                        st.setString(1, on ? "S" : "N");
+                        st.setInt(2, idGestor);
+                        st.executeUpdate();
+                    }
+                }
+                cn.commit();
+                COMUN.LogActividad.registrar(request, "INVENTARIO", "EDITAR",
+                        (on ? "Activo" : "Desactivo") + " los avisos de mantenimiento a los usuarios");
+                msj = on ? "Avisos a usuarios ACTIVADOS: los usuarios con equipo proximo o vencido veran el aviso" : "Avisos a usuarios desactivados";
             } else {
                 response.sendRedirect(base + "?error=" + enc("Accion invalida"));
                 return;

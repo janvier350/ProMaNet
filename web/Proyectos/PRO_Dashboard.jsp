@@ -610,6 +610,7 @@ String compania = (String) session.getAttribute("compania");
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                 </div>
                 <% } %>
+                <%@ include file="/_aviso_mantenimiento.jspf" %>
                 <div class="row">
 
                     <% if ((COMUN.PermisoHelper.tiene(session, "CONTACTOS_ACCESO")||COMUN.PermisoHelper.tiene(session, "TODO_ACCESO")||COMUN.PermisoHelper.tiene(session, "AGENDA_ACCESO")||COMUN.PermisoHelper.tiene(session, "ACCESO_GENERAL")||cargo.equals("ADMINISTRACION")||cargo.equals("ADMINISTRADOR")||cargo.equals("CONTRALOR")||cargo.equals("JEFE")||cargo.equals("ANALISTA"))) { %>

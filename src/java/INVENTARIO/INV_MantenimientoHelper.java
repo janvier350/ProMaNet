@@ -21,6 +21,8 @@ import java.util.List;
 // Estado: VENCIDO (proxima < hoy), PROXIMO (faltan <= DIAS_AVISO) o AL_DIA.
 public class INV_MantenimientoHelper {
 
+    /** Los tickets de mantenimiento preventivo empiezan con esta marca (SOP_SOPORTE_CAB.SOPORTE). */
+    public static final String MARCA_TICKET = "[MANTENIMIENTO]";
     public static final int DIAS_AVISO = 15;
     public static final int MESES_EQUIPO_NUEVO = 24;
     public static final int PERIODO_NUEVO = 12;
@@ -30,6 +32,7 @@ public class INV_MantenimientoHelper {
         public int idEquipo;
         public String dispositivo, marca, modelo, serial, oficina, departamento, estadoEquipo, usuario;
         public Integer idUsuario;
+        public Integer ticket;            // ticket de mantenimiento abierto para este equipo (si hay)
         public LocalDate fechaCompra, ultimo, proxima;
         public int totalMant;
         public Integer periodoFijo;       // null = automatica
@@ -41,7 +44,17 @@ public class INV_MantenimientoHelper {
     }
 
     public static List<Fila> cargar(Connection cn, boolean soloQueAplican) throws SQLException {
+        return cargar(cn, soloQueAplican, null);
+    }
+
+    /** Equipos asignados actualmente a un usuario (para el aviso que ve el propio usuario). */
+    public static List<Fila> cargarDeUsuario(Connection cn, int idUsuario) throws SQLException {
+        return cargar(cn, true, idUsuario);
+    }
+
+    public static List<Fila> cargar(Connection cn, boolean soloQueAplican, Integer soloUsuario) throws SQLException {
         List<Fila> r = new ArrayList<>();
+        java.util.Map<Integer, Integer> tickets = ticketsAbiertos(cn);
         LocalDate hoy = LocalDate.now();
         String sql =
             "SELECT e.IDINVEQUIPO, e.DISPOSITIVO, e.MARCA, e.MODELO, e.SERIAL, e.UBICACIONOFICINA, e.DEPARTAMENTO, e.ESTADO, " +
@@ -55,8 +68,11 @@ public class INV_MantenimientoHelper {
             "FROM INV_EQUIPOS e " +
             "WHERE e.ESTADO_AI = 'A' AND e.ESTADO IN ('A','D','M','I') " +
             (soloQueAplican ? "AND NVL(e.MANT_APLICA,'S') = 'S' " : "") +
+            (soloUsuario != null ? "AND EXISTS (SELECT 1 FROM INV_ASIGNACION a2 WHERE a2.IDINVEQUIPO = e.IDINVEQUIPO AND a2.ESTADO = 'A' AND a2.IDUSUARIO = ?) " : "") +
             "ORDER BY e.UBICACIONOFICINA, e.DISPOSITIVO, e.MARCA, e.MODELO";
-        try (PreparedStatement st = cn.prepareStatement(sql); ResultSet rs = st.executeQuery()) {
+        try (PreparedStatement st = cn.prepareStatement(sql)) {
+            if (soloUsuario != null) st.setInt(1, soloUsuario);
+            try (ResultSet rs = st.executeQuery()) {
             while (rs.next()) {
                 Fila f = new Fila();
                 f.idEquipo = rs.getInt(1);
@@ -70,11 +86,35 @@ public class INV_MantenimientoHelper {
                 f.totalMant = rs.getInt(13);
                 int iu = rs.getInt(14); f.idUsuario = rs.wasNull() ? null : iu;
                 f.usuario = rs.getString(15);
+                f.ticket = tickets.get(f.idEquipo);
                 calcular(f, hoy);
                 r.add(f);
             }
+            }
         }
         return r;
+    }
+
+    /** idEquipo -> id del ticket de mantenimiento abierto (PENDIENTE / EN_PROGRESO / REASIGNADO). Vacio si no hay tabla. */
+    public static java.util.Map<Integer, Integer> ticketsAbiertos(Connection cn) {
+        java.util.Map<Integer, Integer> m = new java.util.HashMap<>();
+        try (PreparedStatement st = cn.prepareStatement(
+                "SELECT IDEQUIPO, MAX(IDSOPORTE) FROM SOP_SOPORTE_CAB WHERE IDEQUIPO IS NOT NULL " +
+                "AND ESTADO IN ('PENDIENTE','EN_PROGRESO','REASIGNADO') AND SOPORTE LIKE ? GROUP BY IDEQUIPO")) {
+            st.setString(1, MARCA_TICKET + "%");
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) m.put(rs.getInt(1), rs.getInt(2));
+            }
+        } catch (Exception e) { }
+        return m;
+    }
+
+    /** true si Tecnologia activo los avisos a usuarios (INV_MANT_CONFIG.AVISOS_USUARIO = 'S'). */
+    public static boolean avisosActivos(Connection cn) {
+        try (PreparedStatement st = cn.prepareStatement("SELECT VALOR FROM INV_MANT_CONFIG WHERE CLAVE = 'AVISOS_USUARIO'");
+             ResultSet rs = st.executeQuery()) {
+            return rs.next() && "S".equals(rs.getString(1));
+        } catch (Exception e) { return false; }
     }
 
     public static void calcular(Fila f, LocalDate hoy) {
