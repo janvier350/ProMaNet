@@ -23,6 +23,10 @@
          "MAN_Vacaciones.jsp", "fa-umbrella-beach", "warning", "VACACIONES_SOLICITAR"},
         {"Gestion de vacaciones", "Para gestores de grupo (Romeria / Kennedy) y administrador global: configurar, aprobar, ajustes, permisos por horas, fechas pasadas y asignar grupos.",
          "MAN_VacacionesGestion.jsp", "fa-people-group", "primary", "VACACIONES_CONFIGURAR|VACACIONES_GESTIONAR"},
+        {"Mantenimiento de mi equipo", "Para todos: que significa el aviso de limpieza de tu equipo y como solicitarlo.",
+         "MAN_MantenimientoUsuario.jsp", "fa-broom", "success", ""},
+        {"Mantenimiento de equipos (Sistemas)", "Para Tecnologia: plan de mantenimiento, primera ronda escalonada, avisos, tickets y seguimiento.",
+         "MAN_MantenimientoSistemas.jsp", "fa-screwdriver-wrench", "dark", "INVENTARIO_MANTENIMIENTO_VER|INVENTARIO_MANTENIMIENTO_GESTIONAR"},
     };
     List<String[]> visibles = new ArrayList<>();
     for (String[] m : manuales) {

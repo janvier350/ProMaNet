@@ -361,7 +361,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form action="../INV_ProgramarMantenimiento" method="post">
-                <input type="hidden" name="accion" value="INDIVIDUAL">
+                <input type="hidden" name="accion" id="progAccion" value="INDIVIDUAL">
                 <input type="hidden" name="idEquipo" id="progIdEquipo">
                 <div class="modal-header" style="background:#5e72e4;">
                     <h5 class="modal-title text-white"><i class="fas fa-calendar-day me-2"></i>Programar mantenimiento</h5>
@@ -376,7 +376,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-between">
-                    <button type="submit" name="accion" value="QUITAR" class="btn btn-outline-danger btn-sm" id="progQuitar" formnovalidate>Quitar programacion</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="progQuitar">Quitar programacion</button>
                     <div>
                         <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Guardar</button>
@@ -500,8 +500,16 @@ $(document).ready(function () {
         $('#progDesc').text(this.getAttribute('data-desc'));
         var d = new Date(); var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         $('#progFecha').attr('min', iso).val(this.getAttribute('data-prog') || '');
+        $('#progAccion').val('INDIVIDUAL');
+        $('#progFecha').prop('required', true);
         $('#progQuitar').toggle(!!this.getAttribute('data-prog'));
         new bootstrap.Modal(document.getElementById('modalProgramar')).show();
+    });
+    $('#progQuitar').on('click', function () {
+        if (!confirm('Quitar la programacion de este equipo?')) return;
+        $('#progAccion').val('QUITAR');
+        $('#progFecha').prop('required', false);
+        $(this).closest('form').trigger('submit');
     });
     // Primera ronda: vista previa (cuenta los vencidos sin fecha y calcula el ultimo dia)
     function resumenMasiva() {

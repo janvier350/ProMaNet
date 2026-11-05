@@ -1,0 +1,27 @@
+<%--
+    Guia rapida para el USUARIO: aviso de mantenimiento de su equipo.
+    Se usa en Manuales/MAN_MantenimientoUsuario.jsp.
+--%>
+<%
+    java.util.List<String[]> _guPasos = new java.util.ArrayList<>();
+    _guPasos.add(new String[]{"Recibes el aviso", "T&uacute;", "1",
+        "Cuando a tu equipo le toca limpieza y revisi&oacute;n, ves un aviso arriba en tu dashboard.", "ni-bell-55"});
+    _guPasos.add(new String[]{"Solicita", "T&uacute;", "1",
+        "Pulsa &laquo;Solicitar mantenimiento&raquo;. Se crea un ticket para Sistemas, sin escribir nada m&aacute;s.", "ni-send"});
+    _guPasos.add(new String[]{"Sistemas coordina", "Sistemas", "0",
+        "El equipo de Tecnolog&iacute;a te contacta para acordar el d&iacute;a y la hora.", "ni-single-02"});
+    _guPasos.add(new String[]{"Entrega tu equipo", "T&uacute;", "1",
+        "Gu&aacute;rdalo todo y ent&eacute;galo en el momento acordado. La limpieza es de unos minutos.", "ni-laptop"});
+    _guPasos.add(new String[]{"Queda registrado", "Sistemas", "0",
+        "Al cerrar el ticket, el mantenimiento queda anotado y el aviso desaparece hasta el pr&oacute;ximo.", "ni-check-bold"});
+
+    java.util.List<String> _guNotas = new java.util.ArrayList<>();
+    _guNotas.add("<i class='ni ni-bulb-61 me-1'></i><b>Incluye:</b> limpieza de teclado, pantalla y carcasa, y limpieza interna del polvo (ventiladores y disipador).");
+    _guNotas.add("<i class='ni ni-time-alarm me-1'></i><b>Cada cu&aacute;nto:</b> cada 6 meses; cada 12 meses si el equipo es nuevo (hasta 2 a&ntilde;os).");
+
+    request.setAttribute("guiaId", "mantenimiento_usuario");
+    request.setAttribute("guiaTitulo", "mantenimiento de tu equipo");
+    request.setAttribute("guiaPasos", _guPasos);
+    request.setAttribute("guiaNotas", _guNotas);
+%>
+<%@ include file="/_guia_rapida.jspf" %>

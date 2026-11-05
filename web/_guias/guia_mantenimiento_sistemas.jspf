@@ -1,0 +1,27 @@
+<%--
+    Guia rapida para TECNOLOGIA (quien gestiona mantenimientos). Se usa en Manuales/MAN_MantenimientoSistemas.jsp.
+--%>
+<%
+    java.util.List<String[]> _gsPasos = new java.util.ArrayList<>();
+    _gsPasos.add(new String[]{"Revisa el panel", "Sistemas", "1",
+        "Inventario &rarr; Mantenimientos: vencidos, pr&oacute;ximos, al d&iacute;a y nunca mantenidos. Filtra por oficina o tipo.", "ni-chart-bar-32"});
+    _gsPasos.add(new String[]{"Programa la primera ronda", "Sistemas", "1",
+        "&laquo;Programar primera ronda&raquo;: fecha de inicio y equipos por d&iacute;a. Reparte los vencidos por oficina y usuario.", "ni-calendar-grid-58"});
+    _gsPasos.add(new String[]{"Activa los avisos", "Sistemas", "1",
+        "Cuando est&eacute; lista la ronda, &laquo;Activar avisos&raquo;: cada usuario recibe el suyo 15 d&iacute;as antes de su fecha.", "ni-bell-55"});
+    _gsPasos.add(new String[]{"Atiende", "Sistemas", "1",
+        "El usuario solicita desde su aviso (ticket [MANTENIMIENTO]) o t&uacute; lo haces directo en el panel.", "ni-ui-04"});
+    _gsPasos.add(new String[]{"Registra", "Sistemas", "1",
+        "&laquo;Registrar&raquo; con las actividades hechas, o cierra el ticket como Atendido: se registra solo.", "ni-check-bold"});
+    _gsPasos.add(new String[]{"Da seguimiento", "Sistemas", "1",
+        "Historial por equipo, etiqueta de ticket abierto, y exporta a Excel o PDF para reportes.", "ni-books"});
+
+    java.util.List<String> _gsNotas = new java.util.ArrayList<>();
+    _gsNotas.add("<i class='ni ni-bulb-61 me-1'></i>Todo el departamento de Tecnolog&iacute;a (pasantes incluidos) puede registrar mantenimientos; no hace falta dar permisos uno por uno.");
+
+    request.setAttribute("guiaId", "mantenimiento_sistemas");
+    request.setAttribute("guiaTitulo", "c&oacute;mo dar seguimiento a los mantenimientos");
+    request.setAttribute("guiaPasos", _gsPasos);
+    request.setAttribute("guiaNotas", _gsNotas);
+%>
+<%@ include file="/_guia_rapida.jspf" %>
