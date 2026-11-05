@@ -137,6 +137,10 @@ public class InsertReporteTecnico extends HttpServlet {
                         if (idTecnicoAsignado == null) st.setNull(6, java.sql.Types.NUMERIC); else st.setInt(6, idTecnicoAsignado);
                         st.executeUpdate();
                     }
+                    try (PreparedStatement st = cn.prepareStatement("UPDATE INV_EQUIPOS SET MANT_PROGRAMADO = NULL WHERE IDINVEQUIPO = ?")) {
+                        st.setInt(1, idEquipoMant);
+                        st.executeUpdate();
+                    }
                 }
             } catch (Exception mantEx) {
                 System.out.println("InsertReporteTecnico: no se pudo registrar el mantenimiento del equipo (ok si falta el script 046): " + mantEx.getMessage());

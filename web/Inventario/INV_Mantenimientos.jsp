@@ -57,7 +57,7 @@
     } catch (Exception e) {
         e.printStackTrace();
         errorCarga = (e.getMessage() != null && (e.getMessage().contains("ORA-00942") || e.getMessage().contains("ORA-00904")))
-                ? "Falta ejecutar el script docs/permisos/046_inventario_mantenimiento.sql" : "No se pudo cargar el seguimiento: " + e.getMessage();
+                ? "Faltan scripts por ejecutar: docs/permisos/046, 047 y 048 (mantenimiento de equipos)" : "No se pudo cargar el seguimiento: " + e.getMessage();
     }
 
     int vencidos = 0, proximos = 0, alDia = 0, nunca = 0;
@@ -194,6 +194,9 @@
                         <p class="text-xs text-secondary mb-0">Cada <b>6 meses</b>; cada <b>12 meses</b> los equipos de hasta 2 a&ntilde;os desde la compra (se puede fijar otra periodicidad por equipo).</p>
                     </div>
                     <div class="mt-2 mt-md-0">
+                        <% if (puedeGestionar) { %>
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-0" data-bs-toggle="modal" data-bs-target="#modalMasiva"><i class="fas fa-calendar-check me-1"></i>Programar primera ronda</button>
+                        <% } %>
                         <button type="button" class="btn btn-sm btn-outline-success mb-0" id="btnExcel"><i class="fas fa-file-excel me-1"></i>Excel</button>
                         <button type="button" class="btn btn-sm btn-outline-danger mb-0" id="btnPdf"><i class="fas fa-file-pdf me-1"></i>PDF</button>
                     </div>
@@ -201,7 +204,8 @@
                 <div class="row g-2 mt-2">
                     <div class="col-md-3"><select id="fEstado" class="form-select form-select-sm">
                         <option value="">Todos los estados</option><option value="VENCIDO">Vencidos</option><option value="PROXIMO">Proximos</option>
-                        <option value="AL_DIA">Al dia</option><option value="NUNCA">Nunca mantenidos</option></select></div>
+                        <option value="AL_DIA">Al dia</option><option value="NUNCA">Nunca mantenidos</option>
+                        <option value="PROGRAMADO">Programados</option><option value="SIN_PROGRAMAR">Vencidos sin programar</option></select></div>
                     <div class="col-md-3"><select id="fOficina" class="form-select form-select-sm"><option value="">Todas las oficinas</option>
                         <% for (String o : oficinas) { %><option value="<%=esc(o)%>"><%=esc(o)%></option><% } %></select></div>
                     <div class="col-md-3"><select id="fTipo" class="form-select form-select-sm"><option value="">Todos los tipos</option>
@@ -221,6 +225,7 @@
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Ultimo mant.</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder">Cada</th>
                                 <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Proximo</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder">Programado</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder">Estado</th>
                                 <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder no-export">Acciones</th>
                             </tr>
@@ -237,7 +242,7 @@
                                else { badge = "bg-gradient-success"; textoEstado = "Al dia"; }
                         %>
                             <tr data-estado="<%=f.aplica ? f.estado : "EXCLUIDO"%>" data-nunca="<%=f.nunca ? "1" : "0"%>" data-aplica="<%=f.aplica ? "S" : "N"%>"
-                                data-oficina="<%=esc(f.oficina)%>" data-tipo="<%=esc(f.dispositivo)%>">
+                                data-oficina="<%=esc(f.oficina)%>" data-tipo="<%=esc(f.dispositivo)%>" data-prog="<%= f.programada != null ? "1" : "0" %>">
                                 <td><p class="text-sm font-weight-bold mb-0"><%=esc(desc)%></p>
                                     <p class="text-xs text-secondary mb-0">S/N <%=esc(f.serial.isEmpty() ? "-" : f.serial)%></p></td>
                                 <td><p class="text-xs mb-0"><%= f.usuario != null ? esc(f.usuario) : "<span class='text-secondary'>sin asignar</span>" %></p></td>
@@ -245,6 +250,7 @@
                                 <td data-order="<%= f.ultimo != null ? f.ultimo.toString() : "" %>"><p class="text-xs mb-0"><%= f.ultimo != null ? f.ultimo.format(fmt) : "-" %></p></td>
                                 <td class="text-center"><p class="text-xs mb-0"><%=f.periodo%> m<%= f.periodoFijo != null ? " *" : "" %></p></td>
                                 <td data-order="<%= f.proxima != null ? f.proxima.toString() : "" %>"><p class="text-xs mb-0"><%= f.proxima != null ? f.proxima.format(fmt) : "-" %></p></td>
+                                <td data-order="<%= f.programada != null ? f.programada.toString() : "" %>"><p class="text-xs mb-0"><%= f.programada != null ? f.programada.format(fmt) : "-" %></p></td>
                                 <td class="text-center"><span class="badge badge-sm <%=badge%>"><%=esc(textoEstado)%></span>
                                     <% if (f.ticket != null) { %>
                                     <br><a class="badge badge-sm bg-gradient-info mt-1" href="../Soportes/SOP_AtenderTicket.jsp?idSolicitud=<%=f.ticket%>" title="Ticket de mantenimiento abierto"><i class="fas fa-ticket me-1"></i>Ticket #<%=f.ticket%></a>
@@ -255,6 +261,11 @@
                                         <button type="button" class="btn btn-xs btn-outline-success py-1 mb-0 btn-registrar"
                                                 data-id="<%=f.idEquipo%>" data-desc="<%=esc(desc)%>" data-periodo="<%= f.periodoFijo != null ? f.periodoFijo : "" %>"
                                                 data-auto="<%=f.periodo%>"><i class="fas fa-broom"></i> Registrar</button>
+                                        <% } %>
+                                        <% if (puedeGestionar && f.aplica) { %>
+                                        <button type="button" class="btn btn-xs btn-outline-primary py-1 mb-0 btn-programar" title="Programar fecha"
+                                                data-id="<%=f.idEquipo%>" data-desc="<%=esc(desc)%>" data-prog="<%= f.programada != null ? f.programada.toString() : "" %>">
+                                            <i class="fas fa-calendar-day"></i></button>
                                         <% } %>
                                         <button type="button" class="btn btn-xs btn-outline-info py-1 mb-0 btn-historial" data-id="<%=f.idEquipo%>" data-desc="<%=esc(desc)%>" title="Historial">
                                             <i class="fas fa-clock-rotate-left"></i> <%=f.totalMant%></button>
@@ -345,6 +356,76 @@
 </div>
 <% } %>
 
+<% if (puedeGestionar) { %>
+<div class="modal fade" id="modalProgramar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="../INV_ProgramarMantenimiento" method="post">
+                <input type="hidden" name="accion" value="INDIVIDUAL">
+                <input type="hidden" name="idEquipo" id="progIdEquipo">
+                <div class="modal-header" style="background:#5e72e4;">
+                    <h5 class="modal-title text-white"><i class="fas fa-calendar-day me-2"></i>Programar mantenimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm mb-2"><b id="progDesc"></b></p>
+                    <div class="form-group mb-0">
+                        <label>Fecha programada</label>
+                        <input type="date" name="fecha" id="progFecha" class="form-control" required>
+                        <small class="text-muted">El usuario recibe el aviso 15 dias antes de esta fecha (si los avisos estan activados).</small>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="submit" name="accion" value="QUITAR" class="btn btn-outline-danger btn-sm" id="progQuitar" formnovalidate>Quitar programacion</button>
+                    <div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save me-1"></i>Guardar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMasiva" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="../INV_ProgramarMantenimiento" method="post">
+                <input type="hidden" name="accion" value="MASIVA">
+                <div class="modal-header" style="background:#5e72e4;">
+                    <h5 class="modal-title text-white"><i class="fas fa-calendar-check me-2"></i>Programar la primera ronda</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter:invert(1) brightness(2);"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-sm">Reparte los equipos <b>vencidos que aun no tienen fecha</b> en dias habiles, agrupados por oficina y por usuario,
+                        para no avisar a todos a la vez ni saturar a Sistemas.</p>
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label>Empezar el</label>
+                            <input type="date" name="fechaInicio" id="masInicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label>Equipos por dia</label>
+                            <input type="number" name="porDia" id="masPorDia" class="form-control" min="1" max="30" value="4" required>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label>Solo la oficina (opcional)</label>
+                        <select name="oficina" id="masOficina" class="form-control"><option value="">Todas</option>
+                            <% for (String o : oficinas) { %><option value="<%=esc(o)%>"><%=esc(o)%></option><% } %></select>
+                    </div>
+                    <div id="masResumen" class="alert alert-secondary py-2 px-3 mb-0 text-sm"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary btn-sm" onclick="return confirm('Programar los equipos vencidos sin fecha segun este plan?');"><i class="fas fa-calendar-check me-1"></i>Programar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<% } %>
 <div class="modal fade" id="modalHistorial" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -371,6 +452,8 @@ $(document).ready(function () {
         var est = $('#fEstado').val();
         if (est) {
             if (est === 'NUNCA') { if (tr.getAttribute('data-nunca') !== '1' || aplica === 'N') return false; }
+            else if (est === 'PROGRAMADO') { if (tr.getAttribute('data-prog') !== '1' || aplica === 'N') return false; }
+            else if (est === 'SIN_PROGRAMAR') { if (tr.getAttribute('data-estado') !== 'VENCIDO' || tr.getAttribute('data-prog') === '1') return false; }
             else if (tr.getAttribute('data-estado') !== est) return false;
         }
         var of = $('#fOficina').val(); if (of && tr.getAttribute('data-oficina') !== of) return false;
@@ -383,8 +466,8 @@ $(document).ready(function () {
         language: { url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-ES.json' },
         dom: "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-md-12'tr>><'row'<'col-md-5'i><'col-md-7'p>>",
         buttons: [
-            { extend: 'excelHtml5', title: 'Mantenimiento de equipos', exportOptions: { columns: [0,1,2,3,4,5,6] } },
-            { extend: 'pdfHtml5', title: 'Mantenimiento de equipos', orientation: 'landscape', pageSize: 'A3', exportOptions: { columns: [0,1,2,3,4,5,6] } }
+            { extend: 'excelHtml5', title: 'Mantenimiento de equipos', exportOptions: { columns: [0,1,2,3,4,5,6,7] } },
+            { extend: 'pdfHtml5', title: 'Mantenimiento de equipos', orientation: 'landscape', pageSize: 'A3', exportOptions: { columns: [0,1,2,3,4,5,6,7] } }
         ]
     });
     $('#btnExcel').on('click', function () { dt.button(0).trigger(); });
@@ -410,6 +493,42 @@ $(document).ready(function () {
         $('#regPeriodicidad').val(b.getAttribute('data-periodo') || 'auto');
         new bootstrap.Modal(document.getElementById('modalRegistrar')).show();
     });
+
+    // Programar individual
+    $(document).on('click', '.btn-programar', function () {
+        $('#progIdEquipo').val(this.getAttribute('data-id'));
+        $('#progDesc').text(this.getAttribute('data-desc'));
+        var d = new Date(); var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        $('#progFecha').attr('min', iso).val(this.getAttribute('data-prog') || '');
+        $('#progQuitar').toggle(!!this.getAttribute('data-prog'));
+        new bootstrap.Modal(document.getElementById('modalProgramar')).show();
+    });
+    // Primera ronda: vista previa (cuenta los vencidos sin fecha y calcula el ultimo dia)
+    function resumenMasiva() {
+        var porDia = parseInt($('#masPorDia').val(), 10), ini = $('#masInicio').val(), of = $('#masOficina').val();
+        var n = 0;
+        document.querySelectorAll('#tablaMant tbody tr').forEach(function (tr) {
+            if (tr.getAttribute('data-aplica') === 'S' && tr.getAttribute('data-estado') === 'VENCIDO' && tr.getAttribute('data-prog') !== '1'
+                && (!of || tr.getAttribute('data-oficina') === of)) n++;
+        });
+        var r = document.getElementById('masResumen');
+        if (!ini || !(porDia > 0)) { r.textContent = n + ' equipos vencidos sin programar.'; return; }
+        var p = ini.split('-'), d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+        function sigHabil(x) { while (x.getDay() === 0 || x.getDay() === 6) x.setDate(x.getDate() + 1); return x; }
+        d = sigHabil(d);
+        var dias = n === 0 ? 0 : Math.ceil(n / porDia), fin = new Date(d);
+        for (var i = 1; i < dias; i++) { fin.setDate(fin.getDate() + 1); fin = sigHabil(fin); }
+        function f(x) { return String(x.getDate()).padStart(2, '0') + '/' + String(x.getMonth() + 1).padStart(2, '0') + '/' + x.getFullYear(); }
+        r.innerHTML = n === 0 ? 'No hay equipos vencidos sin programar.' :
+            '<b>' + n + '</b> equipos &rarr; <b>' + dias + '</b> dias habiles, del <b>' + f(d) + '</b> al <b>' + f(fin) + '</b>.';
+    }
+    $('#modalMasiva').on('show.bs.modal', function () {
+        var d = new Date(); d.setDate(d.getDate() + 1);
+        var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        $('#masInicio').attr('min', new Date().toISOString().slice(0, 10)).val(iso);
+        resumenMasiva();
+    });
+    $('#masInicio, #masPorDia, #masOficina').on('input change', resumenMasiva);
     // Historial
     $(document).on('click', '.btn-historial', function () {
         var id = this.getAttribute('data-id');

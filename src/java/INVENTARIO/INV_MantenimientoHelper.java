@@ -33,7 +33,7 @@ public class INV_MantenimientoHelper {
         public String dispositivo, marca, modelo, serial, oficina, departamento, estadoEquipo, usuario;
         public Integer idUsuario;
         public Integer ticket;            // ticket de mantenimiento abierto para este equipo (si hay)
-        public LocalDate fechaCompra, ultimo, proxima;
+        public LocalDate fechaCompra, ultimo, proxima, programada;
         public int totalMant;
         public Integer periodoFijo;       // null = automatica
         public int periodo;               // meses efectivos
@@ -58,7 +58,7 @@ public class INV_MantenimientoHelper {
         LocalDate hoy = LocalDate.now();
         String sql =
             "SELECT e.IDINVEQUIPO, e.DISPOSITIVO, e.MARCA, e.MODELO, e.SERIAL, e.UBICACIONOFICINA, e.DEPARTAMENTO, e.ESTADO, " +
-            "       e.FECHACOMPRA, e.MANT_PERIODICIDAD_MESES, e.MANT_APLICA, " +
+            "       e.FECHACOMPRA, e.MANT_PERIODICIDAD_MESES, e.MANT_APLICA, e.MANT_PROGRAMADO, " +
             "       (SELECT MAX(m.FECHA_MANT) FROM INV_MANTENIMIENTO m WHERE m.IDINVEQUIPO = e.IDINVEQUIPO AND m.ESTADO = 'A' AND m.TIPO = 'PREVENTIVO'), " +
             "       (SELECT COUNT(*) FROM INV_MANTENIMIENTO m WHERE m.IDINVEQUIPO = e.IDINVEQUIPO AND m.ESTADO = 'A'), " +
             "       (SELECT u.IDUSUARIO FROM (SELECT a.IDINVEQUIPO, a.IDUSUARIO FROM INV_ASIGNACION a WHERE a.ESTADO = 'A' ORDER BY a.FECHAASIGNACION DESC) x " +
@@ -82,10 +82,11 @@ public class INV_MantenimientoHelper {
                 Date dc = rs.getDate(9); f.fechaCompra = dc == null ? null : dc.toLocalDate();
                 int per = rs.getInt(10); f.periodoFijo = rs.wasNull() ? null : per;
                 f.aplica = !"N".equals(rs.getString(11));
-                Date du = rs.getDate(12); f.ultimo = du == null ? null : du.toLocalDate();
-                f.totalMant = rs.getInt(13);
-                int iu = rs.getInt(14); f.idUsuario = rs.wasNull() ? null : iu;
-                f.usuario = rs.getString(15);
+                Date dp = rs.getDate(12); f.programada = dp == null ? null : dp.toLocalDate();
+                Date du = rs.getDate(13); f.ultimo = du == null ? null : du.toLocalDate();
+                f.totalMant = rs.getInt(14);
+                int iu = rs.getInt(15); f.idUsuario = rs.wasNull() ? null : iu;
+                f.usuario = rs.getString(16);
                 f.ticket = tickets.get(f.idEquipo);
                 calcular(f, hoy);
                 r.add(f);
@@ -134,6 +135,21 @@ public class INV_MantenimientoHelper {
         f.proxima = base.plusMonths(f.periodo);
         f.dias = ChronoUnit.DAYS.between(hoy, f.proxima);
         f.estado = f.dias < 0 ? "VENCIDO" : (f.dias <= DIAS_AVISO ? "PROXIMO" : "AL_DIA");
+    }
+
+    /**
+     * Fecha desde la cual corresponde avisar al usuario: la fecha PROGRAMADA por Tecnologia si la hay
+     * (y es posterior al ultimo mantenimiento); si no, la proxima calculada. null = sin base de calculo.
+     */
+    public static LocalDate fechaAviso(Fila f) {
+        if (f.programada != null && (f.ultimo == null || f.programada.isAfter(f.ultimo))) return f.programada;
+        return f.proxima;
+    }
+
+    /** true si ya toca avisar al usuario: faltan DIAS_AVISO dias o menos para la fecha de aviso, o ya paso (o no hay base). */
+    public static boolean requiereAviso(Fila f, LocalDate hoy) {
+        LocalDate fa = fechaAviso(f);
+        return fa == null || ChronoUnit.DAYS.between(hoy, fa) <= DIAS_AVISO;
     }
 
     /** Conteos {vencidos, proximos, alDia, nuncaMantenidos} de los equipos que aplican. */

@@ -1,0 +1,11 @@
+-- =====================================================================
+-- Inventario / Mantenimiento - FASE 3: programacion escalonada.
+--
+-- MANT_PROGRAMADO: fecha en que Tecnologia planea dar el mantenimiento al equipo. Permite
+-- repartir la primera ronda (casi todos los equipos figuran vencidos al lanzar el
+-- seguimiento) en varias semanas. Mientras un equipo tenga fecha programada, el aviso al usuario
+-- sale 15 dias antes de ESA fecha (no de inmediato). Se borra sola al registrar el mantenimiento.
+--
+-- EJECUTAR ANTES DE DESPLEGAR (requiere 046 y 047).
+-- =====================================================================
+ALTER TABLE INV_EQUIPOS ADD MANT_PROGRAMADO DATE;

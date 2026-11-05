@@ -12,8 +12,12 @@
             if (_uidMa > 0) {
                 java.time.format.DateTimeFormatter _fmtMa = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 for (INVENTARIO.INV_MantenimientoHelper.Fila _fa : INVENTARIO.INV_MantenimientoHelper.cargarDeUsuario(_cnMa, _uidMa)) {
-                    if ("AL_DIA".equals(_fa.estado)) continue;
-                    boolean _venc = "VENCIDO".equals(_fa.estado);
+                    java.time.LocalDate _hoyMa = java.time.LocalDate.now();
+                    if (!INVENTARIO.INV_MantenimientoHelper.requiereAviso(_fa, _hoyMa)) continue;
+                    java.time.LocalDate _fechaAv = INVENTARIO.INV_MantenimientoHelper.fechaAviso(_fa);
+                    boolean _prog = _fa.programada != null && _fechaAv != null && _fechaAv.equals(_fa.programada);
+                    long _diasAv = _fechaAv == null ? Long.MIN_VALUE : java.time.temporal.ChronoUnit.DAYS.between(_hoyMa, _fechaAv);
+                    boolean _venc = _fechaAv == null || _diasAv < 0;
                     String _descMa = (_fa.dispositivo + " " + _fa.marca + " " + _fa.modelo).trim()
                             .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 %>
@@ -21,12 +25,14 @@
     <div class="me-3">
         <i class="fas fa-broom me-2"></i><b>Mantenimiento de tu equipo:</b> <%=_descMa%>
         <span class="d-block text-sm">
-            <% if (_fa.proxima == null) { %>
+            <% if (_fechaAv == null) { %>
             Todavia no tiene un mantenimiento registrado.
+            <% } else if (_prog && !_venc) { %>
+            Sistemas lo tiene <b>programado para el <%=_fechaAv.format(_fmtMa)%></b> (en <%=_diasAv%> dias).
             <% } else if (_venc) { %>
-            Su limpieza y revision vencio el <%=_fa.proxima.format(_fmtMa)%> (hace <%=-_fa.dias%> dias).
+            Su limpieza y revision <%= _prog ? "estaba programada para" : "vencio" %> el <%=_fechaAv.format(_fmtMa)%> (hace <%=-_diasAv%> dias).
             <% } else { %>
-            Su limpieza y revision toca el <%=_fa.proxima.format(_fmtMa)%> (en <%=_fa.dias%> dias).
+            Su limpieza y revision toca el <%=_fechaAv.format(_fmtMa)%> (en <%=_diasAv%> dias).
             <% } %>
             El mantenimiento incluye limpieza de teclado, pantalla y polvo interno.
         </span>

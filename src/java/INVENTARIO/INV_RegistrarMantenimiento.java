@@ -121,6 +121,13 @@ public class INV_RegistrarMantenimiento extends HttpServlet {
                     if (intento >= 3) throw dup;
                 }
             }
+            // Al registrar un mantenimiento preventivo, la fecha programada ya se cumplio: se borra.
+            if ("PREVENTIVO".equals(tipo)) {
+                try (PreparedStatement st = cn.prepareStatement("UPDATE INV_EQUIPOS SET MANT_PROGRAMADO = NULL WHERE IDINVEQUIPO = ?")) {
+                    st.setInt(1, idEquipo);
+                    st.executeUpdate();
+                }
+            }
             if (cambiarPeriodo) {
                 try (PreparedStatement st = cn.prepareStatement("UPDATE INV_EQUIPOS SET MANT_PERIODICIDAD_MESES = ? WHERE IDINVEQUIPO = ?")) {
                     if (periodo != null) st.setInt(1, periodo); else st.setNull(1, java.sql.Types.NUMERIC);
