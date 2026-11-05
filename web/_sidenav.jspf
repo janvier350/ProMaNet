@@ -187,6 +187,16 @@
                 </a>
             </li>
             <% } %>
+            <% if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_VER") || COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_GESTIONAR")) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "inv_mant".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Inventario/INV_Mantenimientos.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-broom text-success text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Mantenimientos</span>
+                </a>
+            </li>
+            <% } %>
             <% if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_ACCESO") || COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
             <li class="nav-item">
                 <a class="nav-link <%= "manuales".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/Manuales/MAN_Indice.jsp">

@@ -322,6 +322,14 @@ String compania = (String) session.getAttribute("compania");
                             <span class="nav-link-text ms-1">Soportes Sistemas</span>
                         </a>
                         <%}%>
+                        <% if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_VER") || COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_GESTIONAR")) { %>
+                        <a class="nav-link " href="../Inventario/INV_Mantenimientos.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="ni ni-settings text-success text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Mantenimientos</span>
+                        </a>
+                        <% } %>
                         <%-- "Crear ticket" visible para TODOS los usuarios logueados,
                              incluso los que no tienen SOPORTES_ACCESO (ellos solo
                              crean, no gestionan). Pensado para los que casi nunca

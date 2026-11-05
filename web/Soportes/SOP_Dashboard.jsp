@@ -254,6 +254,38 @@
             </div>
         </div>
 
+        <%-- Mantenimiento de equipos: resumen para quien puede verlo --%>
+        <%
+            int[] mantRes = null;
+            if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_VER") || COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_GESTIONAR")) {
+                try (java.sql.Connection cnMant = Servlets.Conexion.getConnection()) {
+                    if (cnMant != null) mantRes = INVENTARIO.INV_MantenimientoHelper.resumen(cnMant);
+                } catch (Exception exMant) { /* tabla aun no creada */ }
+            }
+        %>
+        <% if (mantRes != null) { %>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <a href="../Inventario/INV_Mantenimientos.jsp" class="text-decoration-none">
+                    <div class="card">
+                        <div class="card-body p-3 d-flex flex-wrap align-items-center justify-content-between">
+                            <div>
+                                <p class="text-sm mb-0 text-uppercase font-weight-bold"><i class="fas fa-broom me-1 text-success"></i>Mantenimiento de equipos</p>
+                                <p class="mb-0 text-xs text-secondary">Limpieza y revision preventiva &middot; ver seguimiento</p>
+                            </div>
+                            <div class="d-flex gap-3 mt-2 mt-md-0">
+                                <span class="badge bg-gradient-danger"><%=mantRes[0]%> vencidos</span>
+                                <span class="badge bg-gradient-warning"><%=mantRes[1]%> proximos</span>
+                                <span class="badge bg-gradient-success"><%=mantRes[2]%> al dia</span>
+                                <span class="badge bg-gradient-secondary"><%=mantRes[3]%> nunca mantenidos</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <% } %>
+
         <!-- Charts -->
         <div class="row">
             <div class="col-lg-7 mb-4">
