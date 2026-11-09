@@ -1,0 +1,9 @@
+Kit de marca ProMaNet (minimalista)
+- promanet-icon.svg / -512.png        icono (cuadrado redondeado azul, P blanca, punto verde = nodo de red)
+- promanet-icon-blanco.svg            icono para fondos oscuros
+- promanet-icon-mono.svg              una sola tinta (sellos, impresion en B/N)
+- promanet-logo-horizontal.svg / .png logo completo para fondo claro
+- promanet-logo-horizontal-fondo-oscuro.svg   logo completo para fondo oscuro
+- favicon-64.png, apple-icon-180.png  favicon / icono de iOS
+Colores: azul #5E72E4, verde #2DCE89, texto #2B3674. Tipografia: Inter SemiBold (el texto del logo ya va convertido a trazos).
+El logo actual de la aplicacion (assets/img/promanetlogo.png) no se ha reemplazado.
