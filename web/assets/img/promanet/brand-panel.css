@@ -1,0 +1,7 @@
+.brand-panel{width:300px;box-sizing:border-box;padding:46px 24px 40px;border-radius:20px;text-align:center;color:#fff;
+ font-family:Inter,Arial,sans-serif;background:linear-gradient(160deg,#16235A 0%,#1E3A94 100%);}
+.brand-panel .emb{width:128px;height:128px;margin:0 auto 26px}
+.brand-panel h1{margin:0;font-size:27px;font-weight:700;letter-spacing:.15em}
+.brand-panel .sub{margin-top:8px;font-size:10.5px;letter-spacing:.34em;color:#7FE2F1;font-weight:500}
+.brand-panel hr{width:56px;border:0;border-top:1px solid rgba(255,255,255,.3);margin:26px auto 22px}
+.brand-panel p{margin:0 auto;max-width:210px;font-size:14px;line-height:1.55;color:rgba(255,255,255,.72)}
