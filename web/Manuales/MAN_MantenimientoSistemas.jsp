@@ -114,7 +114,7 @@
                                 <li>Desde su aviso, el usuario pulsa <b>Solicitar mantenimiento</b>: se crea un ticket <b>[MANTENIMIENTO]</b> de prioridad Baja.</li>
                                 <li>En el panel, el equipo muestra la etiqueta <b>Ticket #N</b> mientras est&eacute; abierto; no se crea otro duplicado.</li>
                                 <li>Al cerrarlo como <b>Atendido</b>, el mantenimiento se <b>registra solo</b> en el historial del equipo y se borra la fecha programada.</li>
-                                <li>Si lo haces sin ticket, usa <b>Registrar</b> en el panel (actividades, qui&eacute;n lo hizo y observaciones).</li>
+                                <li>Tambi&eacute;n puedes usar <b>Registrar</b> en el panel (actividades, qui&eacute;n lo hizo y observaciones): si el equipo ten&iacute;a un ticket abierto, <b>ese ticket se cierra solo</b> como Atendido. No hace falta cerrarlo dos veces.</li>
                             </ul>
                             <p class="text-xs text-secondary mb-0">Equipos que no requieren mantenimiento (monitores, switches, etc.) se pueden <b>excluir del plan</b> con el bot&oacute;n de la prohibici&oacute;n; se vuelven a incluir con &laquo;Ver excluidos&raquo;.</p>
                         </div>

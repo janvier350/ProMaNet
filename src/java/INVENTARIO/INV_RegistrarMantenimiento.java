@@ -99,6 +99,10 @@ public class INV_RegistrarMantenimiento extends HttpServlet {
                 return;
             }
 
+            // Si hay un ticket [MANTENIMIENTO] abierto para este equipo (lo pidio el usuario desde su aviso), este
+            // mantenimiento preventivo lo resuelve: se vincula y el ticket se cierra solo.
+            Integer ticketAbierto = "PREVENTIVO".equals(tipo) ? INV_MantenimientoHelper.ticketsAbiertos(cn).get(idEquipo) : null;
+
             int id = 0;
             for (int intento = 1; id == 0; intento++) {
                 int nuevo = 1;
@@ -106,7 +110,7 @@ public class INV_RegistrarMantenimiento extends HttpServlet {
                      ResultSet rs = st.executeQuery()) { if (rs.next()) nuevo = rs.getInt(1); }
                 try (PreparedStatement st = cn.prepareStatement(
                         "INSERT INTO INV_MANTENIMIENTO (ID_MANTENIMIENTO, IDINVEQUIPO, FECHA_MANT, TIPO, ACTIVIDADES, OBSERVACIONES, " +
-                        "ID_TECNICO, ID_USUARIO_REGISTRA, FECHA_REGISTRO, ESTADO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, 'A')")) {
+                        "ID_TECNICO, ID_USUARIO_REGISTRA, FECHA_REGISTRO, ESTADO, ID_SOPORTE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, SYSDATE, 'A', ?)")) {
                     st.setInt(1, nuevo);
                     st.setInt(2, idEquipo);
                     st.setDate(3, Date.valueOf(fecha));
@@ -115,10 +119,53 @@ public class INV_RegistrarMantenimiento extends HttpServlet {
                     if (obs != null) st.setString(6, obs); else st.setNull(6, java.sql.Types.VARCHAR);
                     st.setInt(7, idTecnico);
                     st.setInt(8, idGestor);
+                    if (ticketAbierto != null) st.setInt(9, ticketAbierto); else st.setNull(9, java.sql.Types.NUMERIC);
                     st.executeUpdate();
                     id = nuevo;
                 } catch (java.sql.SQLIntegrityConstraintViolationException dup) {
                     if (intento >= 3) throw dup;
+                }
+            }
+            // Cierre automatico del ticket de mantenimiento (ATENDIDO) con el detalle de lo realizado.
+            if (ticketAbierto != null) {
+                String loginTecnico = (String) session.getAttribute("usuario");
+                if (idTecnico != idGestor) {
+                    try (PreparedStatement st = cn.prepareStatement("SELECT USUARIO FROM USUARIO WHERE IDUSUARIO = ?")) {
+                        st.setInt(1, idTecnico);
+                        try (ResultSet rs = st.executeQuery()) { if (rs.next() && rs.getString(1) != null) loginTecnico = rs.getString(1); }
+                    }
+                }
+                String reporte = "Mantenimiento preventivo registrado desde Inventario el " + fecha
+                        + (actividades != null ? ". Actividades: " + actividades : "")
+                        + (obs != null ? ". " + obs : "");
+                if (reporte.length() > 1000) reporte = reporte.substring(0, 1000);
+                try (PreparedStatement st = cn.prepareStatement(
+                        "UPDATE SOP_SOPORTE_CAB SET REPORTE = ?, ESTADO = 'ATENDIDO', FECHA_REPORTE = SYSDATE, TECNICO = ?, " +
+                        "ID_TECNICO_ASIGNADO = NVL(ID_TECNICO_ASIGNADO, ?), FECHA_PRIMERA_ATENCION = NVL(FECHA_PRIMERA_ATENCION, SYSDATE) " +
+                        "WHERE IDSOPORTE = ? AND ESTADO IN ('PENDIENTE','EN_PROGRESO','REASIGNADO')")) {
+                    st.setString(1, reporte);
+                    st.setString(2, loginTecnico);
+                    st.setInt(3, idTecnico);
+                    st.setInt(4, ticketAbierto);
+                    st.executeUpdate();
+                }
+                // Constancia en el historial del ticket (best effort: si falta la tabla de incidencias no se revierte).
+                try {
+                    int idInc = 1;
+                    try (PreparedStatement st = cn.prepareStatement("SELECT NVL(MAX(ID_INCIDENCIA),0)+1 FROM SOP_SOPORTE_INCIDENCIA");
+                         ResultSet rs = st.executeQuery()) { if (rs.next()) idInc = rs.getInt(1); }
+                    try (PreparedStatement st = cn.prepareStatement(
+                            "INSERT INTO SOP_SOPORTE_INCIDENCIA (ID_INCIDENCIA, IDSOPORTE, FECHA_HORA, ID_USUARIO, USUARIO_LOGIN, TIPO, DESCRIPCION, RESULTADO) " +
+                            "VALUES (?, ?, SYSDATE, ?, ?, 'CIERRE', ?, 'OK')")) {
+                        st.setInt(1, idInc);
+                        st.setInt(2, ticketAbierto);
+                        st.setInt(3, idTecnico);
+                        st.setString(4, loginTecnico);
+                        st.setString(5, reporte);
+                        st.executeUpdate();
+                    }
+                } catch (Exception incEx) {
+                    System.out.println("INV_RegistrarMantenimiento: no se pudo registrar la incidencia de cierre: " + incEx.getMessage());
                 }
             }
             // Al registrar un mantenimiento preventivo, la fecha programada ya se cumplio: se borra.
@@ -138,7 +185,8 @@ public class INV_RegistrarMantenimiento extends HttpServlet {
             cn.commit();
             COMUN.LogActividad.registrar(request, "INVENTARIO", "CREAR",
                     "Registro mantenimiento " + tipo.toLowerCase() + " #" + id + " del equipo #" + idEquipo + " (" + desc + ") del " + fecha);
-            response.sendRedirect(base + "?msj=" + enc("Mantenimiento registrado: " + desc));
+            response.sendRedirect(base + "?msj=" + enc("Mantenimiento registrado: " + desc
+                    + (ticketAbierto != null ? ". Se cerro el ticket #" + ticketAbierto : "")));
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}
             e.printStackTrace();

@@ -12,7 +12,7 @@
     _gsPasos.add(new String[]{"Atiende", "Sistemas", "1",
         "El usuario solicita desde su aviso (ticket [MANTENIMIENTO]) o t&uacute; lo haces directo en el panel.", "ni-ui-04"});
     _gsPasos.add(new String[]{"Registra", "Sistemas", "1",
-        "&laquo;Registrar&raquo; con las actividades hechas, o cierra el ticket como Atendido: se registra solo.", "ni-check-bold"});
+        "&laquo;Registrar&raquo; en el panel (cierra solo el ticket abierto) o cierra el ticket como Atendido (registra solo el mantenimiento).", "ni-check-bold"});
     _gsPasos.add(new String[]{"Da seguimiento", "Sistemas", "1",
         "Historial por equipo, etiqueta de ticket abierto, y exporta a Excel o PDF para reportes.", "ni-books"});
 

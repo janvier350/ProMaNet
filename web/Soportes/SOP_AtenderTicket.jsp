@@ -259,7 +259,7 @@
                         <p class="text-sm mb-0" style="white-space:pre-wrap;"><%=sop%></p>
                         <% if (sop != null && sop.startsWith("[MANTENIMIENTO]")) { %>
                         <div class="alert alert-info text-white mt-3 mb-0 py-2 text-sm">
-                            <i class="fas fa-broom me-1"></i>Es un <b>mantenimiento preventivo</b>. Al cerrarlo como <b>Atendido</b> se registra solo en el historial del equipo
+                            <i class="fas fa-broom me-1"></i>Es un <b>mantenimiento preventivo</b>. Al cerrarlo como <b>Atendido</b> se registra solo en el historial del equipo; y si el mantenimiento se registra desde Inventario, este ticket se cierra solo
                             (<a class="text-white text-decoration-underline" href="../Inventario/INV_Mantenimientos.jsp">Inventario &rarr; Mantenimientos</a>).
                         </div>
                         <% } %>
