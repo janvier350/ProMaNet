@@ -34,6 +34,18 @@ public class VAC_EventosHelper {
      * administrador global); n = ese grupo (solo si esta en el alcance del usuario).
      */
     public static List<Evento> cargar(Connection cn, HttpSession session, LocalDate ini, LocalDate fin, Integer grupoFiltro) throws SQLException {
+        String filtro = VAC_Alcance.filtroSql(session, cn, "vc.ID_GRUPO") +
+            (grupoFiltro != null && grupoFiltro == 0 ? " AND vc.ID_GRUPO IS NULL " : "") +
+            (grupoFiltro != null && grupoFiltro > 0 ? " AND vc.ID_GRUPO = " + grupoFiltro.intValue() + " " : "");
+        return cargarConFiltro(cn, ini, fin, filtro);
+    }
+
+    /**
+     * Igual que cargar() pero con un filtro SQL propio (empieza con " AND ...") sobre los alias u (USUARIO),
+     * vc (VAC_CONFIG_USUARIO) y d (departamento). Lo usa el dashboard principal para alcances por equipo o
+     * departamento. El filtro lo arma el codigo con enteros, nunca con texto del usuario.
+     */
+    public static List<Evento> cargarConFiltro(Connection cn, LocalDate ini, LocalDate fin, String filtro) throws SQLException {
         String sql =
             "SELECT x.TIPO, x.ID_USUARIO, u.NOMBRE || ' ' || u.APELLIDOS, d.DEPARTAMENTO, vc.OFICINA, g.NOMBRE, " +
             "       x.DESDE, x.HASTA, x.DIAS, x.ANTICIPADA, x.RETRO " +
@@ -51,9 +63,7 @@ public class VAC_EventosHelper {
             "LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = u.IDUSUARIO " +
             "LEFT JOIN VAC_GRUPO g ON g.ID_GRUPO = vc.ID_GRUPO " +
             "WHERE x.HASTA >= ? AND x.DESDE <= ? " +
-            VAC_Alcance.filtroSql(session, cn, "vc.ID_GRUPO") +
-            (grupoFiltro != null && grupoFiltro == 0 ? " AND vc.ID_GRUPO IS NULL " : "") +
-            (grupoFiltro != null && grupoFiltro > 0 ? " AND vc.ID_GRUPO = " + grupoFiltro.intValue() + " " : "") +
+            filtro +
             "ORDER BY x.DESDE DESC, 3";
         List<Evento> r = new ArrayList<>();
         try (PreparedStatement st = cn.prepareStatement(sql)) {

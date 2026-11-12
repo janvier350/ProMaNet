@@ -5,7 +5,7 @@
     rapido y un bloque que falle no afecta a los demas. Si un bloque no aplica al usuario responde 204 y el
     dashboard lo quita.
 
-    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo
+    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos
     Todo se filtra por el usuario de la sesion y sus permisos.
 --%>
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
@@ -188,6 +188,158 @@
                             .append(req ? "Te toca pronto" : "Al día").append("</span> <span class='text-secondary'>próximo ").append(INVENTARIO.INV_MantenimientoHelper.fechaAviso(f).format(fmt)).append("</span></p>");
                     } else html.append("<p class='text-xs text-secondary mb-2'>S/N ").append(esc(f.serial.isEmpty() ? "-" : f.serial)).append("</p>");
                 }
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- QUIEN ESTA FUERA (alcance segun el rol)
+        } else if ("ausentes".equals(b)) {
+            boolean gestor = COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || VACACIONES.VAC_Alcance.esGlobal(session);
+            int equipo = 0;
+            try (PreparedStatement st = cn.prepareStatement("SELECT COUNT(*) FROM VAC_CONFIG_USUARIO WHERE ID_JEFE_DIRECTO = ?")) {
+                st.setInt(1, uid);
+                try (ResultSet rs = st.executeQuery()) { if (rs.next()) equipo = rs.getInt(1); }
+            } catch (Exception ex) { }
+            String filtro, ambito;
+            if (gestor) { filtro = VACACIONES.VAC_Alcance.filtroSql(session, cn, "vc.ID_GRUPO"); ambito = "tu grupo"; }
+            else if (equipo > 0) { filtro = " AND vc.ID_JEFE_DIRECTO = " + uid + " "; ambito = "tu equipo"; }
+            else { filtro = " AND u.IDUSUARIO <> " + uid + " AND u.ID_ADM_DEPARTAMENTO = (SELECT ID_ADM_DEPARTAMENTO FROM USUARIO WHERE IDUSUARIO = " + uid + ") "; ambito = "tu departamento"; }
+            List<VACACIONES.VAC_EventosHelper.Evento> evs = VACACIONES.VAC_EventosHelper.cargarConFiltro(cn, hoy, hoy.plusDays(7), filtro);
+            java.time.format.DateTimeFormatter dm = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+            Map<String, String> hoyFuera = new LinkedHashMap<>(), proximos = new LinkedHashMap<>();
+            for (VACACIONES.VAC_EventosHelper.Evento e : evs) {
+                if (!e.esVacacion()) continue;
+                if (!e.desde.isAfter(hoy) && !e.hasta.isBefore(hoy)) hoyFuera.put(e.idUsuario + "", e.nombre + "|regresa " + dm.format(e.hasta.plusDays(1)));
+                else if (e.desde.isAfter(hoy)) proximos.put(e.idUsuario + "|" + e.desde, e.nombre + "|" + dm.format(e.desde) + " al " + dm.format(e.hasta));
+            }
+            if (hoyFuera.isEmpty() && proximos.isEmpty() && !gestor && equipo == 0) aplica = false;
+            else {
+                html.append(cabecera("fas fa-user-clock", "warning", "Quién está fuera &middot; " + ambito));
+                html.append("<p class='text-xs text-secondary mb-1'>Hoy</p>");
+                if (hoyFuera.isEmpty()) html.append("<p class='text-sm mb-2'>Nadie est&aacute; de vacaciones hoy.</p>");
+                else {
+                    html.append("<ul class='list-group list-group-flush mb-2'>"); int c = 0;
+                    for (String v : hoyFuera.values()) { if (c++ >= 5) break; String[] x = v.split("\\|");
+                        html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between'><span class='text-sm'>").append(esc(x[0])).append("</span><span class='text-xs text-secondary'>").append(esc(x[1])).append("</span></li>"); }
+                    html.append("</ul>");
+                    if (hoyFuera.size() > 5) html.append("<p class='text-xs text-secondary'>y ").append(hoyFuera.size() - 5).append(" m&aacute;s</p>");
+                }
+                html.append("<p class='text-xs text-secondary mb-1'>Pr&oacute;ximos 7 d&iacute;as</p>");
+                if (proximos.isEmpty()) html.append("<p class='text-sm mb-0'>Sin salidas programadas.</p>");
+                else {
+                    html.append("<ul class='list-group list-group-flush'>"); int c = 0;
+                    for (String v : proximos.values()) { if (c++ >= 4) break; String[] x = v.split("\\|");
+                        html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between'><span class='text-sm'>").append(esc(x[0])).append("</span><span class='text-xs text-secondary'>").append(esc(x[1])).append("</span></li>"); }
+                    html.append("</ul>");
+                    if (proximos.size() > 4) html.append("<p class='text-xs text-secondary mb-0'>y ").append(proximos.size() - 4).append(" m&aacute;s</p>");
+                }
+                if (gestor) html.append("<div class='mt-3'><a href='").append(ctx).append("/Vacaciones/VAC_Estadisticas.jsp' class='btn btn-sm btn-outline-warning mb-0'>Ver dashboard de vacaciones</a></div>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- ANIVERSARIOS LABORALES (gestores de vacaciones)
+        } else if ("aniversarios".equals(b)) {
+            if (!(COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR"))) aplica = false;
+            else {
+                List<Object[]> lista = new ArrayList<>();   // {fecha, nombre, anios}
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT u.NOMBRE || ' ' || u.APELLIDOS, vc.FECHA_INGRESO FROM VAC_CONFIG_USUARIO vc JOIN USUARIO u ON u.IDUSUARIO = vc.ID_USUARIO " +
+                        "WHERE u.ESTADO = 'a' AND vc.FECHA_INGRESO IS NOT NULL " + VACACIONES.VAC_Alcance.filtroSql(session, cn, "vc.ID_GRUPO"));
+                     ResultSet rs = st.executeQuery()) {
+                    while (rs.next()) {
+                        LocalDate fi = rs.getDate(2).toLocalDate();
+                        LocalDate a = fi.withYear(hoy.getYear());
+                        if (a.isBefore(hoy)) a = fi.withYear(hoy.getYear() + 1);
+                        long dd = java.time.temporal.ChronoUnit.DAYS.between(hoy, a);
+                        int anios = a.getYear() - fi.getYear();
+                        if (anios >= 1 && dd <= 30) lista.add(new Object[]{a, rs.getString(1), anios});
+                    }
+                }
+                if (lista.isEmpty()) aplica = false;
+                else {
+                    lista.sort((x, y) -> ((LocalDate) x[0]).compareTo((LocalDate) y[0]));
+                    java.time.format.DateTimeFormatter dm = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+                    html.append(cabecera("fas fa-cake-candles", "success", "Aniversarios laborales &middot; 30 d&iacute;as"));
+                    html.append("<ul class='list-group list-group-flush'>"); int c = 0;
+                    for (Object[] o : lista) { if (c++ >= 6) break; LocalDate f = (LocalDate) o[0]; int an = (Integer) o[2];
+                        html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between'><span class='text-sm'>").append(esc((String) o[1]))
+                            .append(" <span class='badge badge-sm bg-gradient-success'>").append(an).append(an == 1 ? " a&ntilde;o" : " a&ntilde;os").append("</span></span><span class='text-xs text-secondary'>")
+                            .append(f.equals(hoy) ? "Hoy" : dm.format(f)).append("</span></li>"); }
+                    html.append("</ul>");
+                    if (lista.size() > 6) html.append("<p class='text-xs text-secondary mb-0'>y ").append(lista.size() - 6).append(" m&aacute;s</p>");
+                    html.append(pie());
+                }
+            }
+
+        // ---------------------------------------------------------------- TICKETS DEL DIA (Tecnologia)
+        } else if ("ticketsdia".equals(b)) {
+            if (!COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")) aplica = false;
+            else {
+                html.append(cabecera("fas fa-headset", "danger", "Soporte hoy"));
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT NVL(SUM(CASE WHEN ESTADO IN ('PENDIENTE','REASIGNADO') THEN 1 ELSE 0 END),0), " +
+                        "       NVL(SUM(CASE WHEN ESTADO = 'EN_PROGRESO' THEN 1 ELSE 0 END),0), " +
+                        "       NVL(SUM(CASE WHEN TRUNC(FECHA_SOLICITUD) = TRUNC(SYSDATE) THEN 1 ELSE 0 END),0), " +
+                        "       NVL(SUM(CASE WHEN ESTADO IN ('ATENDIDO','CERRADO_SIN_SOLUCION') AND TRUNC(FECHA_REPORTE) = TRUNC(SYSDATE) THEN 1 ELSE 0 END),0), " +
+                        "       MIN(CASE WHEN ESTADO IN ('PENDIENTE','REASIGNADO') THEN TRUNC(SYSDATE - FECHA_SOLICITUD) END) " +
+                        "FROM SOP_SOPORTE_CAB WHERE ESTADO IN ('PENDIENTE','REASIGNADO','EN_PROGRESO') OR TRUNC(FECHA_SOLICITUD) = TRUNC(SYSDATE) OR TRUNC(FECHA_REPORTE) = TRUNC(SYSDATE)");
+                     ResultSet rs = st.executeQuery()) {
+                    if (rs.next()) {
+                        html.append("<div class='row text-center mb-2'>")
+                            .append("<div class='col-6 col-sm-3'><h4 class='mb-0 text-danger'>").append(rs.getInt(1)).append("</h4><span class='text-xxs text-secondary'>sin tomar</span></div>")
+                            .append("<div class='col-6 col-sm-3'><h4 class='mb-0 text-info'>").append(rs.getInt(2)).append("</h4><span class='text-xxs text-secondary'>en atenci&oacute;n</span></div>")
+                            .append("<div class='col-6 col-sm-3'><h4 class='mb-0'>").append(rs.getInt(3)).append("</h4><span class='text-xxs text-secondary'>nuevos hoy</span></div>")
+                            .append("<div class='col-6 col-sm-3'><h4 class='mb-0 text-success'>").append(rs.getInt(4)).append("</h4><span class='text-xxs text-secondary'>cerrados hoy</span></div></div>");
+                    }
+                }
+                if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_VER") || COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_GESTIONAR")) {
+                    try {
+                        int[] r = INVENTARIO.INV_MantenimientoHelper.resumen(cn);
+                        html.append("<p class='text-xs mb-0'><i class='fas fa-broom text-success me-1'></i>Mantenimientos: <b>").append(r[0]).append("</b> vencidos, <b>").append(r[1]).append("</b> pr&oacute;ximos</p>");
+                    } catch (Exception ex) { }
+                }
+                html.append("<div class='mt-3'><a href='").append(ctx).append("/Soportes/SOP_ListaTickets.jsp' class='btn btn-sm btn-outline-danger mb-0'>Ir a los tickets</a></div>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- ACCESOS DIRECTOS + RESUMEN DE ANTICIPOS (gestores)
+        } else if ("accesos".equals(b)) {
+            List<String[]> links = new ArrayList<>();   // {icono, texto, url}
+            if (COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) {
+                links.add(new String[]{"fas fa-clipboard-check", "Aprobar vacaciones", ctx + "/Vacaciones/VAC_AprobacionesAdmin.jsp"});
+                links.add(new String[]{"fas fa-chart-pie", "Dashboard de vacaciones", ctx + "/Vacaciones/VAC_Estadisticas.jsp"});
+            }
+            if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR")) links.add(new String[]{"fas fa-users-gear", "Configurar empleados", ctx + "/Vacaciones/VAC_ConfigUsuarios.jsp"});
+            if (COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")) {
+                links.add(new String[]{"fas fa-calendar-day", "Fecha de corte (Control)", ctx + "/Control/ADM_Asignar_Fecha_Corte_Anticipos.jsp"});
+                links.add(new String[]{"fas fa-hand-holding-dollar", "Anticipos Control", ctx + "/Control/ADM_Dashboard.jsp"});
+            }
+            if (COMUN.PermisoHelper.tiene(session, "ANTICIPOS_AUD_GESTIONAR")) links.add(new String[]{"fas fa-hand-holding-dollar", "Anticipos Auditor&iacute;a / fecha de corte", ctx + "/Auditoria/AUD_Dashboard.jsp"});
+            if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR")) links.add(new String[]{"fas fa-car-side", "Calendario de movilizaci&oacute;n", ctx + "/Movilizacion/MOV_Calendario.jsp"});
+            if (COMUN.PermisoHelper.tiene(session, "SOPORTES_ATENDER")) links.add(new String[]{"fas fa-ticket", "Tickets por atender", ctx + "/Soportes/SOP_ListaTickets.jsp"});
+            if (COMUN.PermisoHelper.tiene(session, "INVENTARIO_MANTENIMIENTO_VER")) links.add(new String[]{"fas fa-broom", "Mantenimientos de equipos", ctx + "/Inventario/INV_Mantenimientos.jsp"});
+            if (links.isEmpty()) aplica = false;
+            else {
+                html.append(cabecera("fas fa-bolt", "primary", "Accesos directos"));
+                // Resumen de anticipos del mes para quienes los gestionan: dias al corte y solicitudes recibidas
+                String[][] mods = {{"CONTROL_GESTIONAR", "CTRL_FECHA_CORTE_ANTICIPO", "CTRL_ANTICIPOS", "Control"}, {"ANTICIPOS_AUD_GESTIONAR", "AUD_FECHA_CORTE_ANTICIPO", "AUD_ANTICIPOS", "Auditor&iacute;a"}};
+                for (String[] m : mods) {
+                    if (!COMUN.PermisoHelper.tiene(session, m[0])) continue;
+                    try (PreparedStatement st = cn.prepareStatement(
+                            "SELECT (SELECT TRUNC(FECHA_CORTE) - TRUNC(SYSDATE) FROM (SELECT FECHA_CORTE FROM " + m[1] + " WHERE ESTADO = 'A' ORDER BY FECHA_CORTE DESC) WHERE ROWNUM = 1), " +
+                            "       COUNT(*), NVL(SUM(CASE WHEN ESTADO = 'PENDIENTE' THEN 1 ELSE 0 END),0) FROM " + m[2] + " WHERE TRUNC(FECHA_SOLICITUD,'MM') = TRUNC(SYSDATE,'MM')");
+                         ResultSet rs = st.executeQuery()) {
+                        if (rs.next()) {
+                            Object dias = rs.getObject(1);
+                            html.append("<p class='text-xs mb-1'><i class='fas fa-hand-holding-dollar text-primary me-1'></i>Anticipos ").append(m[3]).append(": ")
+                                .append(dias == null ? "sin fecha de corte este mes" : (rs.getInt(1) < 0 ? "plazo cerrado" : (rs.getInt(1) == 0 ? "hoy es el corte" : "corte en " + rs.getInt(1) + " d&iacute;as")))
+                                .append(" &middot; <b>").append(rs.getInt(2)).append("</b> solicitudes del mes (").append(rs.getInt(3)).append(" por pagar)</p>");
+                        }
+                    } catch (Exception ex) { }
+                }
+                html.append("<div class='d-flex flex-wrap gap-1 mt-2'>");
+                for (String[] l : links)
+                    html.append("<a href='").append(l[2]).append("' class='btn btn-sm btn-outline-primary mb-1'><i class='").append(l[0]).append(" me-1'></i>").append(l[1]).append("</a>");
+                html.append("</div>");
                 html.append(pie());
             }
 

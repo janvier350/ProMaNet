@@ -1291,7 +1291,7 @@ String compania = (String) session.getAttribute("compania");
                 <div id="miDia" class="mt-2">
                     <div id="mdPendientes" class="mb-4"></div>
                     <div class="row" id="mdFila">
-                        <% String[] _mdBloques = {"movilizacion","tickets","vacaciones","anticipos","equipo"};
+                        <% String[] _mdBloques = {"movilizacion","tickets","vacaciones","anticipos","equipo","ticketsdia","ausentes","aniversarios","accesos"};
                            for (String _mdb : _mdBloques) { %>
                         <div class="col-xl-4 col-md-6 mb-4 md-bloque" id="md_<%= _mdb %>" style="display:none"></div>
                         <% } %>
@@ -1310,7 +1310,7 @@ String compania = (String) session.getAttribute("compania");
                             .catch(function () { });
                     }
                     cargar('pendientes', 'mdPendientes');
-                    ['movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo'].forEach(function (b) { cargar(b, 'md_' + b); });
+                    ['movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo', 'ticketsdia', 'ausentes', 'aniversarios', 'accesos'].forEach(function (b) { cargar(b, 'md_' + b); });
                 })();
                 </script>
                 <!-- ===== Seccion TODO (proyectos/tareas): oculta mientras el modulo no se use. Cambiar display:none para reactivar ===== -->
