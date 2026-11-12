@@ -5,7 +5,7 @@
     rapido y un bloque que falle no afecta a los demas. Si un bloque no aplica al usuario responde 204 y el
     dashboard lo quita.
 
-    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos
+    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | cumpleanos | usados
     Todo se filtra por el usuario de la sesion y sus permisos.
 --%>
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
@@ -308,7 +308,11 @@
                 links.add(new String[]{"fas fa-clipboard-check", "Aprobar vacaciones", ctx + "/Vacaciones/VAC_AprobacionesAdmin.jsp"});
                 links.add(new String[]{"fas fa-chart-pie", "Dashboard de vacaciones", ctx + "/Vacaciones/VAC_Estadisticas.jsp"});
             }
-            if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR")) links.add(new String[]{"fas fa-users-gear", "Configurar empleados", ctx + "/Vacaciones/VAC_ConfigUsuarios.jsp"});
+            if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR")) {
+                links.add(new String[]{"fas fa-users-gear", "Configurar empleados", ctx + "/Vacaciones/VAC_ConfigUsuarios.jsp"});
+                links.add(new String[]{"fas fa-cake-candles", "Cumplea&ntilde;os", ctx + "/Vacaciones/VAC_Cumpleanos.jsp"});
+            }
+            if (COMUN.PermisoHelper.tiene(session, "NOVEDADES_GESTIONAR")) links.add(new String[]{"fas fa-bullhorn", "Novedades", ctx + "/Proyectos/PRO_Novedades.jsp"});
             if (COMUN.PermisoHelper.tiene(session, "CONTROL_GESTIONAR")) {
                 links.add(new String[]{"fas fa-calendar-day", "Fecha de corte (Control)", ctx + "/Control/ADM_Asignar_Fecha_Corte_Anticipos.jsp"});
                 links.add(new String[]{"fas fa-hand-holding-dollar", "Anticipos Control", ctx + "/Control/ADM_Dashboard.jsp"});
@@ -340,6 +344,112 @@
                 for (String[] l : links)
                     html.append("<a href='").append(l[2]).append("' class='btn btn-sm btn-outline-primary mb-1'><i class='").append(l[0]).append(" me-1'></i>").append(l[1]).append("</a>");
                 html.append("</div>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- NOVEDADES (avisos publicados por la empresa)
+        } else if ("novedades".equals(b)) {
+            boolean gest = COMUN.PermisoHelper.tiene(session, "NOVEDADES_GESTIONAR");
+            List<String[]> nov = new ArrayList<>();
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT TITULO, TEXTO, TO_CHAR(FECHA_DESDE,'DD/MM') FROM APP_NOVEDAD WHERE ESTADO = 'A' AND FECHA_DESDE <= TRUNC(SYSDATE) " +
+                    "AND (FECHA_HASTA IS NULL OR FECHA_HASTA >= TRUNC(SYSDATE)) ORDER BY FECHA_DESDE DESC, ID_NOVEDAD DESC");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next() && nov.size() < 3) nov.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3)});
+            }
+            if (nov.isEmpty() && !gest) aplica = false;
+            else {
+                html.append(cabecera("fas fa-bullhorn", "info", "Novedades"));
+                if (nov.isEmpty()) html.append("<p class='text-sm text-secondary mb-0'>No hay novedades publicadas.</p>");
+                for (String[] n : nov) {
+                    html.append("<div class='mb-2'><p class='text-sm font-weight-bold mb-0'>").append(esc(n[0])).append(" <span class='text-xs text-secondary font-weight-normal'>&middot; ").append(esc(n[2])).append("</span></p>");
+                    if (n[1] != null && !n[1].trim().isEmpty()) html.append("<p class='text-xs mb-0' style='white-space:pre-line'>").append(esc(n[1])).append("</p>");
+                    html.append("</div>");
+                }
+                if (gest) html.append("<div class='mt-2'><a href='").append(ctx).append("/Proyectos/PRO_Novedades.jsp' class='btn btn-sm btn-outline-info mb-0'>Administrar novedades</a></div>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- CUMPLEANOS (todos)
+        } else if ("cumpleanos".equals(b)) {
+            List<Object[]> cu = new ArrayList<>();   // {fecha, nombre, depto, esMio}
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT c.ID_USUARIO, u.NOMBRE || ' ' || u.APELLIDOS, c.MES, c.DIA, d.DEPARTAMENTO FROM USUARIO_CUMPLE c JOIN USUARIO u ON u.IDUSUARIO = c.ID_USUARIO " +
+                    "LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO WHERE u.ESTADO = 'a'");
+                 ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    int mes = rs.getInt(3), dia = rs.getInt(4);
+                    LocalDate f;
+                    try { f = LocalDate.of(hoy.getYear(), mes, Math.min(dia, YearMonth.of(hoy.getYear(), mes).lengthOfMonth())); } catch (Exception ex) { continue; }
+                    if (f.isBefore(hoy)) f = f.plusYears(1);
+                    if (java.time.temporal.ChronoUnit.DAYS.between(hoy, f) <= 30)
+                        cu.add(new Object[]{f, rs.getString(2), rs.getString(5), rs.getInt(1) == uid});
+                }
+            }
+            if (cu.isEmpty()) aplica = false;
+            else {
+                cu.sort((x, y) -> ((LocalDate) x[0]).compareTo((LocalDate) y[0]));
+                java.time.format.DateTimeFormatter dm = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+                html.append(cabecera("fas fa-cake-candles", "success", "Cumplea&ntilde;os"));
+                int c = 0;
+                html.append("<ul class='list-group list-group-flush'>");
+                for (Object[] o : cu) {
+                    LocalDate f = (LocalDate) o[0]; boolean esHoy = f.equals(hoy), mio = (Boolean) o[3];
+                    if (!esHoy && c >= 5) break; c++;
+                    html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between align-items-center'><span class='text-sm'>");
+                    if (esHoy) html.append("<i class='fas fa-gift text-success me-1'></i>");
+                    html.append(esc((String) o[1])).append(esHoy ? (mio ? " <b>&iexcl;Feliz cumplea&ntilde;os!</b>" : " <b>&iexcl;hoy!</b>") : "");
+                    if (o[2] != null) html.append(" <span class='text-xs text-secondary'>&middot; ").append(esc((String) o[2])).append("</span>");
+                    html.append("</span><span class='text-xs text-secondary'>").append(esHoy ? "Hoy" : dm.format(f)).append("</span></li>");
+                }
+                html.append("</ul>");
+                if (cu.size() > c) html.append("<p class='text-xs text-secondary mb-0'>y ").append(cu.size() - c).append(" m&aacute;s este mes</p>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- LO QUE MAS USAS (ultimos 30 dias, segun LOG_ACTIVIDAD)
+        } else if ("usados".equals(b)) {
+            Map<String, String[]> pag = new HashMap<>();   // archivo -> {etiqueta, icono}
+            pag.put("MOV_Calendario.jsp", new String[]{"Movilizaci&oacute;n", "fas fa-car-side"});
+            pag.put("SOP_MisTickets.jsp", new String[]{"Mis tickets", "fas fa-ticket"});
+            pag.put("SOP_NuevoTicket.jsp", new String[]{"Crear ticket", "fas fa-plus"});
+            pag.put("SOP_ListaTickets.jsp", new String[]{"Tickets por atender", "fas fa-headset"});
+            pag.put("VAC_MiSaldo.jsp", new String[]{"Mis vacaciones", "fas fa-umbrella-beach"});
+            pag.put("VAC_MiPanel.jsp", new String[]{"Panel de vacaciones", "fas fa-umbrella-beach"});
+            pag.put("VAC_AprobacionesJefe.jsp", new String[]{"Aprobar a mi equipo", "fas fa-clipboard-check"});
+            pag.put("VAC_AprobacionesAdmin.jsp", new String[]{"Aprobar vacaciones", "fas fa-clipboard-check"});
+            pag.put("VAC_Estadisticas.jsp", new String[]{"Dashboard de vacaciones", "fas fa-chart-pie"});
+            pag.put("VAC_ConfigUsuarios.jsp", new String[]{"Configurar empleados", "fas fa-users-gear"});
+            pag.put("AUD_SolicitarAnticipo.jsp", new String[]{"Mi anticipo", "fas fa-hand-holding-dollar"});
+            pag.put("ADM_Solicitar_Anticipo.jsp", new String[]{"Mi anticipo", "fas fa-hand-holding-dollar"});
+            pag.put("AUD_Dashboard.jsp", new String[]{"Anticipos Auditor&iacute;a", "fas fa-hand-holding-dollar"});
+            pag.put("ADM_Dashboard.jsp", new String[]{"Anticipos Control", "fas fa-hand-holding-dollar"});
+            pag.put("INV_Mantenimientos.jsp", new String[]{"Mantenimientos", "fas fa-broom"});
+            List<String[]> top = new ArrayList<>();   // {etiqueta, icono, href, veces}
+            Set<String> yaEtiqueta = new HashSet<>();
+            try (PreparedStatement st = cn.prepareStatement(
+                    "SELECT URL, COUNT(*) FROM LOG_ACTIVIDAD WHERE ID_USUARIO = ? AND FECHA_HORA >= SYSDATE - 30 AND ACCION = 'VER' AND URL LIKE '%.jsp' " +
+                    "GROUP BY URL ORDER BY 2 DESC")) {
+                st.setInt(1, uid);
+                try (ResultSet rs = st.executeQuery()) {
+                    while (rs.next() && top.size() < 4) {
+                        String url = rs.getString(1); if (url == null) continue;
+                        String[] seg = url.split("/");
+                        if (seg.length < 2) continue;
+                        String archivo = seg[seg.length - 1], carpeta = seg[seg.length - 2];
+                        String[] info = pag.get(archivo);
+                        if (info == null || !yaEtiqueta.add(info[0])) continue;
+                        top.add(new String[]{info[0], info[1], ctx + "/" + carpeta + "/" + archivo, String.valueOf(rs.getInt(2))});
+                    }
+                }
+            }
+            if (top.isEmpty()) aplica = false;
+            else {
+                html.append(cabecera("fas fa-star", "warning", "Lo que m&aacute;s usas"));
+                html.append("<div class='d-flex flex-wrap gap-1'>");
+                for (String[] t : top)
+                    html.append("<a href='").append(t[2]).append("' class='btn btn-sm btn-outline-warning mb-1'><i class='").append(t[1]).append(" me-1'></i>").append(t[0]).append("</a>");
+                html.append("</div><p class='text-xxs text-secondary mb-0'>seg&uacute;n tus visitas de los &uacute;ltimos 30 d&iacute;as</p>");
                 html.append(pie());
             }
 
