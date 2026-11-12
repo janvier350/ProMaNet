@@ -70,6 +70,11 @@ public class Correo {
      * recibieron el envio. Si el SMTP no esta habilitado devuelve 0.
      */
     public static int enviarHtmlBcc(java.util.List<String> bcc, String asunto, String html) throws MessagingException {
+        return enviarHtmlBcc(bcc, asunto, html, null, null);
+    }
+
+    /** Igual, con una imagen PNG incrustada que el HTML referencia como src="cid:&lt;cid&gt;" (ej. firma). */
+    public static int enviarHtmlBcc(java.util.List<String> bcc, String asunto, String html, byte[] imagenPng, String cid) throws MessagingException {
         if (!MailConfig.SMTP_HABILITADO || bcc == null || bcc.isEmpty()) return 0;
         Properties props = new Properties();
         props.put("mail.smtp.host", MailConfig.SMTP_HOST);
@@ -96,7 +101,20 @@ public class Correo {
             msg.setRecipient(Message.RecipientType.TO, new InternetAddress(MailConfig.SMTP_USER));
             msg.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(String.join(",", parte)));
             msg.setSubject(asunto, "UTF-8");
-            msg.setContent(html, "text/html; charset=UTF-8");
+            if (imagenPng != null && cid != null) {
+                jakarta.mail.internet.MimeMultipart mp = new jakarta.mail.internet.MimeMultipart("related");
+                jakarta.mail.internet.MimeBodyPart cuerpo = new jakarta.mail.internet.MimeBodyPart();
+                cuerpo.setContent(html, "text/html; charset=UTF-8");
+                mp.addBodyPart(cuerpo);
+                jakarta.mail.internet.MimeBodyPart img = new jakarta.mail.internet.MimeBodyPart();
+                img.setDataHandler(new jakarta.activation.DataHandler(new jakarta.mail.util.ByteArrayDataSource(imagenPng, "image/png")));
+                img.setHeader("Content-ID", "<" + cid + ">");
+                img.setDisposition(jakarta.mail.internet.MimeBodyPart.INLINE);
+                mp.addBodyPart(img);
+                msg.setContent(mp);
+            } else {
+                msg.setContent(html, "text/html; charset=UTF-8");
+            }
             msg.setSentDate(new Date());
             Transport.send(msg);
             guardarCopiaEnviados(msg);

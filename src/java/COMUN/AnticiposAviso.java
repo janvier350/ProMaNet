@@ -32,10 +32,10 @@ public class AnticiposAviso {
     }
 
     /** Lanza el envio en segundo plano. No lanza excepciones. */
-    public static void enviarAsync(final String modulo, final LocalDate corte, final String firmante) {
+    public static void enviarAsync(final String modulo, final LocalDate corte, final String firmante, final String rutaFirma) {
         Thread t = new Thread(() -> {
             try {
-                int n = enviar(modulo, corte, firmante);
+                int n = enviar(modulo, corte, firmante, rutaFirma);
                 System.out.println("AnticiposAviso[" + modulo + "]: aviso de apertura enviado a " + n + " usuarios.");
             } catch (Exception e) {
                 System.out.println("AnticiposAviso[" + modulo + "]: no se pudo enviar el aviso. " + e);
@@ -45,16 +45,18 @@ public class AnticiposAviso {
         t.start();
     }
 
-    public static int enviar(String modulo, LocalDate corte, String firmante) throws Exception {
+    public static int enviar(String modulo, LocalDate corte, String firmante, String rutaFirma) throws Exception {
         if (!Servlets.MailConfig.SMTP_HABILITADO) return 0;
         String permiso = MODULO_AUDITORIA.equals(modulo) ? "ANTICIPOS_AUD_ACCESO" : "CONTROL_ACCESO";
         List<String> correos = destinatarios(permiso);
         if (correos.isEmpty()) return 0;
 
         LocalDate apertura = LocalDate.now();
-        String html = construirHtml(corte, apertura, firmante);
+        byte[] firma = null;   // imagen de firma (Latinconsulting); si no se encuentra, el correo sale sin ella
+        try { if (rutaFirma != null) firma = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(rutaFirma)); } catch (Exception e) { firma = null; }
+        String html = construirHtml(corte, apertura, firmante, firma != null);
         String asunto = "Anticipos de sueldo de " + MESES[corte.getMonthValue() - 1] + " habilitados en PROMANET";
-        return Servlets.Correo.enviarHtmlBcc(correos, asunto, html);
+        return Servlets.Correo.enviarHtmlBcc(correos, asunto, html, firma, "firma");
     }
 
     static List<String> destinatarios(String permiso) throws Exception {
@@ -89,7 +91,7 @@ public class AnticiposAviso {
         return s == null ? "" : s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
-    static String construirHtml(LocalDate corte, LocalDate apertura, String firmante) {
+    static String construirHtml(LocalDate corte, LocalDate apertura, String firmante, boolean conFirma) {
         String mes = MESES[corte.getMonthValue() - 1];
         return "<div style=\"font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#222;line-height:1.5\">"
             + "<p>Estimados</p>"
@@ -104,6 +106,7 @@ public class AnticiposAviso {
             + "<p>Agradecemos su comprensi&oacute;n y puntualidad.</p>"
             + "<p><b>Saludos cordiales,</b></p>"
             + "<p><b>" + esc(firmante) + "</b></p>"
+            + (conFirma ? "<p><img src=\"cid:firma\" alt=\"Firma\" width=\"600\" style=\"max-width:100%;height:auto\"></p>" : "")
             + "</div>";
     }
 }

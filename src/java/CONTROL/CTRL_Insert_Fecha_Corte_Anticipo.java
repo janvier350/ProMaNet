@@ -112,7 +112,8 @@ try {
     // Aviso por correo a los usuarios del modulo (en segundo plano; si falla no afecta el registro).
     try {
         COMUN.AnticiposAviso.enviarAsync(COMUN.AnticiposAviso.MODULO_CONTROL,
-                java.time.LocalDate.parse(corte.trim()), COMUN.AnticiposAviso.firmante(session));
+                java.time.LocalDate.parse(corte.trim()), COMUN.AnticiposAviso.firmante(session),
+                        request.getServletContext().getRealPath("/assets/img/promanet/firma_correo.png"));
     } catch (Exception eAviso) { eAviso.printStackTrace(); }
     
     String mensaje = "Fecha de corte agregada correctamente para el mes " + corte.substring(0, 7);
