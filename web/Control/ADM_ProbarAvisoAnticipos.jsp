@@ -23,7 +23,7 @@
         }
     }
     List<String> rAud = new ArrayList<>(), rCtrl = new ArrayList<>(); String errDest = null;
-    try { rAud = COMUN.AnticiposAviso.destinatarios("ANTICIPOS_AUD_ACCESO"); rCtrl = COMUN.AnticiposAviso.destinatarios("CONTROL_ACCESO"); }
+    try { rAud = COMUN.AnticiposAviso.destinatarios("ANTICIPOS_AUD_ACCESO"); rCtrl = COMUN.AnticiposAviso.destinatarios("CONTROL_ACCESO", "ANTICIPOS_AUD_ACCESO"); }
     catch (Throwable t) { errDest = String.valueOf(t); }
     String firmaPath = application.getRealPath("/assets/img/promanet/firma_correo.png");
 %>
@@ -54,7 +54,7 @@
 <% if (errDest != null) { %><div class="alert alert-danger"><%= errDest %></div><% } %>
 <p class="mb-1"><b>Auditor&iacute;a</b> (permiso ANTICIPOS_AUD_ACCESO): <%= rAud.size() %> usuarios con correo v&aacute;lido</p>
 <small class="text-muted d-block mb-2"><%= String.join(", ", rAud) %></small>
-<p class="mb-1"><b>Control</b> (permiso CONTROL_ACCESO): <%= rCtrl.size() %> usuarios con correo v&aacute;lido</p>
+<p class="mb-1"><b>Control</b> (permiso CONTROL_ACCESO, sin quienes usan Auditor&iacute;a): <%= rCtrl.size() %> usuarios con correo v&aacute;lido</p>
 <small class="text-muted"><%= String.join(", ", rCtrl) %></small>
 </div></div>
 

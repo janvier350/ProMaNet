@@ -48,7 +48,7 @@ public class AnticiposAviso {
     public static int enviar(String modulo, LocalDate corte, String firmante, String rutaFirma) throws Exception {
         if (!Servlets.MailConfig.SMTP_HABILITADO) return 0;
         String permiso = MODULO_AUDITORIA.equals(modulo) ? "ANTICIPOS_AUD_ACCESO" : "CONTROL_ACCESO";
-        List<String> correos = destinatarios(permiso);
+        List<String> correos = destinatarios(permiso, MODULO_AUDITORIA.equals(modulo) ? null : "ANTICIPOS_AUD_ACCESO");
         if (correos.isEmpty()) return 0;
 
         return enviarA(correos, corte, firmante, rutaFirma);
@@ -64,7 +64,10 @@ public class AnticiposAviso {
         return Servlets.Correo.enviarHtmlBcc(correos, asunto, html, firma, "firma");
     }
 
-    public static List<String> destinatarios(String permiso) throws Exception {
+    public static List<String> destinatarios(String permiso) throws Exception { return destinatarios(permiso, null); }
+
+    /** Usuarios con "permiso" y, si se indica, SIN "excluirSiTiene" (quien usa el modulo de Auditoria no usa el de Control). */
+    public static List<String> destinatarios(String permiso, String excluirSiTiene) throws Exception {
         Set<String> out = new LinkedHashSet<>();
         try (Connection cn = Conexion.getConnection()) {
             if (cn == null) return new ArrayList<>();
@@ -76,6 +79,7 @@ public class AnticiposAviso {
                 while (rs.next()) {
                     Set<String> perm = PermisoHelper.cargarPermisos(rs.getInt(1), rs.getInt(2), rs.getString(4));
                     if (!perm.contains(permiso)) continue;
+                    if (excluirSiTiene != null && perm.contains(excluirSiTiene)) continue;
                     String e = rs.getString(3);
                     if (e == null) continue;
                     for (String c : e.split("[,;\\s]+")) {
