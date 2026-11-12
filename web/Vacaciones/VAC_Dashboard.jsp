@@ -120,6 +120,14 @@
                     <span class="nav-link-text ms-1">Manual de gestion</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link " href="VAC_Estadisticas.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="ni ni-chart-bar-32 text-info text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Dashboard de Vacaciones</span>
+                </a>
+            </li>
             <li class="nav-item mt-3">
                 <h6 class="ps-4 ms-2 text-uppercase text-xs font-weight-bolder opacity-6">Panel de control</h6>
             </li>
@@ -192,6 +200,32 @@
         </div>
 
         <div class="row">
+            <div class="col-xl-3 col-sm-6 mb-4">
+                <div class="card">
+                    <a href="VAC_Estadisticas.jsp">
+                        <div class="card-body p-3">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="numbers">
+                                        <p class="text-sm mb-0 text-uppercase font-weight-bold">Ver</p>
+                                        <h5 class="font-weight-bolder">DASHBOARD</h5>
+                                        <p class="mb-0">
+                                            <span class="text-success text-sm font-weight-bolder">Quien esta de vacaciones,</span>
+                                            <b class="text-success"> graficos y por departamento.</b>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                                        <i class="ni ni-chart-bar-32 text-lg opacity-10" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
             <% if (puedeConfigurar) { %>
             <div class="col-xl-3 col-sm-6 mb-4">
                 <div class="card">
