@@ -1287,6 +1287,34 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                       </div>-->
 
+                <!-- ===== HOY PARA TI: bloques personalizados (carga diferida; PRO_MiDiaBloque.jsp) ===== -->
+                <div id="miDia" class="mt-2">
+                    <div id="mdPendientes" class="mb-4"></div>
+                    <div class="row" id="mdFila">
+                        <% String[] _mdBloques = {"movilizacion","tickets","vacaciones","anticipos","equipo"};
+                           for (String _mdb : _mdBloques) { %>
+                        <div class="col-xl-4 col-md-6 mb-4 md-bloque" id="md_<%= _mdb %>" style="display:none"></div>
+                        <% } %>
+                    </div>
+                </div>
+                <script>
+                (function () {
+                    function cargar(bloque, contenedor) {
+                        var el = document.getElementById(contenedor);
+                        if (!el) return;
+                        fetch('PRO_MiDiaBloque.jsp?b=' + bloque, {credentials: 'same-origin'})
+                            .then(function (r) { return r.status === 200 ? r.text() : ''; })
+                            .then(function (h) {
+                                if (h && h.trim()) { el.innerHTML = h; el.style.display = ''; }
+                            })
+                            .catch(function () { });
+                    }
+                    cargar('pendientes', 'mdPendientes');
+                    ['movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo'].forEach(function (b) { cargar(b, 'md_' + b); });
+                })();
+                </script>
+                <!-- ===== Seccion TODO (proyectos/tareas): oculta mientras el modulo no se use. Cambiar display:none para reactivar ===== -->
+                <div id="bloqueTodo" style="display:none">
                 <div class="row mt-4">
                     <div class="col-lg-7 mb-lg-0 mb-4">
                         <div class="card z-index-2 h-100">
@@ -1850,6 +1878,7 @@ String compania = (String) session.getAttribute("compania");
                     </div>
                     <%}%>
 
+                </div>
                 </div>
                 <!--FIN DEL TODO-->
 
