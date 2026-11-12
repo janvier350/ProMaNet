@@ -51,6 +51,11 @@ public class AnticiposAviso {
         List<String> correos = destinatarios(permiso);
         if (correos.isEmpty()) return 0;
 
+        return enviarA(correos, corte, firmante, rutaFirma);
+    }
+
+    /** Envia el aviso a una lista concreta de correos (lo usa tambien la pagina de prueba). Lanza la excepcion real si falla. */
+    public static int enviarA(List<String> correos, LocalDate corte, String firmante, String rutaFirma) throws Exception {
         LocalDate apertura = LocalDate.now();
         byte[] firma = null;   // imagen de firma (Latinconsulting); si no se encuentra, el correo sale sin ella
         try { if (rutaFirma != null) firma = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(rutaFirma)); } catch (Exception e) { firma = null; }
@@ -59,7 +64,7 @@ public class AnticiposAviso {
         return Servlets.Correo.enviarHtmlBcc(correos, asunto, html, firma, "firma");
     }
 
-    static List<String> destinatarios(String permiso) throws Exception {
+    public static List<String> destinatarios(String permiso) throws Exception {
         Set<String> out = new LinkedHashSet<>();
         try (Connection cn = Conexion.getConnection()) {
             if (cn == null) return new ArrayList<>();
