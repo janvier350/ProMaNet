@@ -80,6 +80,11 @@ public class AUD_InsertarFechaCorte extends HttpServlet {
             }
 
             cn.commit();
+            // Aviso por correo a los usuarios del modulo (en segundo plano; si falla no afecta el registro).
+            try {
+                COMUN.AnticiposAviso.enviarAsync(COMUN.AnticiposAviso.MODULO_AUDITORIA,
+                        java.time.LocalDate.parse(corte.trim()), COMUN.AnticiposAviso.firmante(session));
+            } catch (Exception eAviso) { eAviso.printStackTrace(); }
             response.sendRedirect(request.getContextPath() + "/Auditoria/AUD_Dashboard.jsp?msj=Fecha de corte registrada correctamente");
         } catch (Exception e) {
             if (cn != null) try { cn.rollback(); } catch (Exception ex) {}

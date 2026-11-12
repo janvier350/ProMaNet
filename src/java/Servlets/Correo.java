@@ -64,6 +64,47 @@ public class Correo {
         return true;
     }
 
+    /**
+     * Un solo correo HTML con todos los destinatarios en copia oculta (BCC): cada persona ve solo su propio
+     * mensaje, se hace una sola conexion y queda una sola copia en Enviados. Devuelve cuantos destinatarios
+     * recibieron el envio. Si el SMTP no esta habilitado devuelve 0.
+     */
+    public static int enviarHtmlBcc(java.util.List<String> bcc, String asunto, String html) throws MessagingException {
+        if (!MailConfig.SMTP_HABILITADO || bcc == null || bcc.isEmpty()) return 0;
+        Properties props = new Properties();
+        props.put("mail.smtp.host", MailConfig.SMTP_HOST);
+        props.put("mail.smtp.port", String.valueOf(MailConfig.SMTP_PORT));
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.ssl.enable", "true");
+        props.put("mail.smtp.ssl.trust", MailConfig.SMTP_HOST);
+        Session session = Session.getInstance(props, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(MailConfig.SMTP_USER, MailConfig.SMTP_PASS);
+            }
+        });
+        int enviados = 0;
+        int lote = 40; // limite prudente de destinatarios por mensaje en hostings cPanel
+        for (int i = 0; i < bcc.size(); i += lote) {
+            java.util.List<String> parte = bcc.subList(i, Math.min(i + lote, bcc.size()));
+            MimeMessage msg = new MimeMessage(session);
+            try {
+                msg.setFrom(new InternetAddress(MailConfig.SMTP_USER, MailConfig.SMTP_FROM_NOMBRE));
+            } catch (Exception e) {
+                msg.setFrom(new InternetAddress(MailConfig.SMTP_USER));
+            }
+            msg.setRecipient(Message.RecipientType.TO, new InternetAddress(MailConfig.SMTP_USER));
+            msg.setRecipients(Message.RecipientType.BCC, InternetAddress.parse(String.join(",", parte)));
+            msg.setSubject(asunto, "UTF-8");
+            msg.setContent(html, "text/html; charset=UTF-8");
+            msg.setSentDate(new Date());
+            Transport.send(msg);
+            guardarCopiaEnviados(msg);
+            enviados += parte.size();
+        }
+        return enviados;
+    }
+
     private static void guardarCopiaEnviados(MimeMessage msg) {
         try {
             msg.setFlag(Flags.Flag.SEEN, true);

@@ -108,6 +108,12 @@ try {
 
   if (rowsAffected > 0) {
     cn.commit();
+
+    // Aviso por correo a los usuarios del modulo (en segundo plano; si falla no afecta el registro).
+    try {
+        COMUN.AnticiposAviso.enviarAsync(COMUN.AnticiposAviso.MODULO_CONTROL,
+                java.time.LocalDate.parse(corte.trim()), COMUN.AnticiposAviso.firmante(session));
+    } catch (Exception eAviso) { eAviso.printStackTrace(); }
     
     String mensaje = "Fecha de corte agregada correctamente para el mes " + corte.substring(0, 7);
     
