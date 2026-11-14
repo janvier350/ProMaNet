@@ -2143,7 +2143,8 @@ String compania = (String) session.getAttribute("compania");
 
                     <div class="form-group mb-3">
                         <label class="text-xs font-weight-bold text-uppercase">Ejecutivo</label>
-                        <select name="idEjecutivo_soporteGenerado" class="form-control" required>
+                        <input type="text" id="buscarEjecutivoTk" class="form-control mb-1" placeholder="Escribe para buscar por nombre o apellido..." autocomplete="off">
+                        <select name="idEjecutivo_soporteGenerado" id="selEjecutivoTk" class="form-control" required>
                             <option value="">-- Elija un ejecutivo --</option>
                             <%
                                 try (java.sql.Connection cnEx = Servlets.Conexion.getConnection()) {
@@ -2160,7 +2161,41 @@ String compania = (String) session.getAttribute("compania");
                             <option value="<%=rsEx.getString(1)%>"><%=rsEx.getString(2)%></option>
                             <% } } } } catch (Exception e) { e.printStackTrace(); } %>
                         </select>
-                        <small class="text-xxs text-muted">Solo aparecen los que tienen al menos un equipo asignado.</small>
+                        <small class="text-xxs text-muted">Solo aparecen los que tienen al menos un equipo asignado. Escribe para filtrar; Enter elige el primero de la lista.</small>
+                        <script>
+                        // Busqueda rapida sobre el select de ejecutivos: filtra mientras se escribe (sin tildes ni mayusculas),
+                        // la lista pasa a mostrar varias filas y Enter selecciona la primera coincidencia.
+                        (function () {
+                            var sel = document.getElementById('selEjecutivoTk'), inp = document.getElementById('buscarEjecutivoTk');
+                            if (!sel || !inp) return;
+                            var todos = [];
+                            for (var i = 1; i < sel.options.length; i++) todos.push({v: sel.options[i].value, t: sel.options[i].text});
+                            function norm(x) { return (x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+                            function pintar(q) {
+                                var actual = sel.value, palabras = norm(q).split(/\s+/).filter(Boolean);
+                                sel.innerHTML = '';
+                                var o0 = document.createElement('option'); o0.value = ''; o0.text = '-- Elija un ejecutivo --'; sel.appendChild(o0);
+                                var n = 0;
+                                todos.forEach(function (e) {
+                                    var t = norm(e.t);
+                                    if (palabras.every(function (w) { return t.indexOf(w) !== -1; })) {
+                                        var o = document.createElement('option'); o.value = e.v; o.text = e.t; if (e.v === actual) o.selected = true; sel.appendChild(o); n++;
+                                    }
+                                });
+                                sel.size = q ? Math.min(Math.max(n + 1, 2), 8) : 1;
+                                if (q && n === 1) sel.selectedIndex = 1;
+                            }
+                            inp.addEventListener('input', function () { pintar(inp.value); });
+                            inp.addEventListener('keydown', function (ev) {
+                                if (ev.key === 'Enter') { ev.preventDefault(); if (sel.options.length > 1) { sel.selectedIndex = 1; sel.size = 1; } }
+                                if (ev.key === 'ArrowDown' && sel.options.length > 1) { ev.preventDefault(); sel.focus(); if (sel.selectedIndex < 1) sel.selectedIndex = 1; }
+                            });
+                            sel.addEventListener('change', function () { if (sel.size > 1 && sel.value) { var t = sel.options[sel.selectedIndex].text; inp.value = t; sel.size = 1; } });
+                            var modal = document.getElementById('modalGenerarTicketOtro');
+                            if (modal) modal.addEventListener('shown.bs.modal', function () { inp.focus(); });
+                            if (modal) modal.addEventListener('hidden.bs.modal', function () { inp.value = ''; pintar(''); });
+                        })();
+                        </script>
                     </div>
 
                     <div class="form-group mb-3">
