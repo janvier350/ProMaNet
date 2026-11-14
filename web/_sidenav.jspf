@@ -23,6 +23,7 @@
     boolean _puedeAudit        = COMUN.PermisoHelper.tiene(session, "AUDIT_VER_ACTIVIDAD");
     boolean _puedeInvVer       = COMUN.PermisoHelper.tiene(session, "INVENTARIO_EQUIPOS_VER");
     boolean _puedeVacSol       = COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR");
+    boolean _puedeUsuarios     = COMUN.PermisoHelper.tiene(session, "USUARIOS_GESTIONAR");
 
     String _basePath = request.getContextPath(); // /ProMaNet
 %>
@@ -222,6 +223,32 @@
                         <i class="fas fa-user-shield text-dark text-sm opacity-10"></i>
                     </div>
                     <span class="nav-link-text ms-1">Actividad usuarios</span>
+                </a>
+            </li>
+            <% } %>
+            <% if (_puedeUsuarios) { %>
+            <li class="nav-item">
+                <a class="nav-link <%= "usuarios".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/PCN_ListadoUsuario.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-users text-primary text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Usuarios</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= "permisos".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/PCN_MatrizAccesos.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-user-lock text-warning text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Permisos de usuario</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <%= "permisosdep".equals(_sideActive) ? "active" : "" %>" href="<%=_basePath%>/PCN_GestionPermisosDepartamento.jsp">
+                    <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="fas fa-sitemap text-info text-sm opacity-10"></i>
+                    </div>
+                    <span class="nav-link-text ms-1">Permisos por departamento</span>
                 </a>
             </li>
             <% } %>
