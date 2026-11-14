@@ -15,9 +15,9 @@
     } else if (session.isNew()) {
         response.sendRedirect("../sesionExpirada.jsp"); return;
     }
-    if (!(departamento.equals("MARKETING") || departamento.equals("TECNOLOGÍA") || departamento.equals("ADMINISTRACIÓN"))) {
-        response.sendRedirect("../sesionInvalida.jsp"); return;
-    }
+    // Antes se exigia ademas departamento = MARKETING / TECNOLOGIA / ADMINISTRACION (hardcode legacy): dejaba fuera a
+    // quien tiene el permiso pero esta en otro departamento (ej. ADMINISTRACION NORTE). Ahora solo manda el permiso,
+    // igual que INV_Dashboard_Suministro.jsp.
     if (!COMUN.PermisoHelper.tiene(session, "INVENTARIO_INGRESOS")) {
         response.sendRedirect("../sesionInvalida.jsp"); return;
     }
