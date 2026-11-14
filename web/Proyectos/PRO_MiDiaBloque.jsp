@@ -453,6 +453,46 @@
                 html.append(pie());
             }
 
+        // ---------------------------------------------------------------- FELICITACION DE CUMPLEANOS (confeti, una sola vez)
+        // Se muestra al abrir el dashboard el dia del cumpleanos o, si no entro ese dia, la primera vez que entre dentro de
+        // los DIAS_GRACIA siguientes. USUARIO_CUMPLE.FELICITADO_ANIO guarda el anio ya felicitado (script 053); sin esa
+        // columna cae a "una vez por sesion". ?prueba=1 la muestra siempre sin marcarla (para probar).
+        } else if ("confeti".equals(b)) {
+            final int DIAS_GRACIA = 15;
+            boolean prueba = "1".equals(request.getParameter("prueba"));
+            Integer mesC = null, diaC = null, yaAnio = null; boolean tieneCol = true;
+            try (PreparedStatement st = cn.prepareStatement("SELECT MES, DIA, FELICITADO_ANIO FROM USUARIO_CUMPLE WHERE ID_USUARIO = ?")) {
+                st.setInt(1, uid);
+                try (ResultSet rs = st.executeQuery()) { if (rs.next()) { mesC = rs.getInt(1); diaC = rs.getInt(2); yaAnio = rs.getObject(3) == null ? null : rs.getInt(3); } }
+            } catch (Exception exCol) {
+                tieneCol = false;
+                try (PreparedStatement st = cn.prepareStatement("SELECT MES, DIA FROM USUARIO_CUMPLE WHERE ID_USUARIO = ?")) {
+                    st.setInt(1, uid);
+                    try (ResultSet rs = st.executeQuery()) { if (rs.next()) { mesC = rs.getInt(1); diaC = rs.getInt(2); } }
+                }
+            }
+            if (mesC == null) aplica = false;
+            else {
+                LocalDate f = LocalDate.of(hoy.getYear(), mesC, Math.min(diaC, YearMonth.of(hoy.getYear(), mesC).lengthOfMonth()));
+                if (f.isAfter(hoy)) f = LocalDate.of(hoy.getYear() - 1, mesC, Math.min(diaC, YearMonth.of(hoy.getYear() - 1, mesC).lengthOfMonth()));
+                long atras = java.time.temporal.ChronoUnit.DAYS.between(f, hoy);
+                int anioEvento = f.getYear();
+                boolean yaVisto = tieneCol ? (yaAnio != null && yaAnio == anioEvento) : (session.getAttribute("confetiVisto") != null);
+                if (!prueba && (atras > DIAS_GRACIA || yaVisto)) aplica = false;
+                else {
+                    if (!prueba) {
+                        if (tieneCol) {
+                            try (PreparedStatement st = cn.prepareStatement("UPDATE USUARIO_CUMPLE SET FELICITADO_ANIO = ? WHERE ID_USUARIO = ?")) { st.setInt(1, anioEvento); st.setInt(2, uid); st.executeUpdate(); }
+                        } else session.setAttribute("confetiVisto", "1");
+                    }
+                    String nom = String.valueOf(session.getAttribute("nombre") == null ? "" : session.getAttribute("nombre")).trim();
+                    String primero = nom.isEmpty() ? "" : nom.split("\\s+")[0];
+                    if (!primero.isEmpty()) primero = primero.substring(0, 1).toUpperCase() + primero.substring(1).toLowerCase();
+                    html.append("<div id='confetiDatos' data-nombre='").append(esc(primero)).append("' data-atras='").append(prueba ? 0 : atras)
+                        .append("' data-fecha='").append(String.format("%02d/%02d", f.getDayOfMonth(), f.getMonthValue())).append("'></div>");
+                }
+            }
+
         // ---------------------------------------------------------------- PENDIENTES (centro de acciones por rol)
         } else if ("pendientes".equals(b)) {
             List<String[]> items = new ArrayList<>();   // {icono, color, texto, url, boton}

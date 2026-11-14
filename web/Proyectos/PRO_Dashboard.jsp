@@ -1309,6 +1309,43 @@ String compania = (String) session.getAttribute("compania");
                             })
                             .catch(function () { });
                     }
+                    // Felicitacion de cumpleanos con confeti: una sola vez (el servidor la marca como vista). ?probarConfeti=1 la fuerza para probar.
+                    (function () {
+                        var prueba = location.search.indexOf('probarConfeti') !== -1;
+                        fetch('PRO_MiDiaBloque.jsp?b=confeti' + (prueba ? '&prueba=1' : ''), {credentials: 'same-origin'})
+                            .then(function (r) { return r.status === 200 ? r.text() : ''; })
+                            .then(function (h) {
+                                if (!h || h.indexOf('confetiDatos') === -1) return;
+                                var tmp = document.createElement('div'); tmp.innerHTML = h;
+                                var d = tmp.firstChild; if (!d) return;
+                                var nombre = d.getAttribute('data-nombre') || '', atras = parseInt(d.getAttribute('data-atras') || '0', 10), fecha = d.getAttribute('data-fecha') || '';
+                                var ov = document.createElement('div');
+                                ov.style.cssText = 'position:fixed;inset:0;z-index:1999;background:rgba(20,20,60,.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+                                ov.innerHTML = '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:28px 24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35)">' +
+                                    '<div style="font-size:56px;line-height:1">&#127874;</div>' +
+                                    '<h3 style="margin:12px 0 4px;font-weight:700;color:#344767">&iexcl;Feliz cumplea&ntilde;os' + (nombre ? ', ' + nombre.replace(/[<>&"]/g, '') : '') + '!</h3>' +
+                                    '<p style="color:#67748e;margin:0 0 18px">' + (atras > 0 ? 'Tu cumplea&ntilde;os fue el ' + fecha + ' &mdash; &iexcl;igual queremos felicitarte! ' : '') + 'Todo el equipo te desea un d&iacute;a lleno de alegr&iacute;a.</p>' +
+                                    '<button type="button" class="btn bg-gradient-success text-white mb-0" id="cerrarFelicitacion">Gracias &#127881;</button></div>';
+                                document.body.appendChild(ov);
+                                var cerrar = function () { if (ov.parentNode) ov.parentNode.removeChild(ov); };
+                                document.getElementById('cerrarFelicitacion').onclick = cerrar;
+                                ov.addEventListener('click', function (e) { if (e.target === ov) cerrar(); });
+                                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                                var sc = document.createElement('script');
+                                sc.src = '../assets/js/plugins/confetti.browser.js';   // canvas-confetti 1.9.3 (ISC), copia local
+                                sc.onload = function () {
+                                    var fin = Date.now() + 5000, colores = ['#2dce89', '#fb6340', '#5e72e4', '#f5365c', '#11cdef', '#ffd600'];
+                                    (function frame() {
+                                        window.confetti({particleCount: 5, angle: 60, spread: 60, origin: {x: 0, y: 0.7}, colors: colores, zIndex: 2000});
+                                        window.confetti({particleCount: 5, angle: 120, spread: 60, origin: {x: 1, y: 0.7}, colors: colores, zIndex: 2000});
+                                        if (Date.now() < fin) requestAnimationFrame(frame);
+                                    })();
+                                    window.confetti({particleCount: 150, spread: 100, origin: {y: 0.55}, colors: colores, zIndex: 2000});
+                                };
+                                document.head.appendChild(sc);
+                            })
+                            .catch(function () { });
+                    })();
                     cargar('pendientes', 'mdPendientes');
                     ['novedades', 'movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo', 'ticketsdia', 'ausentes', 'aniversarios', 'cumpleanos', 'usados', 'accesos'].forEach(function (b) { cargar(b, 'md_' + b); });
                 })();
