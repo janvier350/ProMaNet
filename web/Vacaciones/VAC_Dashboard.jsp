@@ -293,6 +293,7 @@
                         <% } %>
                         <p class="text-xs mb-2 <%= sinAsignar > 0 ? "text-danger" : "text-secondary" %>"><b>Sin asignar</b>: <%=sinAsignar%> empleados</p>
                         <a href="VAC_ConfigUsuarios.jsp?grupo=0" class="btn btn-sm btn-outline-primary mb-0"><i class="fa fa-users me-1"></i> Asignar empleados</a>
+                        <a href="VAC_GestoresGrupos.jsp" class="btn btn-sm btn-outline-secondary mb-0"><i class="fa fa-user-shield me-1"></i> Gestores por grupo</a>
                     </div>
                 </div>
             </div>
