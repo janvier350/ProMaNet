@@ -457,7 +457,8 @@
 
         // ---------------------------------------------------------------- FELICITACION DE CUMPLEANOS (confeti, una sola vez)
         // Se muestra al abrir el dashboard el dia del cumpleanos o, si no entro ese dia, la primera vez que entre dentro de
-        // los DIAS_GRACIA siguientes. USUARIO_CUMPLE.FELICITADO_ANIO guarda el anio ya felicitado (script 053); sin esa
+        // los DIAS_GRACIA siguientes. USUARIO_CUMPLE.FELICITADO_ANIO guarda el anio ya felicitado (script 053); se marca cuando el
+        // navegador avisa (visto=1) de que ya la mostro, no al servirla. Sin esa
         // columna cae a "una vez por sesion". ?prueba=1 la muestra siempre sin marcarla (para probar).
         } else if ("confeti".equals(b)) {
             final int DIAS_GRACIA = 15;
@@ -481,12 +482,15 @@
                 int anioEvento = f.getYear();
                 boolean yaVisto = tieneCol ? (yaAnio != null && yaAnio == anioEvento) : (session.getAttribute("confetiVisto") != null);
                 if (!prueba && (atras > DIAS_GRACIA || yaVisto)) { aplica = false; debugMsg = (yaVisto ? "YA_VISTO: ya se felicito el anio " + anioEvento + " (FELICITADO_ANIO). " : "") + (atras > DIAS_GRACIA ? "FUERA_DE_VENTANA: el cumpleanos fue hace " + atras + " dias (maximo " + DIAS_GRACIA + ")" : ""); }
-                else {
+                else if ("1".equals(request.getParameter("visto"))) {
+                    // El navegador confirma que ya mostro la felicitacion: recien ahora se marca como vista.
                     if (!prueba) {
                         if (tieneCol) {
                             try (PreparedStatement st = cn.prepareStatement("UPDATE USUARIO_CUMPLE SET FELICITADO_ANIO = ? WHERE ID_USUARIO = ?")) { st.setInt(1, anioEvento); st.setInt(2, uid); st.executeUpdate(); }
                         } else session.setAttribute("confetiVisto", "1");
                     }
+                    aplica = false; debugMsg = "MARCADO como visto (anio " + anioEvento + ")";
+                } else {
                     String nom = String.valueOf(session.getAttribute("nombre") == null ? "" : session.getAttribute("nombre")).trim();
                     String primero = nom.isEmpty() ? "" : nom.split("\\s+")[0];
                     if (!primero.isEmpty()) primero = primero.substring(0, 1).toUpperCase() + primero.substring(1).toLowerCase();

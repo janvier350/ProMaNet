@@ -1327,6 +1327,7 @@ String compania = (String) session.getAttribute("compania");
                                     '<p style="color:#67748e;margin:0 0 18px">' + (atras > 0 ? 'Tu cumplea&ntilde;os fue el ' + fecha + ' &mdash; &iexcl;igual queremos felicitarte! ' : '') + 'Todo el equipo te desea un d&iacute;a lleno de alegr&iacute;a.</p>' +
                                     '<button type="button" class="btn bg-gradient-success text-white mb-0" id="cerrarFelicitacion">Gracias &#127881;</button></div>';
                                 document.body.appendChild(ov);
+                                if (!prueba) fetch('PRO_MiDiaBloque.jsp?b=confeti&visto=1', {credentials: 'same-origin'}).catch(function () { });   // ya se mostro: marcarla como vista
                                 var cerrar = function () { if (ov.parentNode) ov.parentNode.removeChild(ov); };
                                 document.getElementById('cerrarFelicitacion').onclick = cerrar;
                                 ov.addEventListener('click', function (e) { if (e.target === ov) cerrar(); });
