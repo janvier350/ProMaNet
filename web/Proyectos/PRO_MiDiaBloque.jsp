@@ -45,6 +45,8 @@
     LocalDate hoy = LocalDate.now();
     StringBuilder html = new StringBuilder();
     boolean aplica = true;
+    String debugMsg = null;   // solo para ?debug=1 (diagnostico del bloque "confeti"): explica por que no se muestra
+    boolean debug = "1".equals(request.getParameter("debug"));
 
     try (Connection cn = Servlets.Conexion.getConnection()) {
         if (cn == null) throw new Exception("sin conexion");
@@ -471,14 +473,14 @@
                     try (ResultSet rs = st.executeQuery()) { if (rs.next()) { mesC = rs.getInt(1); diaC = rs.getInt(2); } }
                 }
             }
-            if (mesC == null) aplica = false;
+            if (mesC == null) { aplica = false; debugMsg = "SIN_REGISTRO: el usuario " + uid + " no tiene cumpleanos en USUARIO_CUMPLE"; }
             else {
                 LocalDate f = LocalDate.of(hoy.getYear(), mesC, Math.min(diaC, YearMonth.of(hoy.getYear(), mesC).lengthOfMonth()));
                 if (f.isAfter(hoy)) f = LocalDate.of(hoy.getYear() - 1, mesC, Math.min(diaC, YearMonth.of(hoy.getYear() - 1, mesC).lengthOfMonth()));
                 long atras = java.time.temporal.ChronoUnit.DAYS.between(f, hoy);
                 int anioEvento = f.getYear();
                 boolean yaVisto = tieneCol ? (yaAnio != null && yaAnio == anioEvento) : (session.getAttribute("confetiVisto") != null);
-                if (!prueba && (atras > DIAS_GRACIA || yaVisto)) aplica = false;
+                if (!prueba && (atras > DIAS_GRACIA || yaVisto)) { aplica = false; debugMsg = (yaVisto ? "YA_VISTO: ya se felicito el anio " + anioEvento + " (FELICITADO_ANIO). " : "") + (atras > DIAS_GRACIA ? "FUERA_DE_VENTANA: el cumpleanos fue hace " + atras + " dias (maximo " + DIAS_GRACIA + ")" : ""); }
                 else {
                     if (!prueba) {
                         if (tieneCol) {
@@ -569,9 +571,13 @@
         }
     } catch (Exception e) {
         e.printStackTrace();
+        if (debug) { out.print("ERROR: " + e); return; }
         response.setStatus(204);
         return;
     }
-    if (!aplica) { response.setStatus(204); return; }
+    if (!aplica) {
+        if (debug) { out.print(debugMsg != null ? debugMsg : "NO_APLICA (bloque desconocido o sin permiso)"); return; }
+        response.setStatus(204); return;
+    }
     out.print(html);
 %>
