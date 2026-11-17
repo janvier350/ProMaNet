@@ -455,6 +455,14 @@
                 html.append(pie());
             }
 
+        // ---------------------------------------------------------------- CALENDARIO DEL ANIO (fragmento compartido con VAC_MiPanel)
+        } else if ("calendario".equals(b)) {
+            if (!COMUN.PermisoHelper.tiene(session, "VACACIONES_SOLICITAR")) aplica = false;
+            else {
+                request.setAttribute("vh_ajax", "1");
+%><%@ include file="/_vac_calendario.jspf" %><%
+            }
+
         // ---------------------------------------------------------------- FELICITACION DE CUMPLEANOS (confeti, una sola vez)
         // Se muestra al abrir el dashboard el dia del cumpleanos o, si no entro ese dia, la primera vez que entre dentro de
         // los DIAS_GRACIA siguientes. USUARIO_CUMPLE.FELICITADO_ANIO guarda el anio ya felicitado (script 053); se marca cuando el

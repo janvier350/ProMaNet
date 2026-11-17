@@ -1296,6 +1296,7 @@ String compania = (String) session.getAttribute("compania");
                         <div class="col-xl-4 col-md-6 mb-4 md-bloque" id="md_<%= _mdb %>" style="display:none"></div>
                         <% } %>
                     </div>
+                    <div id="mdCalendario" class="mb-4" style="display:none"></div>
                 </div>
                 <script>
                 (function () {
@@ -1346,6 +1347,23 @@ String compania = (String) session.getAttribute("compania");
                                 document.head.appendChild(sc);
                             })
                             .catch(function () { });
+                    })();
+                    // Calendario del anio (vacaciones): el mismo fragmento que Mi panel de vacaciones; los botones de anio recargan solo la tarjeta
+                    (function () {
+                        var cont = document.getElementById('mdCalendario');
+                        function pedir(anio) {
+                            fetch('PRO_MiDiaBloque.jsp?b=calendario' + (anio ? '&anio=' + anio : ''), {credentials: 'same-origin'})
+                                .then(function (r) { return r.status === 200 ? r.text() : ''; })
+                                .then(function (h) { if (h && h.trim()) { cont.innerHTML = h; cont.style.display = ''; } })
+                                .catch(function () { });
+                        }
+                        if (cont) {
+                            cont.addEventListener('click', function (e) {
+                                var a = e.target.closest ? e.target.closest('[data-vh-anio]') : null;
+                                if (a && !a.classList.contains('disabled')) pedir(a.getAttribute('data-vh-anio'));
+                            });
+                            pedir(null);
+                        }
                     })();
                     cargar('pendientes', 'mdPendientes');
                     ['novedades', 'movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo', 'ticketsdia', 'ausentes', 'aniversarios', 'cumpleanos', 'usados', 'accesos'].forEach(function (b) { cargar(b, 'md_' + b); });
