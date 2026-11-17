@@ -195,6 +195,123 @@
             </div>
             <% } %>
         </div>
+
+        <%-- ===== Calendario del anio (estilo "contribuciones"): dias de vacaciones gozadas / en tramite / permisos ===== --%>
+        <%
+            java.time.LocalDate _vhHoy = java.time.LocalDate.now();
+            int _vhAnio = _vhHoy.getYear();
+            try { _vhAnio = Integer.parseInt(request.getParameter("anio")); } catch (Exception ignoreAnio) { }
+            if (_vhAnio < _vhHoy.getYear() - 3 || _vhAnio > _vhHoy.getYear() + 1) _vhAnio = _vhHoy.getYear();
+            java.time.LocalDate _vhIni = java.time.LocalDate.of(_vhAnio, 1, 1), _vhFin = java.time.LocalDate.of(_vhAnio, 12, 31);
+            java.util.Map<java.time.LocalDate, String> _vhDias = new java.util.HashMap<>();   // dia -> V | P | T
+            boolean _vhError = false;
+            try (java.sql.Connection _vhCn = Servlets.Conexion.getConnection()) {
+                int _vhUid = Integer.parseInt(((String) session.getAttribute("cod")).trim());
+                String _vhSql =
+                    "SELECT 'V', FECHA_DESDE, FECHA_HASTA, 1 FROM VAC_SOLICITUD WHERE ID_USUARIO = ? AND ESTADO IN ('APROBADO','RECIBIDO') " +
+                    "UNION ALL SELECT 'V', FECHA_DESDE, FECHA_HASTA, 1 FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? AND ID_PERMISO IS NULL AND FECHA_DESDE IS NOT NULL AND FECHA_HASTA IS NOT NULL " +
+                    "UNION ALL SELECT 'P', FECHA_DESDE, FECHA_HASTA, 2 FROM VAC_HISTORICO_AJUSTE WHERE ID_USUARIO = ? AND ID_PERMISO IS NOT NULL AND FECHA_DESDE IS NOT NULL AND FECHA_HASTA IS NOT NULL " +
+                    "UNION ALL SELECT 'T', FECHA_DESDE, FECHA_HASTA, 3 FROM VAC_SOLICITUD WHERE ID_USUARIO = ? AND ESTADO IN ('PENDIENTE_JEFE','PENDIENTE_ADMIN')";
+                try (java.sql.PreparedStatement _vhSt = _vhCn.prepareStatement(
+                        "SELECT * FROM (" + _vhSql + ") WHERE FECHA_HASTA >= ? AND FECHA_DESDE <= ?")) {
+                    for (int _i = 1; _i <= 4; _i++) _vhSt.setInt(_i, _vhUid);
+                    _vhSt.setDate(5, java.sql.Date.valueOf(_vhIni)); _vhSt.setDate(6, java.sql.Date.valueOf(_vhFin));
+                    try (java.sql.ResultSet _vhRs = _vhSt.executeQuery()) {
+                        while (_vhRs.next()) {
+                            String _t = _vhRs.getString(1); int _prio = _vhRs.getInt(4);
+                            java.time.LocalDate _d = _vhRs.getDate(2).toLocalDate(), _h = _vhRs.getDate(3).toLocalDate();
+                            if (_d.isBefore(_vhIni)) _d = _vhIni;
+                            if (_h.isAfter(_vhFin)) _h = _vhFin;
+                            for (java.time.LocalDate _x = _d; !_x.isAfter(_h); _x = _x.plusDays(1)) {
+                                String _prev = _vhDias.get(_x);
+                                int _pp = _prev == null ? 9 : ("V".equals(_prev) ? 1 : ("P".equals(_prev) ? 2 : 3));
+                                if (_prio < _pp) _vhDias.put(_x, _t);
+                            }
+                        }
+                    }
+                }
+            } catch (Exception _vhEx) { _vhEx.printStackTrace(); _vhError = true; }
+
+            int _vhV = 0, _vhP = 0, _vhT = 0;   // dias de lunes a viernes
+            for (java.util.Map.Entry<java.time.LocalDate, String> _e : _vhDias.entrySet()) {
+                int _dow = _e.getKey().getDayOfWeek().getValue();
+                if (_dow > 5) continue;
+                if ("V".equals(_e.getValue())) _vhV++; else if ("P".equals(_e.getValue())) _vhP++; else _vhT++;
+            }
+            String[] _vhMeses = {"Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"};
+            int _vhOffset = _vhIni.getDayOfWeek().getValue() - 1;                      // columnas vacias al inicio (semana empieza lunes)
+            int _vhSemanas = (_vhOffset + _vhIni.lengthOfYear() + 6) / 7;
+        %>
+        <style>
+            .vh-grid { display:grid; grid-template-rows:repeat(7, 13px); grid-auto-flow:column; grid-auto-columns:13px; gap:3px; }
+            .vh-meses { display:grid; grid-template-columns:repeat(<%= _vhSemanas %>, 13px); column-gap:3px; height:16px; font-size:.68rem; color:#67748e; }
+            .vh-c { width:13px; height:13px; border-radius:3px; background:#ebedf0; }
+            .vh-c.fin { background:#f4f5f7; }
+            .vh-c.V { background:#2dce89; } .vh-c.T { background:#fb6340; } .vh-c.P { background:#11cdef; }
+            .vh-c.hoy { outline:2px solid #344767; outline-offset:-1px; }
+            .vh-leyenda span.sw { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin:0 4px 0 12px; }
+        </style>
+        <div class="row mt-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body p-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                            <div>
+                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Mi calendario de vacaciones <%= _vhAnio %></p>
+                                <p class="text-xs text-secondary mb-0">
+                                    <b class="text-success"><%= _vhV %></b> d&iacute;as con vacaciones &middot;
+                                    <b class="text-warning"><%= _vhT %></b> en tr&aacute;mite &middot;
+                                    <b class="text-info"><%= _vhP %></b> de permisos <span class="text-secondary">(lunes a viernes)</span>
+                                </p>
+                            </div>
+                            <div class="mt-1">
+                                <a href="VAC_MiPanel.jsp?anio=<%= _vhAnio - 1 %>" class="btn btn-sm btn-outline-secondary mb-0 <%= _vhAnio <= _vhHoy.getYear() - 3 ? "disabled" : "" %>">&laquo; <%= _vhAnio - 1 %></a>
+                                <a href="VAC_MiPanel.jsp?anio=<%= _vhAnio + 1 %>" class="btn btn-sm btn-outline-secondary mb-0 <%= _vhAnio >= _vhHoy.getYear() + 1 ? "disabled" : "" %>"><%= _vhAnio + 1 %> &raquo;</a>
+                            </div>
+                        </div>
+                        <% if (_vhError) { %>
+                        <p class="text-sm text-danger mb-0">No se pudo cargar el calendario.</p>
+                        <% } else { %>
+                        <div style="overflow-x:auto;">
+                            <div style="display:inline-block; min-width:max-content;">
+                                <div class="vh-meses">
+                                    <%
+                                        int _mesPrev = -1;
+                                        for (int _w = 0; _w < _vhSemanas; _w++) {
+                                            java.time.LocalDate _primero = _vhIni.plusDays((long) _w * 7 - _vhOffset);   // lunes de esa semana
+                                            java.time.LocalDate _ref = _primero.isBefore(_vhIni) ? _vhIni : _primero;
+                                            if (_ref.getYear() == _vhAnio && _ref.getMonthValue() != _mesPrev) {
+                                                _mesPrev = _ref.getMonthValue();
+                                    %><span style="grid-column:<%= _w + 1 %>;"><%= _vhMeses[_mesPrev - 1] %></span><%
+                                            }
+                                        }
+                                    %>
+                                </div>
+                                <div class="vh-grid">
+                                    <% for (int _b = 0; _b < _vhOffset; _b++) { %><div></div><% } %>
+                                    <%
+                                        java.time.format.DateTimeFormatter _fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                                        for (java.time.LocalDate _d = _vhIni; !_d.isAfter(_vhFin); _d = _d.plusDays(1)) {
+                                            String _t = _vhDias.get(_d);
+                                            boolean _fin = _d.getDayOfWeek().getValue() > 5;
+                                            String _txt = _fmt.format(_d) + ("V".equals(_t) ? " - Vacaciones" : ("P".equals(_t) ? " - Permiso" : ("T".equals(_t) ? " - Solicitud en tr\u00e1mite" : "")));
+                                    %><div class="vh-c <%= _t != null ? _t : "" %> <%= _fin && _t == null ? "fin" : "" %> <%= _d.equals(_vhHoy) ? "hoy" : "" %>" title="<%= _txt %>"></div><%
+                                        }
+                                    %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="vh-leyenda text-xs text-secondary mt-2">
+                            <span class="sw" style="background:#2dce89;margin-left:0"></span>Vacaciones
+                            <span class="sw" style="background:#fb6340"></span>En tr&aacute;mite
+                            <span class="sw" style="background:#11cdef"></span>Permiso
+                            <span class="sw" style="background:#ebedf0"></span>Sin registro
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer class="footer pt-3">
