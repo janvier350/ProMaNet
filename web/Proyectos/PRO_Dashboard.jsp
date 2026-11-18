@@ -1288,25 +1288,40 @@ String compania = (String) session.getAttribute("compania");
                       </div>-->
 
                 <!-- ===== HOY PARA TI: bloques personalizados (carga diferida; PRO_MiDiaBloque.jsp) ===== -->
+                <style>
+                    #mdFila .md-bloque { position:relative; }
+                    .md-grip { position:absolute; top:8px; right:16px; z-index:5; cursor:grab; opacity:.25; font-size:20px; line-height:1; color:#8392ab; user-select:none; padding:2px 4px; }
+                    .md-bloque:hover .md-grip { opacity:1; }
+                    .md-ghost { opacity:.35; }
+                    .md-ghost > * { outline:2px dashed #5e72e4; outline-offset:-2px; border-radius:1rem; }
+                </style>
                 <div id="miDia" class="mt-2">
-                    <div id="mdPendientes" class="mb-4"></div>
+                    <%-- Todas las tarjetas viven en una sola fila para poder reordenarlas arrastrando (SortableJS). El orden se guarda por usuario. --%>
                     <div class="row" id="mdFila">
+                        <div class="col-12 mb-4 md-bloque" data-bloque="pendientes" id="mdPendientes" style="display:none"></div>
                         <% String[] _mdBloques = {"novedades","movilizacion","tickets","vacaciones","anticipos","equipo","ticketsdia","ausentes","aniversarios","cumpleanos","usados","accesos"};
                            for (String _mdb : _mdBloques) { %>
-                        <div class="col-xl-4 col-md-6 mb-4 md-bloque" id="md_<%= _mdb %>" style="display:none"></div>
+                        <div class="col-xl-4 col-md-6 mb-4 md-bloque" data-bloque="<%= _mdb %>" id="md_<%= _mdb %>" style="display:none"></div>
                         <% } %>
+                        <div class="col-12 mb-4 md-bloque" data-bloque="calendario" id="mdCalendario" style="display:none"></div>
                     </div>
-                    <div id="mdCalendario" class="mb-4" style="display:none"></div>
+                    <div class="text-end mb-3"><a href="javascript:;" id="mdRestablecer" class="text-xs text-secondary">Restablecer el orden de las tarjetas</a></div>
                 </div>
+                <script src="../assets/js/plugins/Sortable.min.js"></script>
                 <script>
                 (function () {
+                    // Asa para arrastrar (se vuelve a poner cada vez que el contenido de la tarjeta se reemplaza)
+                    function ponerGrip(el) {
+                        var g = document.createElement('span'); g.className = 'md-grip'; g.title = 'Arrastra para mover esta tarjeta'; g.innerHTML = '&#10303;';
+                        el.appendChild(g);
+                    }
                     function cargar(bloque, contenedor) {
                         var el = document.getElementById(contenedor);
                         if (!el) return;
                         fetch('PRO_MiDiaBloque.jsp?b=' + bloque, {credentials: 'same-origin'})
                             .then(function (r) { return r.status === 200 ? r.text() : ''; })
                             .then(function (h) {
-                                if (h && h.trim()) { el.innerHTML = h; el.style.display = ''; }
+                                if (h && h.trim()) { el.innerHTML = h; ponerGrip(el); el.style.display = ''; }
                             })
                             .catch(function () { });
                     }
@@ -1348,13 +1363,44 @@ String compania = (String) session.getAttribute("compania");
                             })
                             .catch(function () { });
                     })();
+                    // ---- Orden de las tarjetas (drag & drop): se guarda por usuario en la base (PRO_MiDiaOrden.jsp) y en el navegador ----
+                    (function () {
+                        var fila = document.getElementById('mdFila'), KEY = 'promanet_md_orden';
+                        if (!fila) return;
+                        function actual() { return Array.prototype.map.call(fila.children, function (c) { return c.getAttribute('data-bloque'); }).filter(Boolean).join(','); }
+                        function aplicar(csv) {
+                            if (!csv) return;
+                            var vistos = {};
+                            csv.split(',').forEach(function (b) { var el = fila.querySelector('[data-bloque="' + b + '"]'); if (el && !vistos[b]) { vistos[b] = 1; fila.appendChild(el); } });
+                            Array.prototype.slice.call(fila.children).forEach(function (c) { if (!vistos[c.getAttribute('data-bloque')]) fila.appendChild(c); });   // tarjetas nuevas: al final
+                        }
+                        function guardar() {
+                            var o = actual();
+                            try { localStorage.setItem(KEY, o); } catch (e) { }
+                            fetch('PRO_MiDiaOrden.jsp', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'orden=' + encodeURIComponent(o)}).catch(function () { });
+                        }
+                        try { aplicar(localStorage.getItem(KEY)); } catch (e) { }          // inmediato, sin parpadeo
+                        fetch('PRO_MiDiaOrden.jsp', {credentials: 'same-origin'})            // el guardado en el servidor manda (sigue al usuario en otros equipos)
+                            .then(function (r) { return r.status === 200 ? r.text() : ''; })
+                            .then(function (csv) { csv = (csv || '').trim(); if (csv && csv !== actual()) { aplicar(csv); try { localStorage.setItem(KEY, csv); } catch (e) { } } })
+                            .catch(function () { });
+                        if (window.Sortable) {
+                            Sortable.create(fila, {draggable: '.md-bloque', handle: '.md-grip', animation: 150, ghostClass: 'md-ghost', delay: 120, delayOnTouchOnly: true, onEnd: guardar});
+                        }
+                        var rb = document.getElementById('mdRestablecer');
+                        if (rb) rb.addEventListener('click', function () {
+                            try { localStorage.removeItem(KEY); } catch (e) { }
+                            fetch('PRO_MiDiaOrden.jsp', {method: 'POST', credentials: 'same-origin', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'orden='})
+                                .catch(function () { }).then(function () { location.reload(); });
+                        });
+                    })();
                     // Calendario del anio (vacaciones): el mismo fragmento que Mi panel de vacaciones; los botones de anio recargan solo la tarjeta
                     (function () {
                         var cont = document.getElementById('mdCalendario');
                         function pedir(anio) {
                             fetch('PRO_MiDiaBloque.jsp?b=calendario' + (anio ? '&anio=' + anio : ''), {credentials: 'same-origin'})
                                 .then(function (r) { return r.status === 200 ? r.text() : ''; })
-                                .then(function (h) { if (h && h.trim()) { cont.innerHTML = h; cont.style.display = ''; } })
+                                .then(function (h) { if (h && h.trim()) { cont.innerHTML = h; ponerGrip(cont); cont.style.display = ''; } })
                                 .catch(function () { });
                         }
                         if (cont) {
