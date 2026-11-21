@@ -1394,6 +1394,34 @@ String compania = (String) session.getAttribute("compania");
                                 .catch(function () { }).then(function () { location.reload(); });
                         });
                     })();
+                    // Novedades "en ventana emergente": se muestran una por una al abrir el dashboard; "Entendido" la marca como vista (una vez por persona).
+                    (function () {
+                        fetch('PRO_MiDiaBloque.jsp?b=novedadmodal', {credentials: 'same-origin'})
+                            .then(function (r) { return r.status === 200 ? r.text() : ''; })
+                            .then(function (h) {
+                                if (!h || h.indexOf('nm-item') === -1) return;
+                                var tmp = document.createElement('div'); tmp.innerHTML = h;
+                                var items = Array.prototype.slice.call(tmp.querySelectorAll('.nm-item'));
+                                function mostrar() {
+                                    var it = items.shift(); if (!it) return;
+                                    var ov = document.createElement('div');
+                                    ov.style.cssText = 'position:fixed;inset:0;z-index:1998;background:rgba(20,20,60,.55);display:flex;align-items:center;justify-content:center;padding:16px;';
+                                    var caja = document.createElement('div');
+                                    caja.style.cssText = 'background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:85vh;overflow:auto;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.35)';
+                                    var ic = document.createElement('div'); ic.style.cssText = 'font-size:38px;line-height:1;text-align:center'; ic.innerHTML = '&#128227;';
+                                    var t = document.createElement('h4'); t.style.cssText = 'margin:10px 0 8px;font-weight:700;color:#344767;text-align:center'; t.textContent = it.getAttribute('data-titulo') || '';
+                                    var p = document.createElement('p'); p.style.cssText = 'color:#67748e;white-space:pre-line;margin:0 0 18px'; p.textContent = it.getAttribute('data-texto') || '';
+                                    var bt = document.createElement('button'); bt.type = 'button'; bt.className = 'btn bg-gradient-info text-white mb-0 d-block mx-auto'; bt.textContent = 'Entendido';
+                                    caja.appendChild(ic); caja.appendChild(t); if (p.textContent) caja.appendChild(p); caja.appendChild(bt); ov.appendChild(caja); document.body.appendChild(ov);
+                                    bt.onclick = function () {
+                                        fetch('PRO_MiDiaBloque.jsp?b=novedadmodal&visto=' + encodeURIComponent(it.getAttribute('data-id')), {credentials: 'same-origin'}).catch(function () { });
+                                        ov.parentNode.removeChild(ov); mostrar();
+                                    };
+                                }
+                                mostrar();
+                            })
+                            .catch(function () { });
+                    })();
                     // Calendario del anio (vacaciones): el mismo fragmento que Mi panel de vacaciones; los botones de anio recargan solo la tarjeta
                     (function () {
                         var cont = document.getElementById('mdCalendario');

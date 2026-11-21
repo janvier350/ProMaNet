@@ -5,7 +5,7 @@
     rapido y un bloque que falle no afecta a los demas. Si un bloque no aplica al usuario responde 204 y el
     dashboard lo quita.
 
-    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | cumpleanos | usados
+    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | novedadmodal | cumpleanos | usados
     Todo se filtra por el usuario de la sesion y sus permisos.
 --%>
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
@@ -353,11 +353,25 @@
         } else if ("novedades".equals(b)) {
             boolean gest = COMUN.PermisoHelper.tiene(session, "NOVEDADES_GESTIONAR");
             List<String[]> nov = new ArrayList<>();
+            // Solo las que le corresponden a este usuario: para todos (T), para su departamento (D) o para el (U).
+            // Si todavia no se ejecuto el script 055 (columna AUDIENCIA), cae a "todas son para todos".
             try (PreparedStatement st = cn.prepareStatement(
-                    "SELECT TITULO, TEXTO, TO_CHAR(FECHA_DESDE,'DD/MM') FROM APP_NOVEDAD WHERE ESTADO = 'A' AND FECHA_DESDE <= TRUNC(SYSDATE) " +
-                    "AND (FECHA_HASTA IS NULL OR FECHA_HASTA >= TRUNC(SYSDATE)) ORDER BY FECHA_DESDE DESC, ID_NOVEDAD DESC");
-                 ResultSet rs = st.executeQuery()) {
-                while (rs.next() && nov.size() < 3) nov.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3)});
+                    "SELECT n.TITULO, n.TEXTO, TO_CHAR(n.FECHA_DESDE,'DD/MM') FROM APP_NOVEDAD n WHERE n.ESTADO = 'A' AND n.FECHA_DESDE <= TRUNC(SYSDATE) " +
+                    "AND (n.FECHA_HASTA IS NULL OR n.FECHA_HASTA >= TRUNC(SYSDATE)) " +
+                    "AND (n.AUDIENCIA = 'T' " +
+                    "  OR (n.AUDIENCIA = 'D' AND EXISTS (SELECT 1 FROM APP_NOVEDAD_DEST d WHERE d.ID_NOVEDAD = n.ID_NOVEDAD AND d.TIPO = 'D' " +
+                    "        AND d.VALOR = (SELECT TO_CHAR(ID_ADM_DEPARTAMENTO) FROM USUARIO WHERE IDUSUARIO = ?))) " +
+                    "  OR (n.AUDIENCIA = 'U' AND EXISTS (SELECT 1 FROM APP_NOVEDAD_DEST d WHERE d.ID_NOVEDAD = n.ID_NOVEDAD AND d.TIPO = 'U' AND d.VALOR = TO_CHAR(?)))) " +
+                    "ORDER BY n.FECHA_DESDE DESC, n.ID_NOVEDAD DESC")) {
+                st.setInt(1, uid); st.setInt(2, uid);
+                try (ResultSet rs = st.executeQuery()) { while (rs.next() && nov.size() < 3) nov.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3)}); }
+            } catch (Exception exAud) {
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT TITULO, TEXTO, TO_CHAR(FECHA_DESDE,'DD/MM') FROM APP_NOVEDAD WHERE ESTADO = 'A' AND FECHA_DESDE <= TRUNC(SYSDATE) " +
+                        "AND (FECHA_HASTA IS NULL OR FECHA_HASTA >= TRUNC(SYSDATE)) ORDER BY FECHA_DESDE DESC, ID_NOVEDAD DESC");
+                     ResultSet rs = st.executeQuery()) {
+                    while (rs.next() && nov.size() < 3) nov.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3)});
+                }
             }
             if (nov.isEmpty() && !gest) aplica = false;
             else {
@@ -370,6 +384,41 @@
                 }
                 if (gest) html.append("<div class='mt-2'><a href='").append(ctx).append("/Proyectos/PRO_Novedades.jsp' class='btn btn-sm btn-outline-info mb-0'>Administrar novedades</a></div>");
                 html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- NOVEDADES EN VENTANA EMERGENTE (una vez por persona)
+        } else if ("novedadmodal".equals(b)) {
+            String vistoId = request.getParameter("visto");
+            if (vistoId != null) {
+                // El navegador confirma que la persona la vio ("Entendido"): se registra para no volver a mostrarla.
+                try (PreparedStatement st = cn.prepareStatement(
+                        "INSERT INTO APP_NOVEDAD_VISTA (ID_NOVEDAD, ID_USUARIO) SELECT ?, ? FROM DUAL " +
+                        "WHERE NOT EXISTS (SELECT 1 FROM APP_NOVEDAD_VISTA WHERE ID_NOVEDAD = ? AND ID_USUARIO = ?)")) {
+                    int idn = Integer.parseInt(vistoId);
+                    st.setInt(1, idn); st.setInt(2, uid); st.setInt(3, idn); st.setInt(4, uid); st.executeUpdate();
+                }
+                aplica = false;
+            } else {
+                int cuantas = 0;
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT n.ID_NOVEDAD, n.TITULO, n.TEXTO FROM APP_NOVEDAD n WHERE n.ESTADO = 'A' AND n.EN_MODAL = 'S' AND n.FECHA_DESDE <= TRUNC(SYSDATE) " +
+                        "AND (n.FECHA_HASTA IS NULL OR n.FECHA_HASTA >= TRUNC(SYSDATE)) " +
+                        "AND NOT EXISTS (SELECT 1 FROM APP_NOVEDAD_VISTA v WHERE v.ID_NOVEDAD = n.ID_NOVEDAD AND v.ID_USUARIO = ?) " +
+                        "AND (n.AUDIENCIA = 'T' " +
+                        "  OR (n.AUDIENCIA = 'D' AND EXISTS (SELECT 1 FROM APP_NOVEDAD_DEST d WHERE d.ID_NOVEDAD = n.ID_NOVEDAD AND d.TIPO = 'D' " +
+                        "        AND d.VALOR = (SELECT TO_CHAR(ID_ADM_DEPARTAMENTO) FROM USUARIO WHERE IDUSUARIO = ?))) " +
+                        "  OR (n.AUDIENCIA = 'U' AND EXISTS (SELECT 1 FROM APP_NOVEDAD_DEST d WHERE d.ID_NOVEDAD = n.ID_NOVEDAD AND d.TIPO = 'U' AND d.VALOR = TO_CHAR(?)))) " +
+                        "ORDER BY n.FECHA_DESDE, n.ID_NOVEDAD")) {
+                    st.setInt(1, uid); st.setInt(2, uid); st.setInt(3, uid);
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next() && cuantas < 5) {
+                            cuantas++;
+                            html.append("<div class='nm-item' data-id='").append(rs.getInt(1)).append("' data-titulo='").append(esc(rs.getString(2)))
+                                .append("' data-texto='").append(esc(rs.getString(3))).append("'></div>");
+                        }
+                    }
+                }
+                if (cuantas == 0) aplica = false;
             }
 
         // ---------------------------------------------------------------- CUMPLEANOS (todos)
