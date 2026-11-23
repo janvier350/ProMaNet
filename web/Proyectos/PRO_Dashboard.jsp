@@ -1333,7 +1333,7 @@ String compania = (String) session.getAttribute("compania");
                             .then(function (h) {
                                 if (!h || h.indexOf('confetiDatos') === -1) return;
                                 var tmp = document.createElement('div'); tmp.innerHTML = h;
-                                var d = tmp.firstChild; if (!d) return;
+                                var d = tmp.querySelector('#confetiDatos'); if (!d) return;   // OJO: la respuesta del JSP trae saltos de linea antes del div; firstChild seria un texto
                                 var nombre = d.getAttribute('data-nombre') || '', atras = parseInt(d.getAttribute('data-atras') || '0', 10), fecha = d.getAttribute('data-fecha') || '';
                                 var ov = document.createElement('div');
                                 ov.style.cssText = 'position:fixed;inset:0;z-index:1999;background:rgba(20,20,60,.55);display:flex;align-items:center;justify-content:center;padding:16px;';
