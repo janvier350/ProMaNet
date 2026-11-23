@@ -29,6 +29,11 @@ public class MailConfig {
     // intentan estas en orden hasta que una exista.
     public static String[] IMAP_CARPETAS_ENVIADOS = {"INBOX.Sent", "Sent", "Sent Items"};
 
+    // Modo prueba del aviso de apertura de anticipos: si el archivo externo trae "anticipos.aviso.prueba=correo@dominio",
+    // el aviso se envia SOLO a esa direccion (con "[PRUEBA]" en el asunto) en vez de a todos los usuarios del modulo.
+    // Vacio = envio normal. Quitar la linea (y reiniciar Tomcat) para volver al envio real.
+    public static String ANTICIPOS_AVISO_PRUEBA = "";
+
     // true solo si se cargo una clave real desde el archivo externo.
     public static boolean SMTP_HABILITADO = false;
 
@@ -55,6 +60,7 @@ public class MailConfig {
                 SMTP_PORT = Integer.parseInt(p.getProperty("smtp.port", String.valueOf(SMTP_PORT)).trim());
                 SMTP_USER = p.getProperty("smtp.user", SMTP_USER);
                 SMTP_PASS = p.getProperty("smtp.pass", SMTP_PASS);
+                ANTICIPOS_AVISO_PRUEBA = p.getProperty("anticipos.aviso.prueba", "").trim();
                 SMTP_FROM_NOMBRE = p.getProperty("smtp.from.nombre", SMTP_FROM_NOMBRE);
                 IMAP_HOST = p.getProperty("imap.host", SMTP_HOST);
                 IMAP_PORT = Integer.parseInt(p.getProperty("imap.port", String.valueOf(IMAP_PORT)).trim());

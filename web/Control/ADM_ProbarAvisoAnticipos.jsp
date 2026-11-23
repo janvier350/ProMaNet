@@ -41,6 +41,7 @@
 <ul class="mb-0">
   <li>SMTP habilitado: <b class="<%= Servlets.MailConfig.SMTP_HABILITADO ? "text-success" : "text-danger" %>"><%= Servlets.MailConfig.SMTP_HABILITADO ? "SI" : "NO" %></b></li>
   <li>Servidor: <%= Servlets.MailConfig.SMTP_HOST %>:<%= Servlets.MailConfig.SMTP_PORT %> &middot; cuenta: <%= Servlets.MailConfig.SMTP_USER %></li>
+  <li>Modo prueba del aviso (<code>anticipos.aviso.prueba</code>): <%= Servlets.MailConfig.ANTICIPOS_AVISO_PRUEBA.isEmpty() ? "<b class='text-success'>apagado</b> (el aviso real va a todos los usuarios del m\u00f3dulo)" : "<b class='text-danger'>ENCENDIDO</b>: el aviso real va solo a " + Servlets.MailConfig.ANTICIPOS_AVISO_PRUEBA %></li>
   <li>Imagen de firma: <%= firmaPath != null && new java.io.File(firmaPath).exists() ? "encontrada" : "<b class='text-danger'>no encontrada</b>" %></li>
 </ul>
 <% if (!Servlets.MailConfig.SMTP_HABILITADO) { %>
