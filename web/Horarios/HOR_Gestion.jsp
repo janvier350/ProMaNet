@@ -41,6 +41,7 @@
                     else if ("rechazar".equals(accion)) { HOR_Helper.rechazar(cn, id, yo, request.getParameter("motivo")); texto = "Solicitud rechazada."; }
                     else { HOR_Helper.cancelar(cn, id, true); texto = "Horario anulado."; }
                     COMUN.LogActividad.registrar(request, "HORARIOS", "aprobar".equals(accion) ? "APROBAR" : ("rechazar".equals(accion) ? "RECHAZAR" : "ELIMINAR"), accion + " horario de clases #" + id);
+                    if ("aprobar".equals(accion)) HORARIOS.HOR_Avisos.decisionAsync(id, "APROBADO"); else if ("rechazar".equals(accion)) HORARIOS.HOR_Avisos.decisionAsync(id, "RECHAZADO");
                     response.sendRedirect("HOR_Gestion.jsp?msj=" + java.net.URLEncoder.encode(texto, "UTF-8"));
                     return;
                 } else if ("crear".equals(accion)) {
@@ -49,6 +50,7 @@
                     LocalDate d = LocalDate.parse(request.getParameter("desde")), h = LocalDate.parse(request.getParameter("hasta"));
                     int id = HOR_Helper.crear(cn, emp, yo, d, h, request.getParameter("obs"), HOR_Helper.leerBloques(request), true);
                     COMUN.LogActividad.registrar(request, "HORARIOS", "CREAR", "Registro horario de clases #" + id + " para el usuario " + emp);
+                    HORARIOS.HOR_Avisos.decisionAsync(id, "REGISTRADO");
                     response.sendRedirect("HOR_Gestion.jsp?msj=" + java.net.URLEncoder.encode("Horario registrado y aprobado.", "UTF-8"));
                     return;
                 }
@@ -98,6 +100,8 @@
     <div class="container-fluid py-4">
         <% if (msg != null) { %><div class="alert alert-success text-white py-2"><i class="fas fa-check-circle me-1"></i><%= esc(msg) %></div><% } %>
         <% if (err != null) { %><div class="alert alert-danger text-white py-2"><i class="fas fa-exclamation-circle me-1"></i><%= esc(err) %></div><% } %>
+
+        <div class="text-end mb-3"><a href="HOR_Cobertura.jsp" class="btn btn-sm bg-white mb-0"><i class="fas fa-table-cells me-1"></i> Ver cobertura semanal</a></div>
 
         <%-- Pendientes --%>
         <div class="card mb-4">

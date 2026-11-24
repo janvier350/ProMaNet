@@ -353,4 +353,53 @@ public class HOR_Helper {
         }
         return r;
     }
+
+    /** Una solicitud con sus bloques, o null si no existe. */
+    public static Solicitud obtener(Connection cn, int idSol) throws Exception {
+        List<Solicitud> l = leer(cn, "WHERE s.ID_SOL = ?", idSol);
+        return l.isEmpty() ? null : l.get(0);
+    }
+
+    // ------------------------------------------------------------------ cobertura semanal
+
+    public static class Cobertura {
+        /** "dia|hora" (dia 1..7, hora 0..23) -> nombres de quienes NO estan disponibles en esa franja de una hora. */
+        public Map<String, TreeSet<String>> celdas = new LinkedHashMap<>();
+        public TreeSet<String> departamentos = new TreeSet<>();
+        public TreeSet<String> personas = new TreeSet<>();
+    }
+
+    /**
+     * Quien no esta disponible por clases en cada franja horaria de la semana que empieza en "lunes", para los empleados que
+     * "yo" gestiona. depto vacio/null = todos; si se indica, solo ese departamento (la lista de departamentos siempre trae todos).
+     */
+    public static Cobertura cobertura(HttpSession session, Connection cn, int yo, LocalDate lunes, String depto) throws Exception {
+        Cobertura c = new Cobertura();
+        String sql = "SELECT u.NOMBRE || ' ' || u.APELLIDOS, d.DEPARTAMENTO, s.FECHA_DESDE, s.FECHA_HASTA, b.DIA, b.HORA_INI, b.HORA_FIN " +
+                "FROM HOR_CLASE_SOL s JOIN HOR_CLASE_BLOQUE b ON b.ID_SOL = s.ID_SOL JOIN USUARIO u ON u.IDUSUARIO = s.ID_USUARIO " +
+                "LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = s.ID_USUARIO " +
+                "LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO " +
+                "WHERE s.ESTADO = 'APROBADO' AND u.ESTADO = 'a' AND s.FECHA_HASTA >= ? AND s.FECHA_DESDE <= ? " +
+                "AND s.ID_USUARIO <> " + yo + " AND " + condicionEquipoSql(session, cn, yo);
+        try (PreparedStatement st = cn.prepareStatement(sql)) {
+            st.setDate(1, Date.valueOf(lunes)); st.setDate(2, Date.valueOf(lunes.plusDays(6)));
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    String nom = rs.getString(1), dep = rs.getString(2) == null ? "Sin departamento" : rs.getString(2);
+                    c.departamentos.add(dep);
+                    LocalDate d = rs.getDate(3).toLocalDate(), h = rs.getDate(4).toLocalDate();
+                    int dia = rs.getInt(5); String ini = rs.getString(6), fin = rs.getString(7);
+                    LocalDate fecha = lunes.plusDays(dia - 1);
+                    if (fecha.isBefore(d) || fecha.isAfter(h)) continue;     // ese dia de esta semana queda fuera de la vigencia
+                    if (depto != null && !depto.isEmpty() && !depto.equals(dep)) continue;
+                    c.personas.add(nom);
+                    for (int hr = 0; hr < 24; hr++) {
+                        String a = String.format("%02d:00", hr), z = hr == 23 ? "24:00" : String.format("%02d:00", hr + 1);
+                        if (ini.compareTo(z) < 0 && fin.compareTo(a) > 0) c.celdas.computeIfAbsent(dia + "|" + hr, k -> new TreeSet<>()).add(nom);
+                    }
+                }
+            }
+        }
+        return c;
+    }
 }

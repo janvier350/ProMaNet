@@ -34,6 +34,10 @@ public class MailConfig {
     // Vacio = envio normal. Quitar la linea (y reiniciar Tomcat) para volver al envio real.
     public static String ANTICIPOS_AVISO_PRUEBA = "";
 
+    // Igual para los avisos del horario de clases ("horarios.aviso.prueba=correo@dominio"): todos los correos de ese modulo
+    // van solo a esa direccion, con "[PRUEBA]" en el asunto y la lista de los destinatarios reales en el texto.
+    public static String HORARIOS_AVISO_PRUEBA = "";
+
     // true solo si se cargo una clave real desde el archivo externo.
     public static boolean SMTP_HABILITADO = false;
 
@@ -61,6 +65,7 @@ public class MailConfig {
                 SMTP_USER = p.getProperty("smtp.user", SMTP_USER);
                 SMTP_PASS = p.getProperty("smtp.pass", SMTP_PASS);
                 ANTICIPOS_AVISO_PRUEBA = p.getProperty("anticipos.aviso.prueba", "").trim();
+                HORARIOS_AVISO_PRUEBA = p.getProperty("horarios.aviso.prueba", "").trim();
                 SMTP_FROM_NOMBRE = p.getProperty("smtp.from.nombre", SMTP_FROM_NOMBRE);
                 IMAP_HOST = p.getProperty("imap.host", SMTP_HOST);
                 IMAP_PORT = Integer.parseInt(p.getProperty("imap.port", String.valueOf(IMAP_PORT)).trim());

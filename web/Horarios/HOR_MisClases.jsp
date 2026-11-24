@@ -45,6 +45,7 @@
                     LocalDate d = LocalDate.parse(request.getParameter("desde")), h = LocalDate.parse(request.getParameter("hasta"));
                     int id = HOR_Helper.crear(cn, yo, yo, d, h, request.getParameter("obs"), HOR_Helper.leerBloques(request), false);
                     COMUN.LogActividad.registrar(request, "HORARIOS", "CREAR", "Registro horario de clases #" + id);
+                    HORARIOS.HOR_Avisos.nuevaSolicitudAsync(id);   // correo al jefe directo (o a los gestores del grupo)
                     response.sendRedirect("HOR_MisClases.jsp?msj=" + java.net.URLEncoder.encode("Solicitud enviada. Queda pendiente de aprobación de tu jefe directo o de administración.", "UTF-8"));
                     return;
                 } else if ("cancelar".equals(accion)) {
