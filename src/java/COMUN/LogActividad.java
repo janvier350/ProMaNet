@@ -55,6 +55,7 @@ public class LogActividad {
         if (u.contains("/INVENTARIO/") || u.contains("/INV_")) return "INVENTARIO";
         if (u.contains("/SOPORTES/")  || u.contains("/SOP_"))  return "SOPORTES";
         if (u.contains("/VACACIONES/") || u.contains("/VAC_")) return "VACACIONES";
+        if (u.contains("/HORARIOS/") || u.contains("/HOR_")) return "HORARIOS";
         if (u.contains("/AUDITORIA/")  || u.contains("/AUD_") || u.contains("ANTICIPO")) return "ANTICIPOS";
         if (u.contains("/MOVILIZACION/") || u.contains("/MOV_") || u.contains("MOVILIZ")) return "MOVILIZACION";
         if (u.contains("/CAPACITACIONES/") || u.contains("/CAP_")) return "CAPACITACIONES";

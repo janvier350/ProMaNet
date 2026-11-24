@@ -1,0 +1,61 @@
+<%--
+    Campos compartidos del formulario de horario de clases: vigencia (inicio/fin del semestre), observacion y bloques de horario.
+    Se incluye DENTRO de un <form> en HOR_MisClases.jsp y HOR_Gestion.jsp. Cada bloque = dias marcados + hora inicio + hora fin + materia
+    (los dias marcados generan un horario por dia). Los campos se llaman dias_i / ini_i / fin_i / mat_i (ver HOR_Helper.leerBloques).
+--%>
+<div class="row g-3">
+    <div class="col-md-3">
+        <label class="form-control-label text-xs text-uppercase font-weight-bold">Inicio del semestre</label>
+        <input type="date" name="desde" class="form-control" required>
+    </div>
+    <div class="col-md-3">
+        <label class="form-control-label text-xs text-uppercase font-weight-bold">Fin del semestre</label>
+        <input type="date" name="hasta" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label class="form-control-label text-xs text-uppercase font-weight-bold">Observaci&oacute;n (opcional)</label>
+        <input type="text" name="obs" class="form-control" maxlength="500" placeholder="Ej.: Universidad, carrera, ciclo">
+    </div>
+</div>
+<div class="mt-3">
+    <label class="form-control-label text-xs text-uppercase font-weight-bold mb-1">Horarios en que NO estar&aacute; disponible</label>
+    <div id="horBloques"></div>
+    <button type="button" class="btn btn-sm btn-outline-primary mt-1" id="horAgregar"><i class="fas fa-plus me-1"></i> Agregar otro horario</button>
+    <p class="text-xs text-secondary mt-2 mb-0">Marca los d&iacute;as que tienen el mismo horario (por ejemplo lunes, mi&eacute;rcoles y jueves de 13:00 a 15:00). Si tienes horarios distintos, agrega otro.</p>
+</div>
+<script>
+(function () {
+    var cont = document.getElementById('horBloques'), n = 0;
+    var dias = [['1', 'Lun'], ['2', 'Mar'], ['3', 'Mié'], ['4', 'Jue'], ['5', 'Vie'], ['6', 'Sáb'], ['7', 'Dom']];
+    function fila() {
+        var i = n++, d = document.createElement('div');
+        d.className = 'border rounded p-2 mb-2'; d.setAttribute('data-fila', i);
+        var h = '<div class="d-flex flex-wrap align-items-center gap-3">';
+        h += '<div class="d-flex flex-wrap gap-2">';
+        dias.forEach(function (x) {
+            h += '<div class="form-check mb-0"><input class="form-check-input" type="checkbox" name="dias_' + i + '" value="' + x[0] + '" id="dia_' + i + '_' + x[0] + '">' +
+                 '<label class="form-check-label text-sm" for="dia_' + i + '_' + x[0] + '">' + x[1] + '</label></div>';
+        });
+        h += '</div>';
+        h += '<div class="d-flex align-items-center gap-1"><input type="time" name="ini_' + i + '" class="form-control form-control-sm" style="width:115px" required>' +
+             '<span class="text-sm">a</span><input type="time" name="fin_' + i + '" class="form-control form-control-sm" style="width:115px" required></div>';
+        h += '<input type="text" name="mat_' + i + '" class="form-control form-control-sm" style="max-width:220px" maxlength="100" placeholder="Materia (opcional)">';
+        h += '<button type="button" class="btn btn-sm btn-link text-danger mb-0 ms-auto hor-quitar" title="Quitar este horario"><i class="fas fa-trash"></i></button>';
+        h += '</div>';
+        d.innerHTML = h; cont.appendChild(d);
+    }
+    fila();
+    document.getElementById('horAgregar').addEventListener('click', fila);
+    cont.addEventListener('click', function (e) {
+        var b = e.target.closest ? e.target.closest('.hor-quitar') : null;
+        if (b && cont.children.length > 1) cont.removeChild(b.closest('[data-fila]'));
+    });
+    // Al enviar: que cada fila tenga al menos un dia marcado
+    var f = cont.closest('form');
+    if (f) f.addEventListener('submit', function (e) {
+        var ok = true;
+        Array.prototype.forEach.call(cont.children, function (fi) { if (!fi.querySelector('input[type=checkbox]:checked')) ok = false; });
+        if (!ok) { e.preventDefault(); alert('Marca al menos un día en cada horario.'); }
+    });
+})();
+</script>

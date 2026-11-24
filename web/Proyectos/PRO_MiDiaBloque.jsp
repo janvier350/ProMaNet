@@ -576,6 +576,17 @@
                     items.add(new String[]{"fas fa-clipboard-check", "info", n + (n == 1 ? " solicitud de vacaciones por aprobar" : " solicitudes de vacaciones por aprobar"), ctx + "/Vacaciones/VAC_AprobacionesAdmin.jsp", "Aprobar"});
                 } } catch (Exception ex) { }
             }
+            // Horarios de clases por aprobar (jefe directo o gestor de Vacaciones del grupo)
+            try {
+                if (HORARIOS.HOR_Helper.puedeEntrarGestion(session, cn, uid)) {
+                    try (PreparedStatement st = cn.prepareStatement("SELECT COUNT(*) FROM HOR_CLASE_SOL s LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = s.ID_USUARIO " +
+                            "WHERE s.ESTADO = 'PENDIENTE' AND s.ID_USUARIO <> " + uid + " AND " + HORARIOS.HOR_Helper.condicionEquipoSql(session, cn, uid));
+                         ResultSet rs = st.executeQuery()) { if (rs.next() && rs.getInt(1) > 0) {
+                        int n = rs.getInt(1);
+                        items.add(new String[]{"fas fa-graduation-cap", "primary", n + (n == 1 ? " horario de clases por aprobar" : " horarios de clases por aprobar"), ctx + "/Horarios/HOR_Gestion.jsp", "Revisar"});
+                    } }
+                }
+            } catch (Exception ex) { }
             // Movilizacion por aprobar
             if (COMUN.PermisoHelper.tiene(session, "MOVILIZACION_GESTIONAR")) {
                 try (PreparedStatement st = cn.prepareStatement("SELECT COUNT(*) FROM MOV_SOLICITUD WHERE ESTADO = 'PENDIENTE' AND FECHA >= TRUNC(SYSDATE)");

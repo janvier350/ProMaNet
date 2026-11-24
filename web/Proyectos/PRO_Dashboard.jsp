@@ -269,6 +269,14 @@ String compania = (String) session.getAttribute("compania");
                         </a>
                     </li>
                     <% } %>
+                    <li class="nav-item">
+                        <a class="nav-link " href="../Horarios/HOR_MisClases.jsp">
+                            <div class="icon icon-shape icon-sm border-radius-md text-center me-2 d-flex align-items-center justify-content-center">
+                                <i class="ni ni-hat-3 text-primary text-sm opacity-10"></i>
+                            </div>
+                            <span class="nav-link-text ms-1">Horario de clases</span>
+                        </a>
+                    </li>
                     <% if (COMUN.PermisoHelper.tiene(session, "VACACIONES_CONFIGURAR") || COMUN.PermisoHelper.tiene(session, "VACACIONES_GESTIONAR")) { %>
                     <li class="nav-item">
                         <a class="nav-link " href="../Vacaciones/VAC_Dashboard.jsp">
