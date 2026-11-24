@@ -5,7 +5,7 @@
     rapido y un bloque que falle no afecta a los demas. Si un bloque no aplica al usuario responde 204 y el
     dashboard lo quita.
 
-    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | novedadmodal | cumpleanos | usados
+    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | novedadmodal | misclases | clasesequipo | cumpleanos | usados
     Todo se filtra por el usuario de la sesion y sus permisos.
 --%>
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
@@ -553,6 +553,83 @@
                     if (!primero.isEmpty()) primero = primero.substring(0, 1).toUpperCase() + primero.substring(1).toLowerCase();
                     html.append("<div id='confetiDatos' data-nombre='").append(esc(primero)).append("' data-atras='").append(prueba ? 0 : atras)
                         .append("' data-fecha='").append(String.format("%02d/%02d", f.getDayOfMonth(), f.getMonthValue())).append("'></div>");
+                }
+            }
+
+        // ---------------------------------------------------------------- MIS CLASES (horario de clases del propio usuario)
+        } else if ("misclases".equals(b)) {
+            List<HORARIOS.HOR_Helper.Solicitud> aprob = HORARIOS.HOR_Helper.aprobadasVigentesDe(cn, uid);
+            List<HORARIOS.HOR_Helper.Solicitud> mias = HORARIOS.HOR_Helper.delUsuario(cn, uid);
+            HORARIOS.HOR_Helper.Solicitud ultima = mias.isEmpty() ? null : mias.get(0);   // la mas reciente (ya sin las reemplazadas)
+            boolean hayPendiente = false; for (HORARIOS.HOR_Helper.Solicitud s : mias) if ("PENDIENTE".equals(s.estado)) hayPendiente = true;
+            if (aprob.isEmpty() && !hayPendiente && (ultima == null || !"RECHAZADO".equals(ultima.estado) || ultima.hasta.isBefore(hoy))) aplica = false;   // no estudia / sin nada que mostrar
+            else {
+                java.time.format.DateTimeFormatter fm = java.time.format.DateTimeFormatter.ofPattern("dd/MM");
+                String ahora = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                html.append(cabecera("fas fa-graduation-cap", "primary", "Mis clases"));
+                List<HORARIOS.HOR_Helper.Bloque> hoyB = HORARIOS.HOR_Helper.bloquesEnFecha(aprob, hoy);
+                if (!hoyB.isEmpty()) {
+                    html.append("<p class='text-xs text-secondary mb-1'>Hoy</p><ul class='list-group list-group-flush mb-2'>");
+                    for (HORARIOS.HOR_Helper.Bloque bl : hoyB) {
+                        boolean enCurso = ahora.compareTo(bl.ini) >= 0 && ahora.compareTo(bl.fin) < 0, paso = ahora.compareTo(bl.fin) >= 0;
+                        html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between align-items-center'><span class='text-sm").append(paso ? " text-secondary" : "").append("'><b>")
+                            .append(esc(bl.ini)).append(" - ").append(esc(bl.fin)).append("</b>").append(bl.materia != null && !bl.materia.isEmpty() ? " &middot; " + esc(bl.materia) : "").append("</span>")
+                            .append(enCurso ? "<span class='badge badge-sm bg-gradient-success'>en curso</span>" : (paso ? "<span class='text-xs text-secondary'>termin&oacute;</span>" : "")).append("</li>");
+                    }
+                    html.append("</ul>");
+                } else if (!aprob.isEmpty()) {
+                    // proximo dia con clases (hasta 7 dias)
+                    LocalDate prox = null; List<HORARIOS.HOR_Helper.Bloque> pb = null;
+                    for (int d = 1; d <= 7 && prox == null; d++) { List<HORARIOS.HOR_Helper.Bloque> x = HORARIOS.HOR_Helper.bloquesEnFecha(aprob, hoy.plusDays(d)); if (!x.isEmpty()) { prox = hoy.plusDays(d); pb = x; } }
+                    html.append("<p class='text-sm mb-1'>Hoy no tienes clases.</p>");
+                    if (prox != null) {
+                        html.append("<p class='text-xs text-secondary mb-1'>Pr&oacute;ximas: ").append(prox.equals(hoy.plusDays(1)) ? "ma&ntilde;ana" : esc(HORARIOS.HOR_Helper.DIAS[prox.getDayOfWeek().getValue()]) + " " + fm.format(prox)).append("</p>");
+                        html.append("<p class='text-sm mb-2'>");
+                        for (int k = 0; k < pb.size(); k++) html.append(k > 0 ? ", " : "").append("<b>").append(esc(pb.get(k).ini)).append(" - ").append(esc(pb.get(k).fin)).append("</b>");
+                        html.append("</p>");
+                    }
+                }
+                if (hayPendiente) html.append("<p class='text-xs mb-1'><i class='fas fa-hourglass-half text-warning me-1'></i>Tienes un horario pendiente de aprobaci&oacute;n.</p>");
+                else if (aprob.isEmpty() && ultima != null && "RECHAZADO".equals(ultima.estado))
+                    html.append("<p class='text-xs text-danger mb-1'><i class='fas fa-times-circle me-1'></i>Tu &uacute;ltimo horario fue rechazado: ").append(esc(ultima.motivoRechazo)).append("</p>");
+                else if (!aprob.isEmpty()) html.append("<p class='text-xxs text-secondary mb-1'>Vigente hasta el ").append(fm.format(aprob.get(aprob.size() - 1).hasta)).append("</p>");
+                html.append("<div class='mt-2'><a href='").append(ctx).append("/Horarios/HOR_MisClases.jsp' class='btn btn-sm btn-outline-primary mb-0'>Ver / cambiar mi horario</a></div>");
+                html.append(pie());
+            }
+
+        // ---------------------------------------------------------------- CLASES DEL EQUIPO HOY (jefe directo / administracion)
+        } else if ("clasesequipo".equals(b)) {
+            if (!HORARIOS.HOR_Helper.puedeEntrarGestion(session, cn, uid)) aplica = false;
+            else {
+                List<String[]> hoyL = HORARIOS.HOR_Helper.conClasesEnFecha(session, cn, uid, hoy);
+                List<String[]> manL = HORARIOS.HOR_Helper.conClasesEnFecha(session, cn, uid, hoy.plusDays(1));
+                int vigentes = HORARIOS.HOR_Helper.vigentes(session, cn, uid).size();
+                if (hoyL.isEmpty() && manL.isEmpty() && vigentes == 0) aplica = false;   // nadie del equipo estudia: no ocupar espacio
+                else {
+                    String ahora = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                    // agrupar por persona (un empleado puede tener varios bloques el mismo dia)
+                    Map<String, StringBuilder> pers = new LinkedHashMap<>(); Map<String, Boolean> enCurso = new HashMap<>(); Map<String, String> dep = new HashMap<>();
+                    for (String[] r : hoyL) {
+                        pers.computeIfAbsent(r[0], k -> new StringBuilder()); StringBuilder sbp = pers.get(r[0]);
+                        sbp.append(sbp.length() > 0 ? ", " : "").append(r[2]).append("-").append(r[3]); dep.put(r[0], r[1]);
+                        if (ahora.compareTo(r[2]) >= 0 && ahora.compareTo(r[3]) < 0) enCurso.put(r[0], true);
+                    }
+                    Set<String> manP = new LinkedHashSet<>(); for (String[] r : manL) manP.add(r[0]);
+                    html.append(cabecera("fas fa-graduation-cap", "info", "En clases hoy &middot; tu equipo"));
+                    if (pers.isEmpty()) html.append("<p class='text-sm mb-2'>Nadie de tu equipo tiene clases hoy.</p>");
+                    else {
+                        html.append("<ul class='list-group list-group-flush mb-1'>"); int c = 0;
+                        for (Map.Entry<String, StringBuilder> e : pers.entrySet()) {
+                            if (c++ >= 6) break;
+                            html.append("<li class='list-group-item border-0 px-0 py-1 d-flex justify-content-between align-items-center'><span class='text-sm'>").append(esc(e.getKey()))
+                                .append(enCurso.containsKey(e.getKey()) ? " <span class='badge badge-sm bg-gradient-success'>ahora</span>" : "").append("</span><span class='text-xs text-secondary'>").append(esc(e.getValue().toString())).append("</span></li>");
+                        }
+                        html.append("</ul>");
+                        if (pers.size() > 6) html.append("<p class='text-xs text-secondary mb-1'>y ").append(pers.size() - 6).append(" m&aacute;s</p>");
+                    }
+                    if (!manP.isEmpty()) html.append("<p class='text-xs text-secondary mb-0'>Ma&ntilde;ana: ").append(manP.size()).append(manP.size() == 1 ? " persona" : " personas").append("</p>");
+                    html.append("<div class='mt-3'><a href='").append(ctx).append("/Horarios/HOR_Gestion.jsp' class='btn btn-sm btn-outline-info mb-0'>Ver horarios del equipo</a></div>");
+                    html.append(pie());
                 }
             }
 

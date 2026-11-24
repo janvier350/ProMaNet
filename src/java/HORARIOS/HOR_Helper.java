@@ -311,4 +311,46 @@ public class HOR_Helper {
         }
         return r;
     }
+
+    // ------------------------------------------------------------------ tarjetas del dashboard
+
+    /**
+     * Horarios aprobados del usuario con vigencia que no ha terminado. Con ellos se calculan "hoy" y "proximos dias".
+     */
+    public static List<Solicitud> aprobadasVigentesDe(Connection cn, int idUsuario) throws Exception {
+        return leer(cn, "WHERE s.ID_USUARIO = ? AND s.ESTADO = 'APROBADO' AND s.FECHA_HASTA >= TRUNC(SYSDATE) ORDER BY s.FECHA_DESDE", idUsuario);
+    }
+
+    /** Bloques (ordenados por hora) que aplican al usuario en una fecha concreta segun sus horarios aprobados. */
+    public static List<Bloque> bloquesEnFecha(List<Solicitud> aprobadas, LocalDate fecha) {
+        List<Bloque> r = new ArrayList<>();
+        int dia = fecha.getDayOfWeek().getValue();
+        for (Solicitud s : aprobadas) {
+            if (fecha.isBefore(s.desde) || fecha.isAfter(s.hasta)) continue;
+            for (Bloque b : s.bloques) if (b.dia == dia) r.add(b);
+        }
+        r.sort((a, b) -> a.ini.compareTo(b.ini));
+        return r;
+    }
+
+    /**
+     * Empleados del equipo de "yo" con clases en la fecha dada (horarios aprobados y vigentes ese dia): una fila por bloque
+     * {nombre, departamento, horaIni, horaFin}, ordenada por hora. No incluye a "yo".
+     */
+    public static List<String[]> conClasesEnFecha(HttpSession session, Connection cn, int yo, LocalDate fecha) throws Exception {
+        List<String[]> r = new ArrayList<>();
+        String sql = "SELECT u.NOMBRE || ' ' || u.APELLIDOS, d.DEPARTAMENTO, b.HORA_INI, b.HORA_FIN " +
+                "FROM HOR_CLASE_SOL s JOIN HOR_CLASE_BLOQUE b ON b.ID_SOL = s.ID_SOL JOIN USUARIO u ON u.IDUSUARIO = s.ID_USUARIO " +
+                "LEFT JOIN VAC_CONFIG_USUARIO vc ON vc.ID_USUARIO = s.ID_USUARIO " +
+                "LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO " +
+                "WHERE s.ESTADO = 'APROBADO' AND u.ESTADO = 'a' AND ? BETWEEN s.FECHA_DESDE AND s.FECHA_HASTA AND b.DIA = ? " +
+                "AND s.ID_USUARIO <> " + yo + " AND " + condicionEquipoSql(session, cn, yo) + " ORDER BY b.HORA_INI, u.NOMBRE";
+        try (PreparedStatement st = cn.prepareStatement(sql)) {
+            st.setDate(1, Date.valueOf(fecha)); st.setInt(2, fecha.getDayOfWeek().getValue());
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) r.add(new String[]{rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4)});
+            }
+        }
+        return r;
+    }
 }

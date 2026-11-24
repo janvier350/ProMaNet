@@ -1307,7 +1307,7 @@ String compania = (String) session.getAttribute("compania");
                     <%-- Todas las tarjetas viven en una sola fila para poder reordenarlas arrastrando (SortableJS). El orden se guarda por usuario. --%>
                     <div class="row" id="mdFila">
                         <div class="col-12 mb-4 md-bloque" data-bloque="pendientes" id="mdPendientes" style="display:none"></div>
-                        <% String[] _mdBloques = {"novedades","movilizacion","tickets","vacaciones","anticipos","equipo","ticketsdia","ausentes","aniversarios","cumpleanos","usados","accesos"};
+                        <% String[] _mdBloques = {"novedades","movilizacion","tickets","vacaciones","misclases","anticipos","equipo","ticketsdia","ausentes","clasesequipo","aniversarios","cumpleanos","usados","accesos"};
                            for (String _mdb : _mdBloques) { %>
                         <div class="col-xl-4 col-md-6 mb-4 md-bloque" data-bloque="<%= _mdb %>" id="md_<%= _mdb %>" style="display:none"></div>
                         <% } %>
@@ -1448,7 +1448,7 @@ String compania = (String) session.getAttribute("compania");
                         }
                     })();
                     cargar('pendientes', 'mdPendientes');
-                    ['novedades', 'movilizacion', 'tickets', 'vacaciones', 'anticipos', 'equipo', 'ticketsdia', 'ausentes', 'aniversarios', 'cumpleanos', 'usados', 'accesos'].forEach(function (b) { cargar(b, 'md_' + b); });
+                    ['novedades', 'movilizacion', 'tickets', 'vacaciones', 'misclases', 'anticipos', 'equipo', 'ticketsdia', 'ausentes', 'clasesequipo', 'aniversarios', 'cumpleanos', 'usados', 'accesos'].forEach(function (b) { cargar(b, 'md_' + b); });
                 })();
                 </script>
                 <!-- ===== Seccion TODO (proyectos/tareas): oculta mientras el modulo no se use. Cambiar display:none para reactivar ===== -->
