@@ -5,7 +5,7 @@
     rapido y un bloque que falle no afecta a los demas. Si un bloque no aplica al usuario responde 204 y el
     dashboard lo quita.
 
-    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | novedadmodal | misclases | clasesequipo | cumpleanos | usados
+    Bloques: pendientes | movilizacion | tickets | vacaciones | anticipos | equipo | ausentes | aniversarios | ticketsdia | accesos | novedades | novedadmodal | misclases | clasesequipo | agendalegal | cumpleanos | usados
     Todo se filtra por el usuario de la sesion y sus permisos.
 --%>
 <%@page contentType="text/html;charset=UTF-8" pageEncoding="UTF-8"%>
@@ -631,6 +631,50 @@
                     html.append("<div class='mt-3'><a href='").append(ctx).append("/Horarios/HOR_Gestion.jsp' class='btn btn-sm btn-outline-info mb-0'>Ver horarios del equipo</a></div>");
                     html.append(pie());
                 }
+            }
+
+        // ---------------------------------------------------------------- AGENDA LEGAL (hoy y manana; departamento Legal)
+        } else if ("agendalegal".equals(b)) {
+            if (!COMUN.PermisoHelper.tiene(session, "LEGAL_ACCESO")) aplica = false;
+            else {
+                List<Object[]> hoyE = new ArrayList<>(), manE = new ArrayList<>();   // {hora, asunto, color, tipo, lugar, mio}
+                int hoyTot = 0, manTot = 0;
+                try (PreparedStatement st = cn.prepareStatement(
+                        "SELECT TRUNC(a.FECHA) - TRUNC(SYSDATE), a.HORA_INI, a.HORA_FIN, a.ASUNTO, t.COLOR, t.NOMBRE, a.MODALIDAD, a.LUGAR, " +
+                        "(SELECT COUNT(*) FROM LEG_AGENDA_RESP r WHERE r.ID_EVENTO = a.ID_EVENTO AND r.ID_USUARIO = ?) " +
+                        "FROM LEG_AGENDA a JOIN LEG_AGENDA_TIPO t ON t.ID_TIPO = a.ID_TIPO WHERE a.ESTADO = 'PENDIENTE' AND TRUNC(a.FECHA) BETWEEN TRUNC(SYSDATE) AND TRUNC(SYSDATE) + 1 " +
+                        "ORDER BY a.FECHA, a.HORA_INI")) {
+                    st.setInt(1, uid);
+                    try (ResultSet rs = st.executeQuery()) {
+                        while (rs.next()) {
+                            Object[] e = {rs.getString(2) + (rs.getString(3) == null ? "" : " - " + rs.getString(3)), rs.getString(4), rs.getString(5), rs.getString(6),
+                                          ("V".equals(rs.getString(7)) ? "Virtual" : "Presencial") + (rs.getString(8) == null || rs.getString(8).isEmpty() ? "" : " \u00b7 " + rs.getString(8)), rs.getInt(9) > 0};
+                            if (rs.getInt(1) == 0) { hoyTot++; if (hoyE.size() < 5) hoyE.add(e); } else { manTot++; if (manE.size() < 5) manE.add(e); }
+                        }
+                    }
+                }
+                int vencidos = 0;
+                try (PreparedStatement st = cn.prepareStatement("SELECT COUNT(*) FROM LEG_AGENDA a WHERE a.ESTADO = 'PENDIENTE' AND TRUNC(a.FECHA) < TRUNC(SYSDATE) " +
+                        "AND EXISTS (SELECT 1 FROM LEG_AGENDA_RESP r WHERE r.ID_EVENTO = a.ID_EVENTO AND r.ID_USUARIO = ?)")) {
+                    st.setInt(1, uid);
+                    try (ResultSet rs = st.executeQuery()) { if (rs.next()) vencidos = rs.getInt(1); }
+                }
+                html.append(cabecera("fas fa-gavel", "dark", "Agenda legal"));
+                for (int dia = 0; dia < 2; dia++) {
+                    List<Object[]> lista = dia == 0 ? hoyE : manE; int tot = dia == 0 ? hoyTot : manTot;
+                    html.append("<p class='text-xs text-secondary mb-1'>").append(dia == 0 ? "Hoy" : "Ma&ntilde;ana").append("</p>");
+                    if (lista.isEmpty()) { html.append("<p class='text-sm mb-2'>Sin eventos.</p>"); continue; }
+                    html.append("<ul class='list-group list-group-flush mb-1'>");
+                    for (Object[] e : lista)
+                        html.append("<li class='list-group-item border-0 px-0 py-1'><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:").append(esc((String) e[2])).append(";margin-right:6px'></span>")
+                            .append("<span class='text-sm").append((Boolean) e[5] ? " font-weight-bold" : "").append("'>").append(esc((String) e[0])).append(" &middot; ").append(esc((String) e[1])).append("</span>")
+                            .append("<br><span class='text-xxs text-secondary ms-3'>").append(esc((String) e[3])).append(" &middot; ").append(esc((String) e[4])).append((Boolean) e[5] ? " &middot; t&uacute;" : "").append("</span></li>");
+                    html.append("</ul>");
+                    if (tot > lista.size()) html.append("<p class='text-xs text-secondary mb-1'>y ").append(tot - lista.size()).append(" m&aacute;s</p>");
+                }
+                if (vencidos > 0) html.append("<p class='text-xs mt-2 mb-0'><i class='fas fa-triangle-exclamation text-warning me-1'></i>Tienes <b>").append(vencidos).append("</b> ").append(vencidos == 1 ? "evento pasado" : "eventos pasados").append(" sin marcar como cumplido o cancelado.</p>");
+                html.append("<div class='mt-3'><a href='").append(ctx).append("/Legal/LEG_Agenda.jsp' class='btn btn-sm btn-outline-dark mb-0'>Abrir la agenda</a></div>");
+                html.append(pie());
             }
 
         // ---------------------------------------------------------------- PENDIENTES (centro de acciones por rol)

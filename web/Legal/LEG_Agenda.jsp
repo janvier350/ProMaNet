@@ -67,6 +67,9 @@
     .est-CANCELADO { background:#e2e3e5; color:#41464b; } .est-REPROGRAMADO { background:#e7e0f7; color:#4b2f8c; }
     .resp-lista { max-height:130px; overflow:auto; border:1px solid #dee2e6; border-radius:6px; padding:6px 10px; }
     .hist li { font-size:.75rem; }
+    .ev-sub { font-size:.75rem; color:#67748e; font-weight:400; }
+    .ev-sub i { width:14px; text-align:center; }
+    .ev-cruce { color:#fb6340; }
     /* vista Lista: el texto del evento va sobre fondo claro (no blanco) */
     .fc-list-event .ev-linea { color:#344767; font-size:.85rem; padding:0; }
     .fc-list-event-title a { color:inherit; }
@@ -143,6 +146,7 @@
           <p class="text-xs text-secondary mb-0">Si no marcas a nadie, queda a tu nombre.</p></div>
         <div class="col-12"><label class="text-xs text-uppercase font-weight-bold">Comentario</label><textarea id="evComentario" class="form-control" rows="2" maxlength="1000"></textarea></div>
       </div>
+      <div id="evCruce" class="alert alert-warning text-dark py-2 mt-3 d-none"></div>
       <div id="evError" class="alert alert-danger text-white py-2 mt-3 d-none"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button><button class="btn bg-gradient-primary btn-sm" id="evGuardar">Guardar</button></div>
@@ -155,6 +159,7 @@
     <div class="modal-header"><h5 class="modal-title" id="dTitulo"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body">
       <div class="d-flex flex-wrap align-items-center gap-2 mb-3"><span id="dEstado" class="badge-est"></span><span id="dTipo" class="badge" style="color:#fff"></span><span id="dSerie" class="text-xs text-secondary"></span></div>
+      <div id="dCruce" class="alert alert-warning text-dark py-2 d-none"></div>
       <table class="table table-sm mb-3"><tbody>
         <tr><th style="width:28%">Fecha</th><td id="dFecha"></td></tr>
         <tr><th>Hora</th><td id="dHora"></td></tr>
@@ -179,6 +184,7 @@
         <div class="col-3"><label class="text-xs text-uppercase font-weight-bold">Inicio</label><input type="time" id="aIni" class="form-control"></div>
         <div class="col-3"><label class="text-xs text-uppercase font-weight-bold">Fin</label><input type="time" id="aFin" class="form-control"></div>
       </div>
+      <div id="aCruce" class="alert alert-warning text-dark py-2 d-none"></div>
       <label class="text-xs text-uppercase font-weight-bold" id="aLabel"></label>
       <textarea id="aTexto" class="form-control" rows="3" maxlength="500"></textarea>
       <div id="aError" class="alert alert-danger text-white py-2 mt-3 d-none"></div>
@@ -252,12 +258,21 @@ var calendar = new FullCalendar.Calendar($('calendar'), {
     eventClick: function (info) { abrirDetalle(info.event); },
     eventContent: function (arg) {
         var p = arg.event.extendedProps, d = document.createElement('div'); d.className = 'ev-linea';
-        var ico = p.estado === 'CUMPLIDO' ? '✔ ' : (p.estado === 'REPROGRAMADO' ? '↻ ' : '');
-        var hora = arg.view.type === 'listWeek' ? '' : '<b>' + esc(p.horaIni) + '</b> ';
-        d.innerHTML = hora + '<span class="ev-titulo">' + ico + esc(arg.event.title) + (p.serieTotal > 1 ? ' (' + p.serieN + '/' + p.serieTotal + ')' : '') + '</span>';
+        var ico = p.estado === 'CUMPLIDO' ? '\u2714 ' : (p.estado === 'REPROGRAMADO' ? '\u21bb ' : '');
+        var serie = p.serieTotal > 1 ? ' (' + p.serieN + '/' + p.serieTotal + ')' : '';
+        var cruce = p.cruce ? ' <span class="ev-cruce" title="Cruce de horario">\u26a0</span>' : '';
+        if (arg.view.type === 'listWeek') {
+            var resp = p.responsables.map(function (r) { return r.nombre; }).join(', ');
+            d.innerHTML = '<div><span class="ev-titulo"><b>' + ico + esc(arg.event.title) + serie + '</b></span>' + cruce +
+                ' <span class="badge" style="background:' + esc(p.color) + ';color:#fff;font-size:.65rem">' + esc(p.tipo) + '</span></div>' +
+                '<div class="ev-sub"><i class="fas ' + (p.modalidad === 'V' ? 'fa-video' : 'fa-location-dot') + '"></i> ' + (p.modalidad === 'V' ? 'Virtual' : 'Presencial') + (p.lugar ? ' \u00b7 ' + esc(p.lugar) : '') + '</div>' +
+                (resp ? '<div class="ev-sub"><i class="fas fa-user"></i> ' + esc(resp) + '</div>' : '');
+            return {domNodes: [d]};
+        }
+        d.innerHTML = '<b>' + esc(p.horaIni) + '</b> <span class="ev-titulo">' + ico + esc(arg.event.title) + serie + '</span>' + (p.cruce ? ' \u26a0' : '');
         return {domNodes: [d]};
     },
-    eventDidMount: function (info) { var p = info.event.extendedProps; info.el.title = p.tipo + ' · ' + p.estado + (p.lugar ? '\n' + p.lugar : '') + (p.responsables.length ? '\nResp.: ' + p.responsables.map(function (r) { return r.nombre; }).join(', ') : ''); }
+    eventDidMount: function (info) { var p = info.event.extendedProps; info.el.title = (p.cruce ? '\u26a0 CRUCE DE HORARIO: ' + p.crucesCon.join(' | ') + '\n' : '') + p.tipo + ' · ' + p.estado + (p.lugar ? '\n' + p.lugar : '') + (p.responsables.length ? '\nResp.: ' + p.responsables.map(function (r) { return r.nombre; }).join(', ') : ''); }
 });
 calendar.render();
 ['fTipo', 'fEstado', 'fResp'].forEach(function (id) { $(id).addEventListener('change', function () { if (id === 'fTipo') { tipoFiltro = this.value; pintarTipos(); } calendar.refetchEvents(); }); });
@@ -290,7 +305,7 @@ function abrirNuevo(fecha) {
     if (TIPOS.length) $('evTipo').value = TIPOS[0].id;
     $('evFechas').innerHTML = ''; filaN = 0; agregarFila(fecha || '', '', '');
     $('evAgregarFecha').classList.remove('d-none'); $('evAyudaFechas').classList.remove('d-none');
-    pintarResp([YO]); $('evError').classList.add('d-none'); modal('modalEvento').show();
+    pintarResp([YO]); $('evError').classList.add('d-none'); $('evCruce').classList.add('d-none'); modal('modalEvento').show();
 }
 function abrirEditar(ev) {
     var p = ev.extendedProps;
@@ -300,7 +315,7 @@ function abrirEditar(ev) {
     $('evTipo').value = p.tipoId;
     $('evFechas').innerHTML = ''; filaN = 0; agregarFila(p.fecha, p.horaIni, p.horaFin);
     $('evAgregarFecha').classList.add('d-none'); $('evAyudaFechas').classList.add('d-none');
-    pintarResp(p.responsables.map(function (r) { return r.id; })); $('evError').classList.add('d-none');
+    pintarResp(p.responsables.map(function (r) { return r.id; })); $('evError').classList.add('d-none'); $('evCruce').classList.add('d-none');
     modal('modalDetalle').hide(); modal('modalEvento').show();
 }
 $('btnNuevo').addEventListener('click', function () { abrirNuevo(''); });
@@ -318,6 +333,42 @@ $('evGuardar').addEventListener('click', function () {
     });
 });
 
+// ---- aviso de cruces de horario (no bloquea: solo informa antes de guardar)
+function consultarCruces(fecha, ini, fin, resp, excluir) {
+    if (!fecha || !ini) return Promise.resolve([]);
+    var q = new URLSearchParams({a: 'conflictos', fecha: fecha, ini: ini, fin: fin || ''}); resp.forEach(function (r) { q.append('resp', r); }); if (excluir) q.append('excluir', excluir);
+    return fetch(API + '?' + q.toString(), {credentials: 'same-origin'}).then(function (r) { return r.json(); }).catch(function () { return []; });
+}
+function textoCruces(lista, fecha) {
+    return lista.map(function (c) { return '<b>' + esc(c.responsable) + '</b> ya tiene \u00ab' + esc(c.asunto) + '\u00bb el ' + fmtFecha(fecha) + ' de ' + esc(c.ini) + (c.fin ? ' a ' + esc(c.fin) : '') + '.'; });
+}
+var tCruce = null;
+function revisarCrucesForm() {
+    clearTimeout(tCruce);
+    tCruce = setTimeout(function () {
+        var resp = []; document.querySelectorAll('.ev-resp:checked').forEach(function (c) { resp.push(c.value); });
+        var filas = Array.prototype.slice.call(document.querySelectorAll('#evFechas [data-fila]'));
+        Promise.all(filas.map(function (f) {
+            var fecha = f.querySelector('.ev-fecha').value;
+            return consultarCruces(fecha, f.querySelector('.ev-ini').value, f.querySelector('.ev-fin').value, resp, $('evId').value).then(function (l) { return textoCruces(l, fecha); });
+        })).then(function (res) {
+            var t = [].concat.apply([], res), box = $('evCruce');
+            if (t.length) { box.innerHTML = '<b>\u26a0 Cruce de horario</b><br>' + t.join('<br>') + '<br><span class="text-xs">Puedes guardar igual si es correcto (por ejemplo, otro abogado asistir\u00e1).</span>'; box.classList.remove('d-none'); }
+            else box.classList.add('d-none');
+        });
+    }, 400);
+}
+$('evFechas').addEventListener('input', revisarCrucesForm);
+$('evResp').addEventListener('change', revisarCrucesForm);
+function revisarCrucesReprog() {
+    if (accion !== 'REPROGRAMAR') return;
+    var fecha = $('aFechaV').value, box = $('aCruce');
+    consultarCruces(fecha, $('aIni').value, $('aFin').value, evActual.extendedProps.responsables.map(function (r) { return r.id; }), evActual.id).then(function (l) {
+        var t = textoCruces(l, fecha); if (t.length) { box.innerHTML = '<b>\u26a0 Cruce de horario</b><br>' + t.join('<br>'); box.classList.remove('d-none'); } else box.classList.add('d-none');
+    });
+}
+['aFechaV', 'aIni', 'aFin'].forEach(function (id) { $(id).addEventListener('change', revisarCrucesReprog); });
+
 // ---- detalle
 var evActual = null;
 function abrirDetalle(ev) {
@@ -326,6 +377,7 @@ function abrirDetalle(ev) {
     $('dEstado').textContent = p.estado; $('dEstado').className = 'badge-est est-' + p.estado;
     $('dTipo').textContent = p.tipo; $('dTipo').style.background = p.color;
     $('dSerie').textContent = p.serieTotal > 1 ? 'Fecha ' + p.serieN + ' de ' + p.serieTotal + ' de la misma causa' : '';
+    var dc = $('dCruce'); if (p.cruce) { dc.innerHTML = '<b>\u26a0 Cruce de horario</b> con otro evento pendiente del mismo responsable:<br>' + p.crucesCon.map(esc).join('<br>'); dc.classList.remove('d-none'); } else dc.classList.add('d-none');
     $('dFecha').textContent = diaSemana(p.fecha) + ' ' + fmtFecha(p.fecha);
     $('dHora').textContent = p.horaIni + (p.horaFin ? ' a ' + p.horaFin : '');
     $('dLugar').textContent = (p.modalidad === 'V' ? 'Virtual' : 'Presencial') + (p.lugar ? ' · ' + p.lugar : '');
@@ -356,7 +408,7 @@ function abrirDetalle(ev) {
 var accion = null;
 function abrirAccion(tipo) {
     accion = tipo; var p = evActual.extendedProps;
-    $('aError').classList.add('d-none'); $('aTexto').value = ''; $('aFecha').classList.add('d-none');
+    $('aError').classList.add('d-none'); $('aCruce').classList.add('d-none'); $('aTexto').value = ''; $('aFecha').classList.add('d-none');
     var cfg = {
         CUMPLIDO: ['Marcar como cumplido', 'Resultado o nota (opcional)', false],
         CANCELADO: ['Cancelar el evento', 'Justificación de la cancelación (obligatoria)', true],

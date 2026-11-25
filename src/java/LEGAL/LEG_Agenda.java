@@ -108,7 +108,58 @@ public class LEG_Agenda {
                 while (rs.next()) porId.get(rs.getInt(1)).getJSONObject("extendedProps").getJSONArray("responsables").put(new JSONObject().put("id", rs.getInt(2)).put("nombre", rs.getString(3)));
             }
         }
+        marcarCruces(lista);
         return new JSONArray(lista);
+    }
+
+    private static int minutos(String hhmm) { return Integer.parseInt(hhmm.substring(0, 2)) * 60 + Integer.parseInt(hhmm.substring(3, 5)); }
+    /** Hora de fin efectiva: la indicada o, si no hay, una hora despues del inicio. */
+    private static int finMin(String ini, String fin) { return fin == null || fin.isEmpty() ? minutos(ini) + 60 : minutos(fin); }
+
+    /** Marca (cruce = true y crucesCon) los eventos PENDIENTES del mismo dia que se solapan y comparten algun responsable. */
+    private static void marcarCruces(List<JSONObject> lista) {
+        for (JSONObject e : lista) { e.getJSONObject("extendedProps").put("cruce", false).put("crucesCon", new JSONArray()); }
+        for (int i = 0; i < lista.size(); i++) {
+            JSONObject pi = lista.get(i).getJSONObject("extendedProps");
+            if (!"PENDIENTE".equals(pi.getString("estado"))) continue;
+            for (int j = i + 1; j < lista.size(); j++) {
+                JSONObject pj = lista.get(j).getJSONObject("extendedProps");
+                if (!"PENDIENTE".equals(pj.getString("estado")) || !pi.getString("fecha").equals(pj.getString("fecha"))) continue;
+                if (minutos(pi.getString("horaIni")) >= finMin(pj.getString("horaIni"), pj.getString("horaFin")) || minutos(pj.getString("horaIni")) >= finMin(pi.getString("horaIni"), pi.getString("horaFin"))) continue;
+                String comun = null;
+                JSONArray ri = pi.getJSONArray("responsables"), rj = pj.getJSONArray("responsables");
+                for (int a = 0; a < ri.length() && comun == null; a++) for (int b = 0; b < rj.length(); b++) if (ri.getJSONObject(a).getInt("id") == rj.getJSONObject(b).getInt("id")) { comun = ri.getJSONObject(a).getString("nombre"); break; }
+                if (comun == null) continue;
+                pi.put("cruce", true).getJSONArray("crucesCon").put(comun + ": " + lista.get(j).getString("title") + " (" + pj.getString("horaIni") + (pj.getString("horaFin").isEmpty() ? "" : "-" + pj.getString("horaFin")) + ")");
+                pj.put("cruce", true).getJSONArray("crucesCon").put(comun + ": " + lista.get(i).getString("title") + " (" + pi.getString("horaIni") + (pi.getString("horaFin").isEmpty() ? "" : "-" + pi.getString("horaFin")) + ")");
+            }
+        }
+    }
+
+    /**
+     * Eventos PENDIENTES de los responsables indicados que se solapan con fecha/ini/fin (aviso previo al guardar; no bloquea).
+     * Devuelve [{id, asunto, ini, fin, responsable}]. excluirId = el propio evento al editarlo.
+     */
+    public static JSONArray conflictos(Connection cn, LocalDate fecha, String ini, String fin, List<Integer> resp, Integer excluirId) throws SQLException {
+        JSONArray r = new JSONArray();
+        if (fecha == null || !horaValida(ini) || resp == null || resp.isEmpty()) return r;
+        String fin2 = fin == null || fin.isEmpty() || !horaValida(fin) ? null : fin;
+        int a1 = minutos(ini), a2 = finMin(ini, fin2);
+        StringBuilder in = new StringBuilder();
+        for (Integer u : new LinkedHashSet<>(resp)) in.append(in.length() > 0 ? "," : "").append(u.intValue());
+        try (PreparedStatement st = cn.prepareStatement(
+                "SELECT a.ID_EVENTO, a.ASUNTO, a.HORA_INI, a.HORA_FIN, u.NOMBRE || ' ' || u.APELLIDOS FROM LEG_AGENDA a " +
+                "JOIN LEG_AGENDA_RESP r ON r.ID_EVENTO = a.ID_EVENTO JOIN USUARIO u ON u.IDUSUARIO = r.ID_USUARIO " +
+                "WHERE a.FECHA = ? AND a.ESTADO = 'PENDIENTE' AND r.ID_USUARIO IN (" + in + ") " + (excluirId != null ? "AND a.ID_EVENTO <> " + excluirId.intValue() + " " : "") + "ORDER BY a.HORA_INI")) {
+            st.setDate(1, Date.valueOf(fecha));
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    int b1 = minutos(rs.getString(3)), b2 = finMin(rs.getString(3), rs.getString(4));
+                    if (a1 < b2 && b1 < a2) r.put(new JSONObject().put("id", rs.getInt(1)).put("asunto", rs.getString(2)).put("ini", rs.getString(3)).put("fin", rs.getString(4) == null ? "" : rs.getString(4)).put("responsable", rs.getString(5)));
+                }
+            }
+        }
+        return r;
     }
 
     public static JSONArray historial(Connection cn, int idEvento) throws SQLException {

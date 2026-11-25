@@ -31,6 +31,14 @@
                 out.print(LEG_Agenda.eventos(cn, ini, fin, entero(request.getParameter("tipo")), request.getParameter("estado"), entero(request.getParameter("resp"))));
             } else if ("historial".equals(a)) {
                 out.print(LEG_Agenda.historial(cn, Integer.parseInt(request.getParameter("id"))));
+            } else if ("conflictos".equals(a)) {
+                List<Integer> resp = new ArrayList<>();
+                String[] rs = request.getParameterValues("resp");
+                if (rs != null) for (String r : rs) { Integer v = entero(r); if (v != null) resp.add(v); }
+                if (resp.isEmpty()) resp.add(yo);   // sin responsables marcados, el evento quedaria a nombre de quien registra
+                LocalDate f = null;
+                try { f = LocalDate.parse(request.getParameter("fecha")); } catch (Exception ignore) { }
+                out.print(LEG_Agenda.conflictos(cn, f, request.getParameter("ini"), request.getParameter("fin"), resp, entero(request.getParameter("excluir"))));
             } else if ("tipos".equals(a)) {
                 out.print(LEG_Agenda.tipos(cn, !"1".equals(request.getParameter("todos"))));
             } else { out.print(new JSONArray()); }

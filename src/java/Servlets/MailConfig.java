@@ -38,6 +38,13 @@ public class MailConfig {
     // van solo a esa direccion, con "[PRUEBA]" en el asunto y la lista de los destinatarios reales en el texto.
     public static String HORARIOS_AVISO_PRUEBA = "";
 
+    // Recordatorio por correo de la agenda legal (dia habil anterior a cada evento). Apagado por defecto: se enciende con
+    // "legal.recordatorio=S" (y opcionalmente "legal.recordatorio.hora=16") en el db.properties del SERVIDOR DE PRODUCCION.
+    // "legal.aviso.prueba=correo" manda todos esos correos solo a esa direccion (sin marcarlos como enviados).
+    public static boolean LEGAL_RECORDATORIO = false;
+    public static int LEGAL_RECORDATORIO_HORA = 16;
+    public static String LEGAL_AVISO_PRUEBA = "";
+
     // true solo si se cargo una clave real desde el archivo externo.
     public static boolean SMTP_HABILITADO = false;
 
@@ -66,6 +73,9 @@ public class MailConfig {
                 SMTP_PASS = p.getProperty("smtp.pass", SMTP_PASS);
                 ANTICIPOS_AVISO_PRUEBA = p.getProperty("anticipos.aviso.prueba", "").trim();
                 HORARIOS_AVISO_PRUEBA = p.getProperty("horarios.aviso.prueba", "").trim();
+                LEGAL_RECORDATORIO = "S".equalsIgnoreCase(p.getProperty("legal.recordatorio", "N").trim());
+                try { LEGAL_RECORDATORIO_HORA = Math.max(0, Math.min(23, Integer.parseInt(p.getProperty("legal.recordatorio.hora", "16").trim()))); } catch (Exception ignoreHora) { }
+                LEGAL_AVISO_PRUEBA = p.getProperty("legal.aviso.prueba", "").trim();
                 SMTP_FROM_NOMBRE = p.getProperty("smtp.from.nombre", SMTP_FROM_NOMBRE);
                 IMAP_HOST = p.getProperty("imap.host", SMTP_HOST);
                 IMAP_PORT = Integer.parseInt(p.getProperty("imap.port", String.valueOf(IMAP_PORT)).trim());
