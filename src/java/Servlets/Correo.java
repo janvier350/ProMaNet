@@ -33,6 +33,11 @@ public class Correo {
         // confianza por defecto del JVM -- sin esto, el handshake SSL falla
         // con "unable to find valid certification path".
         props.put("mail.smtp.ssl.trust", MailConfig.SMTP_HOST);
+        // Tiempos maximos: si el servidor de correo no responde, el envio falla en segundos en vez de quedarse colgado
+        // (importante para los hilos en segundo plano, como el recordatorio de la agenda legal).
+        props.put("mail.smtp.connectiontimeout", "15000");
+        props.put("mail.smtp.timeout", "30000");
+        props.put("mail.smtp.writetimeout", "30000");
 
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
@@ -82,6 +87,11 @@ public class Correo {
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.ssl.enable", "true");
         props.put("mail.smtp.ssl.trust", MailConfig.SMTP_HOST);
+        // Tiempos maximos: si el servidor de correo no responde, el envio falla en segundos en vez de quedarse colgado
+        // (importante para los hilos en segundo plano, como el recordatorio de la agenda legal).
+        props.put("mail.smtp.connectiontimeout", "15000");
+        props.put("mail.smtp.timeout", "30000");
+        props.put("mail.smtp.writetimeout", "30000");
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -131,6 +141,8 @@ public class Correo {
         Properties props = new Properties();
         props.put("mail.imap.ssl.enable", "true");
         props.put("mail.imap.ssl.trust", MailConfig.IMAP_HOST);
+        props.put("mail.imap.connectiontimeout", "15000");
+        props.put("mail.imap.timeout", "30000");
         Session imapSession = Session.getInstance(props);
 
         for (String nombreCarpeta : MailConfig.IMAP_CARPETAS_ENVIADOS) {
