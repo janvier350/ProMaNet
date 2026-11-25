@@ -203,6 +203,34 @@ String compania = (String) session.getAttribute("compania");
                         </div>
                     </div>
 
+                    <div class="col-xl-3 col-sm-6 mb-4">
+                        <div class="card">
+                            <a href="../Legal/LEG_Agenda.jsp">
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-sm mb-0 text-uppercase font-weight-bold">Registre y consulte</p>
+                                                <h5 class="font-weight-bolder">
+                                                    AGENDA LEGAL
+                                                </h5>
+                                                <p class="mb-0">
+                                                    <span class="text-success text-sm font-weight-bolder">Audiencias, mediaciones,</span>
+                                                    <b class="text-success"> reuniones y tr&aacute;mites.</b>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-gradient-success shadow-success text-center rounded-circle">
+                                                <i class="ni ni-calendar-grid-58 text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
