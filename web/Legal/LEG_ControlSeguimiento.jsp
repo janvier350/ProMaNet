@@ -135,6 +135,14 @@ String compania = (String) session.getAttribute("compania");
         rsSeg.close();
         stSeg.close();
 
+        // Eventos PENDIENTES de la agenda legal por caso ("I:id" investigacion previa, "J:id" juicio), para el boton Agenda de cada fila.
+        // Si todavia no se ejecutaron los scripts de la agenda (003 y 005), simplemente no hay contador.
+        java.util.Map<String, Integer> agendaPend = new java.util.HashMap<>();
+        try (PreparedStatement stAg = cn.prepareStatement("SELECT CASO_TIPO, CASO_ID, COUNT(*) FROM LEG_AGENDA WHERE CASO_ID IS NOT NULL AND ESTADO = 'PENDIENTE' GROUP BY CASO_TIPO, CASO_ID");
+             ResultSet rsAg = stAg.executeQuery()) {
+            while (rsAg.next()) agendaPend.put(rsAg.getString(1) + ":" + rsAg.getInt(2), rsAg.getInt(3));
+        } catch (Exception exAg) { /* sin agenda: sin contador */ }
+
         // Listado principal de Investigaciones Previas.
         PreparedStatement stIP = cn.prepareStatement(
                 "SELECT ip.ID_LEGAL_IP, ip.PROCESADO, ip.VICTIMA, ip.PROCESO, d.DESCRIPCION, " +
@@ -183,6 +191,8 @@ String compania = (String) session.getAttribute("compania");
                     .append("<td title='").append(ubicacionAttr).append("'>").append(esc(ubicacion)).append("</td>")
                     .append("<td class='text-center'>")
                     .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
+                    .append("<a href='LEG_Agenda.jsp?caso=I:").append(idIp).append("' class='btn btn-sm btn-outline-success' style='padding:3px 8px;' title='Agenda de este caso'><i class='fa fa-calendar'></i>")
+                    .append(agendaPend.containsKey("I:" + idIp) ? " " + agendaPend.get("I:" + idIp) : "").append("</a>")
                     .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg' style='padding:3px 8px;' ")
                     .append("data-id='").append(idIp).append("' data-seg=\"").append(segAttr).append("\">")
                     .append("<i class='fa fa-list-ul'></i> ").append(cantSeg).append("</button>")
@@ -288,6 +298,8 @@ String compania = (String) session.getAttribute("compania");
                     .append("<td title='").append(lugarAttr).append("'>").append(esc(lugar)).append("</td>")
                     .append("<td class='text-center'>")
                     .append("<div class='d-flex justify-content-center align-items-center' style='gap:4px;'>")
+                    .append("<a href='LEG_Agenda.jsp?caso=J:").append(idExpel).append("' class='btn btn-sm btn-outline-success' style='padding:3px 8px;' title='Agenda de este caso'><i class='fa fa-calendar'></i>")
+                    .append(agendaPend.containsKey("J:" + idExpel) ? " " + agendaPend.get("J:" + idExpel) : "").append("</a>")
                     .append("<button type='button' class='btn btn-sm btn-outline-info btn-ver-seg-expel' style='padding:3px 8px;' ")
                     .append("data-id='").append(idExpel).append("' data-seg=\"").append(segAttrExpel).append("\">")
                     .append("<i class='fa fa-list-ul'></i> ").append(cantSegExpel).append("</button>")
@@ -560,7 +572,7 @@ String compania = (String) session.getAttribute("compania");
                                         <th>Delito</th>
                                         <th>Fiscalia</th>
                                         <th>Ubicacion</th>
-                                        <th class="text-center" style="width:110px;">Seguimiento IP</th>
+                                        <th class="text-center" style="width:150px;">Agenda / Seguimiento</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -601,7 +613,7 @@ String compania = (String) session.getAttribute("compania");
                                         <th>Tipo de Accion</th>
                                         <th>Asunto</th>
                                         <th>Lugar</th>
-                                        <th class="text-center" style="width:110px;">Acciones</th>
+                                        <th class="text-center" style="width:150px;">Agenda / Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>

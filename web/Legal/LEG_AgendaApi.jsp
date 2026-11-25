@@ -28,7 +28,7 @@
         if (!post) {
             if ("eventos".equals(a)) {
                 LocalDate ini = LocalDate.parse(f10(request.getParameter("start"))), fin = LocalDate.parse(f10(request.getParameter("end")));
-                out.print(LEG_Agenda.eventos(cn, ini, fin, entero(request.getParameter("tipo")), request.getParameter("estado"), entero(request.getParameter("resp"))));
+                out.print(LEG_Agenda.eventos(cn, ini, fin, entero(request.getParameter("tipo")), request.getParameter("estado"), entero(request.getParameter("resp")), request.getParameter("caso")));
             } else if ("historial".equals(a)) {
                 out.print(LEG_Agenda.historial(cn, Integer.parseInt(request.getParameter("id"))));
             } else if ("conflictos".equals(a)) {
@@ -39,6 +39,8 @@
                 LocalDate f = null;
                 try { f = LocalDate.parse(request.getParameter("fecha")); } catch (Exception ignore) { }
                 out.print(LEG_Agenda.conflictos(cn, f, request.getParameter("ini"), request.getParameter("fin"), resp, entero(request.getParameter("excluir"))));
+            } else if ("casos".equals(a)) {
+                out.print(LEG_Agenda.casos(cn));
             } else if ("tipos".equals(a)) {
                 out.print(LEG_Agenda.tipos(cn, !"1".equals(request.getParameter("todos"))));
             } else { out.print(new JSONArray()); }
@@ -58,7 +60,7 @@
             if (rs != null) for (String r : rs) { Integer v = entero(r); if (v != null) resp.add(v); }
             Integer tipo = entero(request.getParameter("tipo"));
             if (tipo == null) throw new IllegalArgumentException("Elige el tipo de evento.");
-            List<Integer> ids = LEG_Agenda.crear(cn, yo, tipo, request.getParameter("asunto"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp, fechas);
+            List<Integer> ids = LEG_Agenda.crear(cn, yo, tipo, request.getParameter("asunto"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp, fechas, request.getParameter("caso"));
             COMUN.LogActividad.registrar(request, "LEGAL", "CREAR", "Agenda legal: registro " + ids.size() + " evento(s) " + ids);
             msg = ids.size() == 1 ? "Evento registrado." : ids.size() + " eventos registrados.";
         } else if ("editar".equals(a)) {
@@ -69,7 +71,7 @@
             if (tipo == null || id == null) throw new IllegalArgumentException("Datos incompletos.");
             LocalDate fecha;
             try { fecha = LocalDate.parse(request.getParameter("fecha_0")); } catch (Exception e) { throw new IllegalArgumentException("Revisa la fecha."); }
-            LEG_Agenda.editar(cn, yo, id, tipo, request.getParameter("asunto"), fecha, request.getParameter("ini_0"), request.getParameter("fin_0"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp);
+            LEG_Agenda.editar(cn, yo, id, tipo, request.getParameter("asunto"), fecha, request.getParameter("ini_0"), request.getParameter("fin_0"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp, request.getParameter("caso"));
             COMUN.LogActividad.registrar(request, "LEGAL", "ACTUALIZAR", "Agenda legal: edito evento #" + id);
             msg = "Evento actualizado.";
         } else if ("estado".equals(a)) {
@@ -96,6 +98,6 @@
         out.print(new JSONObject().put("ok", false).put("error", e instanceof java.time.format.DateTimeParseException ? "Revisa las fechas." : e.getMessage()));
     } catch (Exception e) {
         e.printStackTrace();
-        out.print(new JSONObject().put("ok", false).put("error", "No se pudo completar la operación. ¿Se ejecutó el script 003 de Legal? (" + e.getMessage() + ")"));
+        out.print(new JSONObject().put("ok", false).put("error", "No se pudo completar la operación. ¿Se ejecutaron los scripts 003 y 005 de Legal? (" + e.getMessage() + ")"));
     }
 %>

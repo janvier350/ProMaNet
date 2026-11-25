@@ -61,14 +61,19 @@ public class LEG_Agenda {
     }
 
     /** Eventos entre dos fechas (formato FullCalendar), con filtros opcionales por tipo, estado y responsable. */
-    public static JSONArray eventos(Connection cn, LocalDate ini, LocalDate fin, Integer tipo, String estado, Integer resp) throws SQLException {
+    public static JSONArray eventos(Connection cn, LocalDate ini, LocalDate fin, Integer tipo, String estado, Integer resp, String caso) throws SQLException {
         StringBuilder sql = new StringBuilder(
             "SELECT * FROM (SELECT a.ID_EVENTO, a.ID_GRUPO, a.ID_TIPO, t.NOMBRE AS TIPO_NOM, t.COLOR, a.ASUNTO, TO_CHAR(a.FECHA,'YYYY-MM-DD') AS F, a.HORA_INI, a.HORA_FIN, " +
             "a.MODALIDAD, a.LUGAR, a.COMENTARIO, a.ESTADO, a.JUSTIFICACION, a.ID_REPROG_A, " +
             "(SELECT TO_CHAR(r.FECHA,'DD/MM/YYYY') FROM LEG_AGENDA r WHERE r.ID_EVENTO = a.ID_REPROG_A) AS REPROG_FECHA, " +
             "ROW_NUMBER() OVER (PARTITION BY a.ID_GRUPO ORDER BY a.FECHA, a.HORA_INI, a.ID_EVENTO) AS N, " +
-            "SUM(CASE WHEN a.ESTADO <> 'REPROGRAMADO' THEN 1 ELSE 0 END) OVER (PARTITION BY a.ID_GRUPO) AS TOTAL, a.FECHA AS FD " +
-            "FROM LEG_AGENDA a JOIN LEG_AGENDA_TIPO t ON t.ID_TIPO = a.ID_TIPO) x WHERE x.FD BETWEEN ? AND ? ");
+            "SUM(CASE WHEN a.ESTADO <> 'REPROGRAMADO' THEN 1 ELSE 0 END) OVER (PARTITION BY a.ID_GRUPO) AS TOTAL, a.FECHA AS FD, a.CASO_TIPO, a.CASO_ID, " +
+            "CASE a.CASO_TIPO WHEN 'I' THEN 'IP \u00b7 ' || NVL(ip.PROCESO, ip.PROCESADO) WHEN 'J' THEN 'Juicio \u00b7 ' || NVL(ex.JUICIO, ex.ACTOR || ' vs ' || ex.DEMANDADO) END AS CASO_LABEL " +
+            "FROM LEG_AGENDA a JOIN LEG_AGENDA_TIPO t ON t.ID_TIPO = a.ID_TIPO " +
+            "LEFT JOIN LEGAL_IP ip ON a.CASO_TIPO = 'I' AND ip.ID_LEGAL_IP = a.CASO_ID " +
+            "LEFT JOIN LEGAL_EXPEL ex ON a.CASO_TIPO = 'J' AND ex.ID_LEGAL_EXPEL = a.CASO_ID) x WHERE x.FD BETWEEN ? AND ? ");
+        Object[] cf = parseCaso(caso);
+        if (cf != null) sql.append("AND x.CASO_TIPO = '").append(cf[0]).append("' AND x.CASO_ID = ").append(cf[1]).append(" ");
         if (tipo != null) sql.append("AND x.ID_TIPO = ").append(tipo.intValue()).append(" ");
         if (estado != null && estado.matches("PENDIENTE|CUMPLIDO|CANCELADO|REPROGRAMADO")) sql.append("AND x.ESTADO = '").append(estado).append("' ");
         if (resp != null) sql.append("AND EXISTS (SELECT 1 FROM LEG_AGENDA_RESP r WHERE r.ID_EVENTO = x.ID_EVENTO AND r.ID_USUARIO = ").append(resp.intValue()).append(") ");
@@ -87,7 +92,9 @@ public class LEG_Agenda {
                      .put("estado", est).put("justificacion", rs.getString("JUSTIFICACION") == null ? "" : rs.getString("JUSTIFICACION"))
                      .put("reprogA", rs.getObject("ID_REPROG_A") == null ? JSONObject.NULL : rs.getInt("ID_REPROG_A")).put("reprogFecha", rs.getString("REPROG_FECHA"))
                      .put("grupo", rs.getObject("ID_GRUPO") == null ? JSONObject.NULL : rs.getInt("ID_GRUPO"))
-                     .put("serieN", rs.getObject("ID_GRUPO") == null ? 0 : rs.getInt("N")).put("serieTotal", rs.getObject("ID_GRUPO") == null ? 0 : rs.getInt("TOTAL"));
+                     .put("serieN", rs.getObject("ID_GRUPO") == null ? 0 : rs.getInt("N")).put("serieTotal", rs.getObject("ID_GRUPO") == null ? 0 : rs.getInt("TOTAL"))
+                     .put("caso", rs.getString("CASO_TIPO") == null ? "" : rs.getString("CASO_TIPO") + ":" + rs.getInt("CASO_ID"))
+                     .put("casoLabel", rs.getString("CASO_LABEL") == null ? "" : rs.getString("CASO_LABEL"));
                     JSONObject e = new JSONObject();
                     e.put("id", rs.getInt("ID_EVENTO")).put("title", rs.getString("ASUNTO")).put("start", f + "T" + hi + ":00");
                     if (hf != null && !hf.isEmpty()) e.put("end", f + "T" + hf + ":00");
@@ -162,6 +169,33 @@ public class LEG_Agenda {
         return r;
     }
 
+    /** "I:12" / "J:5" -> {"I", 12}; null si no es un caso valido. */
+    public static Object[] parseCaso(String caso) {
+        if (caso == null || !caso.matches("[IJ]:\\d{1,9}")) return null;
+        return new Object[]{caso.substring(0, 1), Integer.valueOf(caso.substring(2))};
+    }
+
+    /** Casos activos del modulo Legal para vincular: [{caso: "I:12", label: "IP \u00b7 ..."}], investigaciones primero. */
+    public static JSONArray casos(Connection cn) throws SQLException {
+        JSONArray r = new JSONArray();
+        try (PreparedStatement st = cn.prepareStatement(
+                "SELECT 'I:' || ID_LEGAL_IP, 'IP \u00b7 ' || NVL(PROCESO, '-') || ' \u00b7 ' || PROCESADO || ' / ' || VICTIMA FROM LEGAL_IP WHERE ESTADO = 'A' ORDER BY FECHA_CREACION DESC");
+             ResultSet rs = st.executeQuery()) { while (rs.next()) r.put(new JSONObject().put("caso", rs.getString(1)).put("label", rs.getString(2))); }
+        try (PreparedStatement st = cn.prepareStatement(
+                "SELECT 'J:' || ID_LEGAL_EXPEL, 'Juicio \u00b7 ' || NVL(JUICIO, '-') || ' \u00b7 ' || ACTOR || ' vs ' || DEMANDADO FROM LEGAL_EXPEL WHERE ESTADO = 'A' ORDER BY FECHA_CREACION DESC");
+             ResultSet rs = st.executeQuery()) { while (rs.next()) r.put(new JSONObject().put("caso", rs.getString(1)).put("label", rs.getString(2))); }
+        return r;
+    }
+
+    private static void validarCaso(Connection cn, Object[] cf) throws SQLException {
+        if (cf == null) return;
+        boolean ip = "I".equals(cf[0]);
+        try (PreparedStatement st = cn.prepareStatement("SELECT COUNT(*) FROM " + (ip ? "LEGAL_IP WHERE ID_LEGAL_IP" : "LEGAL_EXPEL WHERE ID_LEGAL_EXPEL") + " = ? AND ESTADO = 'A'")) {
+            st.setInt(1, (Integer) cf[1]);
+            try (ResultSet rs = st.executeQuery()) { if (!rs.next() || rs.getInt(1) == 0) throw new IllegalArgumentException("El caso elegido ya no est\u00e1 disponible."); }
+        }
+    }
+
     public static JSONArray historial(Connection cn, int idEvento) throws SQLException {
         JSONArray r = new JSONArray();
         try (PreparedStatement st = cn.prepareStatement(
@@ -200,11 +234,11 @@ public class LEG_Agenda {
         }
     }
 
-    private static int insertarEvento(Connection cn, Integer grupo, int tipo, String asunto, LocalDate fecha, String ini, String fin, String modalidad, String lugar, String comentario, int yo) throws SQLException {
+    private static int insertarEvento(Connection cn, Integer grupo, int tipo, String asunto, LocalDate fecha, String ini, String fin, String modalidad, String lugar, String comentario, int yo, Object[] caso) throws SQLException {
         for (int intento = 0; intento < 3; intento++) {
             int id = siguienteId(cn, "LEG_AGENDA", "ID_EVENTO");
             try (PreparedStatement st = cn.prepareStatement(
-                    "INSERT INTO LEG_AGENDA (ID_EVENTO, ID_GRUPO, ID_TIPO, ASUNTO, FECHA, HORA_INI, HORA_FIN, MODALIDAD, LUGAR, COMENTARIO, ESTADO, ID_CREA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?)")) {
+                    "INSERT INTO LEG_AGENDA (ID_EVENTO, ID_GRUPO, ID_TIPO, ASUNTO, FECHA, HORA_INI, HORA_FIN, MODALIDAD, LUGAR, COMENTARIO, ESTADO, ID_CREA, CASO_TIPO, CASO_ID) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDIENTE', ?, ?, ?)")) {
                 st.setInt(1, id);
                 if (grupo == null) st.setNull(2, Types.NUMERIC); else st.setInt(2, grupo);
                 st.setInt(3, tipo); st.setString(4, asunto); st.setDate(5, Date.valueOf(fecha)); st.setString(6, ini);
@@ -213,6 +247,7 @@ public class LEG_Agenda {
                 if (lugar == null) st.setNull(9, Types.VARCHAR); else st.setString(9, lugar);
                 if (comentario == null) st.setNull(10, Types.VARCHAR); else st.setString(10, comentario);
                 st.setInt(11, yo);
+                if (caso == null) { st.setNull(12, Types.CHAR); st.setNull(13, Types.NUMERIC); } else { st.setString(12, (String) caso[0]); st.setInt(13, (Integer) caso[1]); }
                 st.executeUpdate();
                 return id;
             } catch (SQLIntegrityConstraintViolationException dup) { /* otro usuario tomo ese id: reintenta */ }
@@ -221,7 +256,7 @@ public class LEG_Agenda {
     }
 
     /** Crea uno o varios eventos (una fila de "fechas" = {fecha, horaIni, horaFin}). Varias fechas quedan agrupadas como serie. */
-    public static List<Integer> crear(Connection cn, int yo, int tipo, String asunto, String modalidad, String lugar, String comentario, List<Integer> resp, List<String[]> fechas) throws Exception {
+    public static List<Integer> crear(Connection cn, int yo, int tipo, String asunto, String modalidad, String lugar, String comentario, List<Integer> resp, List<String[]> fechas, String caso) throws Exception {
         asunto = norm(asunto, 200);
         if (asunto == null) throw new IllegalArgumentException("El asunto es obligatorio.");
         if (fechas == null || fechas.isEmpty()) throw new IllegalArgumentException("Agrega al menos una fecha.");
@@ -240,11 +275,13 @@ public class LEG_Agenda {
         cn.setAutoCommit(false);
         try {
             existeTipo(cn, tipo);
+            Object[] cf = parseCaso(caso);
+            validarCaso(cn, cf);
             List<Integer> ids = new ArrayList<>();
             Integer grupo = null;
             for (int i = 0; i < fechas.size(); i++) {
                 String[] f = fechas.get(i);
-                int id = insertarEvento(cn, grupo, tipo, asunto, fs.get(i), f[1], norm(f[2], 5), modalidad, lugar, comentario, yo);
+                int id = insertarEvento(cn, grupo, tipo, asunto, fs.get(i), f[1], norm(f[2], 5), modalidad, lugar, comentario, yo, cf);
                 if (i == 0 && fechas.size() > 1) {   // la serie se identifica con el id del primer evento
                     grupo = id;
                     try (PreparedStatement st = cn.prepareStatement("UPDATE LEG_AGENDA SET ID_GRUPO = ? WHERE ID_EVENTO = ?")) { st.setInt(1, id); st.setInt(2, id); st.executeUpdate(); }
@@ -267,11 +304,11 @@ public class LEG_Agenda {
     }
 
     private static Object[] fila(Connection cn, int id) throws SQLException {
-        try (PreparedStatement st = cn.prepareStatement("SELECT ESTADO, ID_TIPO, ASUNTO, FECHA, HORA_INI, HORA_FIN, MODALIDAD, LUGAR, COMENTARIO, ID_GRUPO FROM LEG_AGENDA WHERE ID_EVENTO = ?")) {
+        try (PreparedStatement st = cn.prepareStatement("SELECT ESTADO, ID_TIPO, ASUNTO, FECHA, HORA_INI, HORA_FIN, MODALIDAD, LUGAR, COMENTARIO, ID_GRUPO, CASO_TIPO, CASO_ID FROM LEG_AGENDA WHERE ID_EVENTO = ?")) {
             st.setInt(1, id);
             try (ResultSet rs = st.executeQuery()) {
                 if (!rs.next()) throw new IllegalArgumentException("El evento no existe.");
-                return new Object[]{rs.getString(1), rs.getInt(2), rs.getString(3), rs.getDate(4).toLocalDate(), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9), rs.getObject(10)};
+                return new Object[]{rs.getString(1), rs.getInt(2), rs.getString(3), rs.getDate(4).toLocalDate(), rs.getString(5), rs.getString(6), rs.getString(7), rs.getString(8), rs.getString(9), rs.getObject(10), rs.getString(11), rs.getObject(12)};
             }
         }
     }
@@ -279,7 +316,7 @@ public class LEG_Agenda {
     private static String ig(Object o) { return o == null ? "" : o.toString(); }
 
     /** Edita un evento PENDIENTE (incluida su fecha). Deja en el historial lo que cambio. */
-    public static void editar(Connection cn, int yo, int id, int tipo, String asunto, LocalDate fecha, String ini, String fin, String modalidad, String lugar, String comentario, List<Integer> resp) throws Exception {
+    public static void editar(Connection cn, int yo, int id, int tipo, String asunto, LocalDate fecha, String ini, String fin, String modalidad, String lugar, String comentario, List<Integer> resp, String caso) throws Exception {
         asunto = norm(asunto, 200);
         if (asunto == null) throw new IllegalArgumentException("El asunto es obligatorio.");
         fin = norm(fin, 5);
@@ -293,6 +330,8 @@ public class LEG_Agenda {
             Object[] o = fila(cn, id);
             if (!"PENDIENTE".equals(o[0])) throw new IllegalArgumentException("Solo se puede editar un evento pendiente. Reabre el evento primero.");
             existeTipo(cn, tipo);
+            Object[] cf = parseCaso(caso);
+            validarCaso(cn, cf);
             List<String> cambios = new ArrayList<>();
             if (!asunto.equals(o[2])) cambios.add("Asunto");
             if (!fecha.equals(o[3])) cambios.add("Fecha: " + F.format((LocalDate) o[3]) + " → " + F.format(fecha));
@@ -300,14 +339,17 @@ public class LEG_Agenda {
             if (tipo != (Integer) o[1]) cambios.add("Tipo");
             if (!modalidad.equals(o[6]) || !ig(lugar).equals(ig(o[7]))) cambios.add("Lugar/modalidad");
             if (!ig(comentario).equals(ig(o[8]))) cambios.add("Comentario");
+            if (!(cf == null ? "" : cf[0] + ":" + cf[1]).equals(o[10] == null ? "" : o[10] + ":" + o[11])) cambios.add("Caso vinculado");
             try (PreparedStatement st = cn.prepareStatement(
-                    "UPDATE LEG_AGENDA SET ID_TIPO = ?, ASUNTO = ?, FECHA = ?, HORA_INI = ?, HORA_FIN = ?, MODALIDAD = ?, LUGAR = ?, COMENTARIO = ?, ID_MODIFICA = ?, FECHA_MODIFICA = SYSDATE WHERE ID_EVENTO = ?")) {
+                    "UPDATE LEG_AGENDA SET ID_TIPO = ?, ASUNTO = ?, FECHA = ?, HORA_INI = ?, HORA_FIN = ?, MODALIDAD = ?, LUGAR = ?, COMENTARIO = ?, ID_MODIFICA = ?, FECHA_MODIFICA = SYSDATE, CASO_TIPO = ?, CASO_ID = ? WHERE ID_EVENTO = ?")) {
                 st.setInt(1, tipo); st.setString(2, asunto); st.setDate(3, Date.valueOf(fecha)); st.setString(4, ini);
                 if (fin == null) st.setNull(5, Types.VARCHAR); else st.setString(5, fin);
                 st.setString(6, modalidad);
                 if (lugar == null) st.setNull(7, Types.VARCHAR); else st.setString(7, lugar);
                 if (comentario == null) st.setNull(8, Types.VARCHAR); else st.setString(8, comentario);
-                st.setInt(9, yo); st.setInt(10, id);
+                st.setInt(9, yo);
+                if (cf == null) { st.setNull(10, Types.CHAR); st.setNull(11, Types.NUMERIC); } else { st.setString(10, (String) cf[0]); st.setInt(11, (Integer) cf[1]); }
+                st.setInt(12, id);
                 st.executeUpdate();
             }
             guardarResponsables(cn, id, resp);
@@ -361,7 +403,8 @@ public class LEG_Agenda {
                 grupo = id;
                 try (PreparedStatement st = cn.prepareStatement("UPDATE LEG_AGENDA SET ID_GRUPO = ? WHERE ID_EVENTO = ?")) { st.setInt(1, id); st.setInt(2, id); st.executeUpdate(); }
             }
-            int nuevo = insertarEvento(cn, grupo, (Integer) o[1], (String) o[2], fecha, ini, fin, (String) o[6], (String) o[7], (String) o[8], yo);
+            int nuevo = insertarEvento(cn, grupo, (Integer) o[1], (String) o[2], fecha, ini, fin, (String) o[6], (String) o[7], (String) o[8], yo,
+                    o[10] == null ? null : new Object[]{o[10], ((Number) o[11]).intValue()});
             // mismos responsables
             try (PreparedStatement st = cn.prepareStatement("INSERT INTO LEG_AGENDA_RESP (ID_EVENTO, ID_USUARIO) SELECT ?, ID_USUARIO FROM LEG_AGENDA_RESP WHERE ID_EVENTO = ?")) { st.setInt(1, nuevo); st.setInt(2, id); st.executeUpdate(); }
             try (PreparedStatement st = cn.prepareStatement("UPDATE LEG_AGENDA SET ESTADO = 'REPROGRAMADO', JUSTIFICACION = ?, ID_REPROG_A = ?, ID_MODIFICA = ?, FECHA_MODIFICA = SYSDATE WHERE ID_EVENTO = ? AND ESTADO = 'PENDIENTE'")) {
@@ -395,5 +438,68 @@ public class LEG_Agenda {
                 }
             }
         } catch (SQLIntegrityConstraintViolationException dup) { throw new IllegalArgumentException("Ya existe un tipo con ese nombre."); }
+    }
+
+    // ------------------------------------------------------------------ exportar
+
+    private static String csv(String v) {
+        if (v == null) v = "";
+        v = v.replace("\r", " ").replace("\n", " ");
+        return "\"" + v.replace("\"", "\"\"") + "\"";
+    }
+
+    /** CSV (separador ';', con BOM para que Excel lo abra con tildes) de los eventos del JSON de eventos(). */
+    public static String exportarCsv(JSONArray ev) {
+        StringBuilder sb = new StringBuilder("\uFEFF");
+        sb.append("Fecha;Hora inicio;Hora fin;Tipo;Asunto;Estado;Modalidad;Lugar o enlace;Responsables;Caso;Comentario;Justificaci\u00f3n\r\n");
+        for (int i = 0; i < ev.length(); i++) {
+            JSONObject p = ev.getJSONObject(i).getJSONObject("extendedProps");
+            StringBuilder resp = new StringBuilder();
+            JSONArray rs = p.getJSONArray("responsables");
+            for (int k = 0; k < rs.length(); k++) resp.append(k > 0 ? ", " : "").append(rs.getJSONObject(k).getString("nombre"));
+            String f = p.getString("fecha");
+            sb.append(csv(f.substring(8, 10) + "/" + f.substring(5, 7) + "/" + f.substring(0, 4))).append(';').append(csv(p.getString("horaIni"))).append(';').append(csv(p.optString("horaFin", "")))
+              .append(';').append(csv(p.getString("tipo"))).append(';').append(csv(ev.getJSONObject(i).getString("title"))).append(';').append(csv(p.getString("estado")))
+              .append(';').append(csv("V".equals(p.getString("modalidad")) ? "Virtual" : "Presencial")).append(';').append(csv(p.optString("lugar", ""))).append(';').append(csv(resp.toString()))
+              .append(';').append(csv(p.optString("casoLabel", ""))).append(';').append(csv(p.optString("comentario", ""))).append(';').append(csv(p.optString("justificacion", ""))).append("\r\n");
+        }
+        return sb.toString();
+    }
+
+    private static String ics(String v) {
+        return v == null ? "" : v.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\r", "").replace("\n", "\\n");
+    }
+
+    /** iCalendar (.ics) para Outlook / Google Calendar / celular. Hora de Ecuador (UTC-5, sin horario de verano). Omite los reprogramados. */
+    public static String exportarIcs(JSONArray ev) {
+        StringBuilder sb = new StringBuilder();
+        String nl = "\r\n";
+        sb.append("BEGIN:VCALENDAR").append(nl).append("VERSION:2.0").append(nl).append("PRODID:-//ProMaNet//Agenda legal//ES").append(nl).append("CALSCALE:GREGORIAN").append(nl)
+          .append("METHOD:PUBLISH").append(nl).append("X-WR-CALNAME:Agenda legal").append(nl).append("X-WR-TIMEZONE:America/Guayaquil").append(nl)
+          .append("BEGIN:VTIMEZONE").append(nl).append("TZID:America/Guayaquil").append(nl).append("BEGIN:STANDARD").append(nl).append("DTSTART:19700101T000000").append(nl)
+          .append("TZOFFSETFROM:-0500").append(nl).append("TZOFFSETTO:-0500").append(nl).append("TZNAME:ECT").append(nl).append("END:STANDARD").append(nl).append("END:VTIMEZONE").append(nl);
+        String stamp = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'"));
+        for (int i = 0; i < ev.length(); i++) {
+            JSONObject e = ev.getJSONObject(i), p = e.getJSONObject("extendedProps");
+            if ("REPROGRAMADO".equals(p.getString("estado"))) continue;
+            String f = p.getString("fecha").replace("-", ""), hi = p.getString("horaIni"), hf = p.optString("horaFin", "");
+            String fin = hf.isEmpty() ? String.format("%02d:%02d", (Integer.parseInt(hi.substring(0, 2)) + 1) % 24, Integer.parseInt(hi.substring(3, 5))) : hf;
+            StringBuilder resp = new StringBuilder();
+            JSONArray rs = p.getJSONArray("responsables");
+            for (int k = 0; k < rs.length(); k++) resp.append(k > 0 ? ", " : "").append(rs.getJSONObject(k).getString("nombre"));
+            StringBuilder d = new StringBuilder(p.getString("tipo") + " (" + p.getString("estado").toLowerCase() + ")");
+            if (resp.length() > 0) d.append("\nResponsables: ").append(resp);
+            if (!p.optString("casoLabel", "").isEmpty()) d.append("\nCaso: ").append(p.getString("casoLabel"));
+            if (!p.optString("comentario", "").isEmpty()) d.append("\n").append(p.getString("comentario"));
+            if (!p.optString("justificacion", "").isEmpty()) d.append("\nNota: ").append(p.getString("justificacion"));
+            sb.append("BEGIN:VEVENT").append(nl).append("UID:legal-").append(e.getInt("id")).append("@promanet").append(nl).append("DTSTAMP:").append(stamp).append(nl)
+              .append("DTSTART;TZID=America/Guayaquil:").append(f).append('T').append(hi.replace(":", "")).append("00").append(nl)
+              .append("DTEND;TZID=America/Guayaquil:").append(f).append('T').append(fin.replace(":", "")).append("00").append(nl)
+              .append("SUMMARY:").append(ics(e.getString("title"))).append(nl).append("DESCRIPTION:").append(ics(d.toString())).append(nl);
+            if (!p.optString("lugar", "").isEmpty()) sb.append("LOCATION:").append(ics(p.getString("lugar"))).append(nl);
+            sb.append("CATEGORIES:").append(ics(p.getString("tipo"))).append(nl).append("STATUS:").append("CANCELADO".equals(p.getString("estado")) ? "CANCELLED" : "CONFIRMED").append(nl).append("END:VEVENT").append(nl);
+        }
+        sb.append("END:VCALENDAR").append(nl);
+        return sb.toString();
     }
 }

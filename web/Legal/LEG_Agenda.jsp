@@ -24,10 +24,11 @@
     if (yo <= 0) { response.sendRedirect("../sesionInvalida.jsp"); return; }
     request.setAttribute("sidenav_active", "leg_agenda");
 
-    JSONArray tipos = new JSONArray(), usuarios = new JSONArray();
+    JSONArray tipos = new JSONArray(), usuarios = new JSONArray(), casos = new JSONArray();
     String errCarga = null;
     try (Connection cn = Servlets.Conexion.getConnection()) {
         tipos = LEGAL.LEG_Agenda.tipos(cn, true);
+        try { casos = LEGAL.LEG_Agenda.casos(cn); } catch (Exception exCasos) { exCasos.printStackTrace(); }   // si faltan las tablas de casos, la agenda sigue funcionando sin vinculo
         // Responsables posibles: el personal del departamento Legal (activos) + quien esta registrando
         try (PreparedStatement st = cn.prepareStatement(
                 "SELECT u.IDUSUARIO, u.NOMBRE || ' ' || u.APELLIDOS FROM USUARIO u LEFT JOIN ADM_DEPARTAMENTO d ON d.ID_DEPARTAMENTO = u.ID_ADM_DEPARTAMENTO " +
@@ -112,11 +113,24 @@
                     <select id="fResp" class="form-control form-control-sm" style="width:auto"><option value="">Todos los responsables</option></select>
                     <div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="fMios"><label class="form-check-label text-sm" for="fMios">Solo mis eventos</label></div>
                     <div class="ms-auto d-flex gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary mb-0 dropdown-toggle" data-bs-toggle="dropdown" id="btnExportar"><i class="fas fa-download me-1"></i> Exportar</button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="javascript:;" id="expCsvVista">Excel (CSV) \u00b7 lo que se ve ahora</a></li>
+                                <li><a class="dropdown-item" href="javascript:;" id="expCsvAnio">Excel (CSV) \u00b7 todo el a\u00f1o</a></li>
+                                <li><a class="dropdown-item" href="javascript:;" id="expIcs">Calendario (.ics) \u00b7 pendientes pr\u00f3ximos</a></li>
+                            </ul>
+                        </div>
                         <button class="btn btn-sm btn-outline-secondary mb-0" id="btnTipos"><i class="fas fa-palette me-1"></i> Tipos y colores</button>
                         <button class="btn btn-sm bg-gradient-primary mb-0" id="btnNuevo"><i class="fas fa-plus me-1"></i> Nuevo evento</button>
                     </div>
                 </div>
                 <div id="leyenda" class="d-flex flex-wrap gap-2 mt-3"></div>
+                <div id="bannerCaso" class="alert alert-info text-dark py-2 mt-3 mb-0 d-none d-flex flex-wrap align-items-center gap-2">
+                    <span><i class="fas fa-folder-open me-1"></i>Mostrando solo los eventos del caso: <b id="bannerCasoTxt"></b></span>
+                    <span class="ms-auto d-flex gap-2"><button class="btn btn-sm bg-gradient-primary mb-0" id="bannerAgendar"><i class="fas fa-plus me-1"></i>Agendar para este caso</button>
+                    <button class="btn btn-sm btn-outline-secondary mb-0" id="bannerQuitar">Ver toda la agenda</button></span>
+                </div>
             </div>
         </div>
 
@@ -133,6 +147,11 @@
       <div class="row g-3">
         <div class="col-md-4"><label class="text-xs text-uppercase font-weight-bold">Tipo</label><select id="evTipo" class="form-control"></select></div>
         <div class="col-md-8"><label class="text-xs text-uppercase font-weight-bold">Asunto / caso</label><input id="evAsunto" class="form-control" maxlength="200" placeholder="Ej.: Audiencia de juzgamiento - Estafa (Perito XP)"></div>
+        <div class="col-12">
+          <label class="text-xs text-uppercase font-weight-bold">Caso relacionado (opcional)</label>
+          <input id="evCasoFiltro" class="form-control form-control-sm mb-1" placeholder="Buscar caso por proceso, actor, procesado..." autocomplete="off">
+          <select id="evCaso" class="form-control"><option value="">Sin caso vinculado</option></select>
+        </div>
         <div class="col-12">
           <label class="text-xs text-uppercase font-weight-bold mb-1">Fecha y hora</label>
           <div id="evFechas"></div>
@@ -163,6 +182,7 @@
       <table class="table table-sm mb-3"><tbody>
         <tr><th style="width:28%">Fecha</th><td id="dFecha"></td></tr>
         <tr><th>Hora</th><td id="dHora"></td></tr>
+        <tr id="dCasoFila"><th>Caso</th><td id="dCaso"></td></tr>
         <tr><th>Modalidad / lugar</th><td id="dLugar"></td></tr>
         <tr><th>Responsables</th><td id="dResp"></td></tr>
         <tr><th>Comentario</th><td id="dComentario" style="white-space:pre-line"></td></tr>
@@ -210,7 +230,7 @@
 <script src="../assets/js/core/bootstrap.min.js"></script>
 <script>
 var API = 'LEG_AgendaApi.jsp', YO = <%= yo %>;
-var TIPOS = <%= js(tipos) %>, USUARIOS = <%= js(usuarios) %>;
+var TIPOS = <%= js(tipos) %>, USUARIOS = <%= js(usuarios) %>, CASOS = <%= js(casos) %>;
 var DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
 function $(id) { return document.getElementById(id); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
@@ -229,7 +249,8 @@ function post(a, datos) {
 }
 
 // ---- tipos: selects, leyenda
-var tipoFiltro = '';
+var tipoFiltro = '', casoFiltro = (new URLSearchParams(location.search).get('caso') || '');
+if (!/^[IJ]:\d+$/.test(casoFiltro)) casoFiltro = '';
 function pintarTipos() {
     var f = $('fTipo'), e = $('evTipo'); f.innerHTML = '<option value="">Todos los tipos</option>'; e.innerHTML = '';
     TIPOS.forEach(function (t) { f.insertAdjacentHTML('beforeend', '<option value="' + t.id + '">' + esc(t.nombre) + '</option>'); e.insertAdjacentHTML('beforeend', '<option value="' + t.id + '">' + esc(t.nombre) + '</option>'); });
@@ -247,12 +268,12 @@ function pintarTipos() {
 
 // ---- calendario
 var calendar = new FullCalendar.Calendar($('calendar'), {
-    initialView: window.innerWidth < 576 ? 'listWeek' : 'dayGridMonth',
-    height: 'auto', locale: 'es', firstDay: 1, eventDisplay: 'block', dayMaxEvents: 4, moreLinkText: function (n) { return '+' + n + ' más'; }, buttonText: {today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Lista'},
-    headerToolbar: {left: 'prev,next today', center: 'title', right: window.innerWidth < 576 ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,listWeek'},
+    initialView: casoFiltro ? 'listYear' : (window.innerWidth < 576 ? 'listWeek' : 'dayGridMonth'),
+    height: 'auto', locale: 'es', firstDay: 1, eventDisplay: 'block', dayMaxEvents: 4, moreLinkText: function (n) { return '+' + n + ' más'; }, buttonText: {today: 'Hoy', month: 'Mes', week: 'Semana', list: 'Lista', year: 'A\u00f1o'},
+    headerToolbar: {left: 'prev,next today', center: 'title', right: window.innerWidth < 576 ? 'dayGridMonth,listWeek' : 'dayGridMonth,timeGridWeek,listWeek,listYear'},
     dateClick: function (info) { abrirNuevo(info.dateStr.substring(0, 10)); },
     events: function (info, ok, fail) {
-        var q = 'a=eventos&start=' + info.startStr.substring(0, 10) + '&end=' + info.endStr.substring(0, 10) + '&tipo=' + encodeURIComponent($('fTipo').value) + '&estado=' + $('fEstado').value + '&resp=' + ($('fMios').checked ? YO : $('fResp').value);
+        var q = 'a=eventos&start=' + info.startStr.substring(0, 10) + '&end=' + info.endStr.substring(0, 10) + '&tipo=' + encodeURIComponent($('fTipo').value) + '&estado=' + $('fEstado').value + '&resp=' + ($('fMios').checked ? YO : $('fResp').value) + '&caso=' + encodeURIComponent(casoFiltro);
         fetch(API + '?' + q, {credentials: 'same-origin'}).then(function (r) { return r.json(); }).then(function (d) { if (d && d.ok === false) { fail(d.error); aviso(d.error, 'danger'); } else ok(d); }).catch(fail);
     },
     eventClick: function (info) { abrirDetalle(info.event); },
@@ -261,11 +282,12 @@ var calendar = new FullCalendar.Calendar($('calendar'), {
         var ico = p.estado === 'CUMPLIDO' ? '\u2714 ' : (p.estado === 'REPROGRAMADO' ? '\u21bb ' : '');
         var serie = p.serieTotal > 1 ? ' (' + p.serieN + '/' + p.serieTotal + ')' : '';
         var cruce = p.cruce ? ' <span class="ev-cruce" title="Cruce de horario">\u26a0</span>' : '';
-        if (arg.view.type === 'listWeek') {
+        if (arg.view.type === 'listWeek' || arg.view.type === 'listYear') {
             var resp = p.responsables.map(function (r) { return r.nombre; }).join(', ');
             d.innerHTML = '<div><span class="ev-titulo"><b>' + ico + esc(arg.event.title) + serie + '</b></span>' + cruce +
                 ' <span class="badge" style="background:' + esc(p.color) + ';color:#fff;font-size:.65rem">' + esc(p.tipo) + '</span></div>' +
                 '<div class="ev-sub"><i class="fas ' + (p.modalidad === 'V' ? 'fa-video' : 'fa-location-dot') + '"></i> ' + (p.modalidad === 'V' ? 'Virtual' : 'Presencial') + (p.lugar ? ' \u00b7 ' + esc(p.lugar) : '') + '</div>' +
+                (p.casoLabel ? '<div class="ev-sub"><i class="fas fa-folder-open"></i> ' + esc(p.casoLabel) + '</div>' : '') +
                 (resp ? '<div class="ev-sub"><i class="fas fa-user"></i> ' + esc(resp) + '</div>' : '');
             return {domNodes: [d]};
         }
@@ -278,6 +300,39 @@ calendar.render();
 ['fTipo', 'fEstado', 'fResp'].forEach(function (id) { $(id).addEventListener('change', function () { if (id === 'fTipo') { tipoFiltro = this.value; pintarTipos(); } calendar.refetchEvents(); }); });
 $('fMios').addEventListener('change', function () { calendar.refetchEvents(); });
 pintarTipos();
+
+// ---- casos (vinculo opcional con Investigaciones previas y Juicios del modulo Legal)
+function normTxt(x) { return (x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+function pintarCasos(seleccionado, extraLabel) {
+    var sel = $('evCaso'), ws = normTxt($('evCasoFiltro').value).split(/\s+/).filter(Boolean);
+    sel.innerHTML = '<option value="">Sin caso vinculado</option>';
+    var hay = false;
+    CASOS.forEach(function (c) {
+        if (ws.every(function (w) { return normTxt(c.label).indexOf(w) !== -1; }) || c.caso === seleccionado) {
+            var o = document.createElement('option'); o.value = c.caso; o.textContent = c.label; if (c.caso === seleccionado) { o.selected = true; hay = true; } sel.appendChild(o);
+        }
+    });
+    if (seleccionado && !hay) { var o = document.createElement('option'); o.value = seleccionado; o.textContent = extraLabel || ('Caso ' + seleccionado); o.selected = true; sel.appendChild(o); }
+}
+$('evCasoFiltro').addEventListener('input', function () { pintarCasos($('evCaso').value); });
+function etiquetaCaso(clave) { var c = CASOS.filter(function (x) { return x.caso === clave; })[0]; return c ? c.label : 'Caso ' + clave; }
+function actualizarBanner() {
+    var b = $('bannerCaso'); if (casoFiltro) { $('bannerCasoTxt').textContent = etiquetaCaso(casoFiltro); b.classList.remove('d-none'); } else b.classList.add('d-none');
+}
+$('bannerQuitar').addEventListener('click', function () { casoFiltro = ''; actualizarBanner(); history.replaceState(null, '', location.pathname); calendar.changeView(window.innerWidth < 576 ? 'listWeek' : 'dayGridMonth'); calendar.refetchEvents(); });
+$('bannerAgendar').addEventListener('click', function () { abrirNuevo(''); });
+actualizarBanner();
+
+// ---- exportar (respeta los filtros activos)
+function urlExport(fmt, ini, fin) {
+    var q = new URLSearchParams({fmt: fmt, tipo: $('fTipo').value, estado: $('fEstado').value, resp: $('fMios').checked ? YO : $('fResp').value, caso: casoFiltro});
+    if (ini) { q.set('start', ini); q.set('end', fin); }
+    return 'LEG_AgendaExport.jsp?' + q.toString();
+}
+function isoLocal(d) { var m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + '-' + (m < 10 ? '0' + m : m) + '-' + (dd < 10 ? '0' + dd : dd); }
+$('expCsvVista').addEventListener('click', function () { var v = calendar.view; location.href = urlExport('csv', isoLocal(v.activeStart), isoLocal(new Date(v.activeEnd.getTime() - 86400000))); });
+$('expCsvAnio').addEventListener('click', function () { var a = calendar.getDate().getFullYear(); location.href = urlExport('csv', a + '-01-01', a + '-12-31'); });
+$('expIcs').addEventListener('click', function () { location.href = urlExport('ics'); });
 
 // ---- formulario de evento
 var filaN = 0;
@@ -305,6 +360,7 @@ function abrirNuevo(fecha) {
     if (TIPOS.length) $('evTipo').value = TIPOS[0].id;
     $('evFechas').innerHTML = ''; filaN = 0; agregarFila(fecha || '', '', '');
     $('evAgregarFecha').classList.remove('d-none'); $('evAyudaFechas').classList.remove('d-none');
+    $('evCasoFiltro').value = ''; pintarCasos(casoFiltro);
     pintarResp([YO]); $('evError').classList.add('d-none'); $('evCruce').classList.add('d-none'); modal('modalEvento').show();
 }
 function abrirEditar(ev) {
@@ -315,12 +371,13 @@ function abrirEditar(ev) {
     $('evTipo').value = p.tipoId;
     $('evFechas').innerHTML = ''; filaN = 0; agregarFila(p.fecha, p.horaIni, p.horaFin);
     $('evAgregarFecha').classList.add('d-none'); $('evAyudaFechas').classList.add('d-none');
+    $('evCasoFiltro').value = ''; pintarCasos(p.caso, p.casoLabel);
     pintarResp(p.responsables.map(function (r) { return r.id; })); $('evError').classList.add('d-none'); $('evCruce').classList.add('d-none');
     modal('modalDetalle').hide(); modal('modalEvento').show();
 }
 $('btnNuevo').addEventListener('click', function () { abrirNuevo(''); });
 $('evGuardar').addEventListener('click', function () {
-    var datos = {tipo: $('evTipo').value, asunto: $('evAsunto').value, modalidad: $('evModalidad').value, lugar: $('evLugar').value, comentario: $('evComentario').value, resp: []};
+    var datos = {tipo: $('evTipo').value, asunto: $('evAsunto').value, modalidad: $('evModalidad').value, lugar: $('evLugar').value, comentario: $('evComentario').value, caso: $('evCaso').value, resp: []};
     document.querySelectorAll('.ev-resp:checked').forEach(function (c) { datos.resp.push(c.value); });
     var i = 0; document.querySelectorAll('#evFechas [data-fila]').forEach(function (f) {
         datos['fecha_' + i] = f.querySelector('.ev-fecha').value; datos['ini_' + i] = f.querySelector('.ev-ini').value; datos['fin_' + i] = f.querySelector('.ev-fin').value; i++;
@@ -378,6 +435,7 @@ function abrirDetalle(ev) {
     $('dTipo').textContent = p.tipo; $('dTipo').style.background = p.color;
     $('dSerie').textContent = p.serieTotal > 1 ? 'Fecha ' + p.serieN + ' de ' + p.serieTotal + ' de la misma causa' : '';
     var dc = $('dCruce'); if (p.cruce) { dc.innerHTML = '<b>\u26a0 Cruce de horario</b> con otro evento pendiente del mismo responsable:<br>' + p.crucesCon.map(esc).join('<br>'); dc.classList.remove('d-none'); } else dc.classList.add('d-none');
+    $('dCasoFila').classList.toggle('d-none', !p.casoLabel); $('dCaso').textContent = p.casoLabel || '';
     $('dFecha').textContent = diaSemana(p.fecha) + ' ' + fmtFecha(p.fecha);
     $('dHora').textContent = p.horaIni + (p.horaFin ? ' a ' + p.horaFin : '');
     $('dLugar').textContent = (p.modalidad === 'V' ? 'Virtual' : 'Presencial') + (p.lugar ? ' · ' + p.lugar : '');
