@@ -16,6 +16,8 @@
     private static String f10(String s) { return s != null && s.length() >= 10 ? s.substring(0, 10) : s; }
 %><%
     request.setCharacterEncoding("UTF-8");
+    response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");   // la agenda siempre debe leer datos frescos
+    response.setHeader("Pragma", "no-cache");
     if (session.getAttribute("usuario") == null || session.isNew()) { response.setStatus(401); out.print(new JSONObject().put("ok", false).put("error", "Sesión expirada")); return; }
     if (!COMUN.PermisoHelper.tiene(session, "LEGAL_ACCESO")) { response.setStatus(403); out.print(new JSONObject().put("ok", false).put("error", "Sin acceso")); return; }
     int yo = -1;

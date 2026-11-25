@@ -135,6 +135,7 @@
         </div>
 
         <div class="card"><div class="card-body"><div id="calendar"></div></div></div>
+        <p class="text-xxs text-secondary text-end mt-2 mb-0">Agenda legal &middot; versi&oacute;n fase 3 (v&iacute;nculo a casos y exportar)</p>
     </div>
 </main>
 
@@ -274,7 +275,10 @@ var calendar = new FullCalendar.Calendar($('calendar'), {
     dateClick: function (info) { abrirNuevo(info.dateStr.substring(0, 10)); },
     events: function (info, ok, fail) {
         var q = 'a=eventos&start=' + info.startStr.substring(0, 10) + '&end=' + info.endStr.substring(0, 10) + '&tipo=' + encodeURIComponent($('fTipo').value) + '&estado=' + $('fEstado').value + '&resp=' + ($('fMios').checked ? YO : $('fResp').value) + '&caso=' + encodeURIComponent(casoFiltro);
-        fetch(API + '?' + q, {credentials: 'same-origin'}).then(function (r) { return r.json(); }).then(function (d) { if (d && d.ok === false) { fail(d.error); aviso(d.error, 'danger'); } else ok(d); }).catch(fail);
+        fetch(API + '?' + q, {credentials: 'same-origin', cache: 'no-store'})
+            .then(function (r) { if (!r.ok) throw new Error('El servidor respondi\u00f3 con el error ' + r.status + '. Revisa que el WAR y los scripts de Legal (003, 004, 005) est\u00e9n aplicados.'); return r.json(); })
+            .then(function (d) { if (d && d.ok === false) { fail(d.error); aviso(d.error, 'danger'); } else ok(d); })
+            .catch(function (e) { fail(e); aviso('No se pudieron cargar los eventos: ' + (e && e.message ? e.message : e), 'danger'); });
     },
     eventClick: function (info) { abrirDetalle(info.event); },
     eventContent: function (arg) {
