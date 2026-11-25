@@ -67,6 +67,13 @@
     .est-CANCELADO { background:#e2e3e5; color:#41464b; } .est-REPROGRAMADO { background:#e7e0f7; color:#4b2f8c; }
     .resp-lista { max-height:130px; overflow:auto; border:1px solid #dee2e6; border-radius:6px; padding:6px 10px; }
     .hist li { font-size:.75rem; }
+    /* vista Lista: el texto del evento va sobre fondo claro (no blanco) */
+    .fc-list-event .ev-linea { color:#344767; font-size:.85rem; padding:0; }
+    .fc-list-event-title a { color:inherit; }
+    /* detalle: nada se sale del cuadro, aunque haya muchos responsables o textos largos */
+    #modalDetalle .table { table-layout:fixed; width:100%; }
+    #modalDetalle .table td, #modalDetalle .table th { word-break:break-word; white-space:normal; }
+    .resp-chip { display:inline-block; background:#f1f3f5; color:#344767; font-size:.74rem; padding:2px 9px; border-radius:12px; margin:0 4px 4px 0; }
 </style>
 </head>
 <body class="g-sidenav-show bg-gray-100">
@@ -322,7 +329,7 @@ function abrirDetalle(ev) {
     $('dFecha').textContent = diaSemana(p.fecha) + ' ' + fmtFecha(p.fecha);
     $('dHora').textContent = p.horaIni + (p.horaFin ? ' a ' + p.horaFin : '');
     $('dLugar').textContent = (p.modalidad === 'V' ? 'Virtual' : 'Presencial') + (p.lugar ? ' · ' + p.lugar : '');
-    $('dResp').textContent = p.responsables.length ? p.responsables.map(function (r) { return r.nombre; }).join(', ') : '-';
+    $('dResp').innerHTML = p.responsables.length ? p.responsables.map(function (r) { return '<span class="resp-chip">' + esc(r.nombre) + '</span>'; }).join('') : '-';
     $('dComentario').textContent = p.comentario || '-';
     var just = p.justificacion;
     $('dJustFila').classList.toggle('d-none', !just && p.estado !== 'REPROGRAMADO');
