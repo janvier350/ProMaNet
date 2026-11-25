@@ -41,6 +41,8 @@
                 LocalDate f = null;
                 try { f = LocalDate.parse(request.getParameter("fecha")); } catch (Exception ignore) { }
                 out.print(LEG_Agenda.conflictos(cn, f, request.getParameter("ini"), request.getParameter("fin"), resp, entero(request.getParameter("excluir"))));
+            } else if ("buscar".equals(a)) {
+                out.print(LEG_Agenda.buscar(cn, request.getParameter("q")));
             } else if ("casos".equals(a)) {
                 out.print(LEG_Agenda.casos(cn));
             } else if ("tipos".equals(a)) {
@@ -49,7 +51,7 @@
             return;
         }
         // ---- escrituras
-        String msg = "Listo.";
+        String msg = "Listo.", fechaIr = null;   // fechaIr: el calendario salta a esa fecha para que se vea lo que se acaba de guardar
         if ("crear".equals(a)) {
             List<String[]> fechas = new ArrayList<>();
             for (int i = 0; i < 40; i++) {
@@ -65,6 +67,7 @@
             List<Integer> ids = LEG_Agenda.crear(cn, yo, tipo, request.getParameter("asunto"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp, fechas, request.getParameter("caso"));
             COMUN.LogActividad.registrar(request, "LEGAL", "CREAR", "Agenda legal: registro " + ids.size() + " evento(s) " + ids);
             msg = ids.size() == 1 ? "Evento registrado." : ids.size() + " eventos registrados.";
+            fechaIr = fechas.get(0)[0];
         } else if ("editar".equals(a)) {
             List<Integer> resp = new ArrayList<>();
             String[] rs = request.getParameterValues("resp");
@@ -76,6 +79,7 @@
             LEG_Agenda.editar(cn, yo, id, tipo, request.getParameter("asunto"), fecha, request.getParameter("ini_0"), request.getParameter("fin_0"), request.getParameter("modalidad"), request.getParameter("lugar"), request.getParameter("comentario"), resp, request.getParameter("caso"));
             COMUN.LogActividad.registrar(request, "LEGAL", "ACTUALIZAR", "Agenda legal: edito evento #" + id);
             msg = "Evento actualizado.";
+            fechaIr = fecha.toString();
         } else if ("estado".equals(a)) {
             Integer id = entero(request.getParameter("id"));
             if (id == null) throw new IllegalArgumentException("Datos incompletos.");
@@ -91,11 +95,12 @@
             int nuevo = LEG_Agenda.reprogramar(cn, yo, id, fecha, request.getParameter("ini_0"), request.getParameter("fin_0"), request.getParameter("justificacion"));
             COMUN.LogActividad.registrar(request, "LEGAL", "ACTUALIZAR", "Agenda legal: reprogramo evento #" + id + " -> #" + nuevo);
             msg = "Evento reprogramado.";
+            fechaIr = fecha.toString();
         } else if ("tipo".equals(a)) {
             LEG_Agenda.guardarTipo(cn, entero(request.getParameter("id")), request.getParameter("nombre"), request.getParameter("color"), !"0".equals(request.getParameter("activo")));
             msg = "Tipo guardado.";
         } else { throw new IllegalArgumentException("Acción no válida."); }
-        out.print(new JSONObject().put("ok", true).put("msg", msg));
+        out.print(new JSONObject().put("ok", true).put("msg", msg).put("fecha", fechaIr == null ? "" : fechaIr));
     } catch (IllegalArgumentException | java.time.format.DateTimeParseException e) {
         out.print(new JSONObject().put("ok", false).put("error", e instanceof java.time.format.DateTimeParseException ? "Revisa las fechas." : e.getMessage()));
     } catch (Exception e) {

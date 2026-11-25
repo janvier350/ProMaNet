@@ -112,6 +112,10 @@
                     </select>
                     <select id="fResp" class="form-control form-control-sm" style="width:auto"><option value="">Todos los responsables</option></select>
                     <div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="fMios"><label class="form-check-label text-sm" for="fMios">Solo mis eventos</label></div>
+                    <div class="input-group input-group-sm" style="width:230px">
+                        <input id="fBuscar" class="form-control" placeholder="Buscar evento en cualquier fecha..." autocomplete="off">
+                        <button class="btn btn-outline-secondary mb-0" id="btnBuscar" title="Buscar"><i class="fas fa-search"></i></button>
+                    </div>
                     <div class="ms-auto d-flex gap-2">
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary mb-0 dropdown-toggle" data-bs-toggle="dropdown" id="btnExportar"><i class="fas fa-download me-1"></i> Exportar</button>
@@ -146,7 +150,14 @@
     <div class="modal-body">
       <input type="hidden" id="evId">
       <div class="row g-3">
-        <div class="col-md-4"><label class="text-xs text-uppercase font-weight-bold">Tipo</label><select id="evTipo" class="form-control"></select></div>
+        <div class="col-md-4"><label class="text-xs text-uppercase font-weight-bold">Tipo</label><select id="evTipo" class="form-control"></select>
+          <a href="javascript:;" id="evNuevoTipoLink" class="text-xs"><i class="fas fa-plus me-1"></i>Crear un tipo nuevo</a>
+          <div id="evNuevoTipo" class="d-none mt-2 p-2 border rounded">
+            <input id="ntNombre" class="form-control form-control-sm mb-1" maxlength="60" placeholder="Nombre del tipo">
+            <div class="d-flex gap-1 align-items-center"><input type="color" id="ntColor" value="#5e72e4" class="form-control form-control-color form-control-sm" style="width:46px">
+              <button type="button" class="btn btn-sm bg-gradient-primary mb-0" id="ntCrear">Crear</button><button type="button" class="btn btn-sm btn-link mb-0" id="ntCancelar">Cancelar</button></div>
+            <div id="ntError" class="text-xs text-danger mt-1 d-none"></div>
+          </div></div>
         <div class="col-md-8"><label class="text-xs text-uppercase font-weight-bold">Asunto / caso</label><input id="evAsunto" class="form-control" maxlength="200" placeholder="Ej.: Audiencia de juzgamiento - Estafa (Perito XP)"></div>
         <div class="col-12">
           <label class="text-xs text-uppercase font-weight-bold">Caso relacionado (opcional)</label>
@@ -211,6 +222,14 @@
       <div id="aError" class="alert alert-danger text-white py-2 mt-3 d-none"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button><button class="btn bg-gradient-primary btn-sm" id="aConfirmar">Confirmar</button></div>
+  </div></div>
+</div>
+
+<%-- ===== Modal: resultados de busqueda ===== --%>
+<div class="modal fade" id="modalBuscar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="bTitulo">Resultados</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="bLista"></div>
   </div></div>
 </div>
 
@@ -364,7 +383,7 @@ function abrirNuevo(fecha) {
     if (TIPOS.length) $('evTipo').value = TIPOS[0].id;
     $('evFechas').innerHTML = ''; filaN = 0; agregarFila(fecha || '', '', '');
     $('evAgregarFecha').classList.remove('d-none'); $('evAyudaFechas').classList.remove('d-none');
-    $('evCasoFiltro').value = ''; pintarCasos(casoFiltro);
+    $('evNuevoTipo').classList.add('d-none'); $('evCasoFiltro').value = ''; pintarCasos(casoFiltro);
     pintarResp([YO]); $('evError').classList.add('d-none'); $('evCruce').classList.add('d-none'); modal('modalEvento').show();
 }
 function abrirEditar(ev) {
@@ -390,7 +409,7 @@ $('evGuardar').addEventListener('click', function () {
     $('evGuardar').disabled = true;
     post(edit ? 'editar' : 'crear', datos).then(function (r) {
         $('evGuardar').disabled = false;
-        if (r.ok) { modal('modalEvento').hide(); aviso(r.msg); calendar.refetchEvents(); } else { $('evError').textContent = r.error; $('evError').classList.remove('d-none'); }
+        if (r.ok) { modal('modalEvento').hide(); aviso(r.msg); if (r.fecha) calendar.gotoDate(r.fecha); calendar.refetchEvents(); } else { $('evError').textContent = r.error; $('evError').classList.remove('d-none'); }
     });
 });
 
@@ -429,6 +448,44 @@ function revisarCrucesReprog() {
     });
 }
 ['aFechaV', 'aIni', 'aFin'].forEach(function (id) { $(id).addEventListener('change', revisarCrucesReprog); });
+
+// ---- buscar eventos en cualquier fecha
+function buscarEventos() {
+    var q = $('fBuscar').value.trim();
+    if (q.length < 2) { aviso('Escribe al menos 2 letras para buscar.', 'warning'); return; }
+    $('bTitulo').textContent = 'Resultados para \u00ab' + q + '\u00bb'; $('bLista').innerHTML = '<p class="text-secondary mb-0">Buscando...</p>'; modal('modalBuscar').show();
+    fetch(API + '?a=buscar&q=' + encodeURIComponent(q), {credentials: 'same-origin', cache: 'no-store'}).then(function (r) { return r.json(); }).then(function (lista) {
+        if (!lista || !lista.length) { $('bLista').innerHTML = '<p class="text-secondary mb-0">No se encontr\u00f3 ning\u00fan evento con ese texto.</p>'; return; }
+        $('bLista').innerHTML = '<p class="text-xs text-secondary">Se muestran los 60 m\u00e1s recientes. Haz clic en uno para verlo.</p>';
+        lista.forEach(function (ev) {
+            var p = ev.extendedProps, d = document.createElement('div'); d.className = 'border rounded p-2 mb-2'; d.style.cursor = 'pointer';
+            d.innerHTML = '<div class="d-flex justify-content-between flex-wrap"><b>' + esc(ev.title) + '</b><span class="text-xs text-secondary">' + diaSemana(p.fecha) + ' ' + fmtFecha(p.fecha) + ' \u00b7 ' + esc(p.horaIni) + '</span></div>' +
+                '<div class="text-xs"><span class="badge" style="background:' + esc(p.color) + ';color:#fff">' + esc(p.tipo) + '</span> <span class="badge-est est-' + p.estado + '">' + p.estado + '</span>' +
+                (p.casoLabel ? ' <span class="text-secondary"><i class="fas fa-folder-open"></i> ' + esc(p.casoLabel) + '</span>' : '') + '</div>' +
+                (p.lugar ? '<div class="text-xs text-secondary">' + esc(p.lugar) + '</div>' : '');
+            d.onclick = function () { modal('modalBuscar').hide(); calendar.gotoDate(p.fecha); setTimeout(function () { abrirDetalle(ev); }, 350); };
+            $('bLista').appendChild(d);
+        });
+    }).catch(function () { $('bLista').innerHTML = '<p class="text-danger mb-0">No se pudo buscar.</p>'; });
+}
+$('btnBuscar').addEventListener('click', buscarEventos);
+$('fBuscar').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); buscarEventos(); } });
+
+// ---- crear un tipo de evento desde el mismo formulario
+$('evNuevoTipoLink').addEventListener('click', function () { $('evNuevoTipo').classList.toggle('d-none'); $('ntError').classList.add('d-none'); $('ntNombre').focus(); });
+$('ntCancelar').addEventListener('click', function () { $('evNuevoTipo').classList.add('d-none'); });
+$('ntCrear').addEventListener('click', function () {
+    var nombre = $('ntNombre').value.trim();
+    post('tipo', {nombre: nombre, color: $('ntColor').value}).then(function (r) {
+        if (!r.ok) { $('ntError').textContent = r.error; $('ntError').classList.remove('d-none'); return; }
+        fetch(API + '?a=tipos', {credentials: 'same-origin'}).then(function (x) { return x.json(); }).then(function (t) {
+            TIPOS = t; pintarTipos();
+            var nuevo = TIPOS.filter(function (x) { return x.nombre.toLowerCase() === nombre.toLowerCase(); })[0];
+            if (nuevo) $('evTipo').value = nuevo.id;
+            $('ntNombre').value = ''; $('evNuevoTipo').classList.add('d-none'); calendar.refetchEvents();
+        });
+    });
+});
 
 // ---- detalle
 var evActual = null;
@@ -488,7 +545,7 @@ $('aConfirmar').addEventListener('click', function () {
     $('aConfirmar').disabled = true;
     req.then(function (r) {
         $('aConfirmar').disabled = false;
-        if (r.ok) { modal('modalAccion').hide(); aviso(r.msg); calendar.refetchEvents(); } else { $('aError').textContent = r.error; $('aError').classList.remove('d-none'); }
+        if (r.ok) { modal('modalAccion').hide(); aviso(r.msg); if (r.fecha) calendar.gotoDate(r.fecha); calendar.refetchEvents(); } else { $('aError').textContent = r.error; $('aError').classList.remove('d-none'); }
     });
 });
 

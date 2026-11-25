@@ -62,6 +62,16 @@ public class LEG_Agenda {
 
     /** Eventos entre dos fechas (formato FullCalendar), con filtros opcionales por tipo, estado y responsable. */
     public static JSONArray eventos(Connection cn, LocalDate ini, LocalDate fin, Integer tipo, String estado, Integer resp, String caso) throws SQLException {
+        return consultar(cn, ini, fin, tipo, estado, resp, caso, null);
+    }
+
+    /** Busca eventos de CUALQUIER fecha por texto (asunto, lugar, comentario, caso o responsable). Maximo 60, los mas recientes primero. */
+    public static JSONArray buscar(Connection cn, String texto) throws SQLException {
+        if (texto == null || texto.trim().length() < 2) return new JSONArray();
+        return consultar(cn, null, null, null, null, null, null, texto.trim());
+    }
+
+    private static JSONArray consultar(Connection cn, LocalDate ini, LocalDate fin, Integer tipo, String estado, Integer resp, String caso, String texto) throws SQLException {
         StringBuilder sql = new StringBuilder(
             "SELECT * FROM (SELECT a.ID_EVENTO, a.ID_GRUPO, a.ID_TIPO, t.NOMBRE AS TIPO_NOM, t.COLOR, a.ASUNTO, TO_CHAR(a.FECHA,'YYYY-MM-DD') AS F, a.HORA_INI, a.HORA_FIN, " +
             "a.MODALIDAD, a.LUGAR, a.COMENTARIO, a.ESTADO, a.JUSTIFICACION, a.ID_REPROG_A, " +
@@ -71,17 +81,25 @@ public class LEG_Agenda {
             "CASE a.CASO_TIPO WHEN 'I' THEN 'IP \u00b7 ' || NVL(ip.PROCESO, ip.PROCESADO) WHEN 'J' THEN 'Juicio \u00b7 ' || NVL(ex.JUICIO, ex.ACTOR || ' vs ' || ex.DEMANDADO) END AS CASO_LABEL " +
             "FROM LEG_AGENDA a JOIN LEG_AGENDA_TIPO t ON t.ID_TIPO = a.ID_TIPO " +
             "LEFT JOIN LEGAL_IP ip ON a.CASO_TIPO = 'I' AND ip.ID_LEGAL_IP = a.CASO_ID " +
-            "LEFT JOIN LEGAL_EXPEL ex ON a.CASO_TIPO = 'J' AND ex.ID_LEGAL_EXPEL = a.CASO_ID) x WHERE x.FD BETWEEN ? AND ? ");
+            "LEFT JOIN LEGAL_EXPEL ex ON a.CASO_TIPO = 'J' AND ex.ID_LEGAL_EXPEL = a.CASO_ID) x WHERE 1 = 1 ");
+        List<Object> binds = new ArrayList<>();
+        if (ini != null) { sql.append("AND x.FD BETWEEN ? AND ? "); binds.add(Date.valueOf(ini)); binds.add(Date.valueOf(fin)); }
+        if (texto != null) {
+            String like = "%" + texto.toUpperCase().replace("%", "").replace("_", "") + "%";
+            sql.append("AND (UPPER(x.ASUNTO) LIKE ? OR UPPER(x.LUGAR) LIKE ? OR UPPER(x.COMENTARIO) LIKE ? OR UPPER(x.CASO_LABEL) LIKE ? OR EXISTS (SELECT 1 FROM LEG_AGENDA_RESP r JOIN USUARIO u ON u.IDUSUARIO = r.ID_USUARIO " +
+                       "WHERE r.ID_EVENTO = x.ID_EVENTO AND UPPER(u.NOMBRE || ' ' || u.APELLIDOS) LIKE ?)) ");
+            for (int k = 0; k < 5; k++) binds.add(like);
+        }
         Object[] cf = parseCaso(caso);
         if (cf != null) sql.append("AND x.CASO_TIPO = '").append(cf[0]).append("' AND x.CASO_ID = ").append(cf[1]).append(" ");
         if (tipo != null) sql.append("AND x.ID_TIPO = ").append(tipo.intValue()).append(" ");
         if (estado != null && estado.matches("PENDIENTE|CUMPLIDO|CANCELADO|REPROGRAMADO")) sql.append("AND x.ESTADO = '").append(estado).append("' ");
         if (resp != null) sql.append("AND EXISTS (SELECT 1 FROM LEG_AGENDA_RESP r WHERE r.ID_EVENTO = x.ID_EVENTO AND r.ID_USUARIO = ").append(resp.intValue()).append(") ");
-        sql.append("ORDER BY x.FD, x.HORA_INI, x.ID_EVENTO");
+        String ordenado = texto != null ? "SELECT * FROM (" + sql + "ORDER BY x.FD DESC, x.HORA_INI, x.ID_EVENTO) WHERE ROWNUM <= 60" : sql + "ORDER BY x.FD, x.HORA_INI, x.ID_EVENTO";
 
         List<JSONObject> lista = new ArrayList<>();
-        try (PreparedStatement st = cn.prepareStatement(sql.toString())) {
-            st.setDate(1, Date.valueOf(ini)); st.setDate(2, Date.valueOf(fin));
+        try (PreparedStatement st = cn.prepareStatement(ordenado)) {
+            for (int k = 0; k < binds.size(); k++) { Object b = binds.get(k); if (b instanceof Date) st.setDate(k + 1, (Date) b); else st.setString(k + 1, (String) b); }
             try (ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
                     String f = rs.getString("F"), hi = rs.getString("HORA_INI"), hf = rs.getString("HORA_FIN"), est = rs.getString("ESTADO");
